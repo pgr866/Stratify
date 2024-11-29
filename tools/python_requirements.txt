@@ -1,0 +1,11 @@
+django
+djangorestframework
+django-cors-headers
+djangorestframework-simplejwt
+coreapi
+setuptools
+dj_database_url
+psycopg2
+whitenoise
+ccxt
+pandas
