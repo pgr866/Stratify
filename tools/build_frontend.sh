@@ -1,18 +1,18 @@
 #!/bin/bash
 
-# FRONTEND BACKEND
+# FRONTEND FRONTEND
 
 # Change the current working directory to the root directory
 cd "$(dirname "$0")"
 cd ..
 
-# Node.js configuration: React, JavaScript
-#npm create vite@latest frontend
+# Node.js configuration
+#npm create vite@latest frontend -- --template react-ts
 #cp -f tools/package.json frontend/package.json
 cd frontend
 npm install
-#npm install react-router-dom react-hot-toast axios js-cookie @react-oauth/google react-hook-form react-select rsuite lightweight-charts
-#npm install -D tailwindcss postcss autoprefixer @babel/plugin-proposal-private-property-in-object
+#npm install react-router-dom react-hook-form react-hot-toast axios js-cookie @react-oauth/google react-select rsuite lightweight-charts
+#npm install -D autoprefixer postcss tailwindcss
 #npx tailwindcss init -p
 
 echo
