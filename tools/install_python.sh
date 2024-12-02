@@ -21,7 +21,7 @@ sudo apt update -y
 sudo apt install -y python$version
 
 # Install the Python development packages
-sudo apt install -y python$version-dev build-essential
+sudo apt install -y python$version-dev build-essential libpq-dev
 
 # Check Python version
 python$version --version

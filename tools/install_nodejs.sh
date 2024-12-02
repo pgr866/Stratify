@@ -12,7 +12,7 @@ cd "$(dirname "$0")"
 version=$(cat nodejs_version.txt | awk -F. '{print $1}')
 
 # Add the NodeSource repository for the specified version
-curl -fsSL https://deb.nodesource.com/setup_$version.x | sudo -E bash -
+wget -qO- https://deb.nodesource.com/setup_$version.x | sudo -E bash -
 
 # Update apt packages
 sudo apt update -y
