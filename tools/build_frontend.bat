@@ -10,7 +10,7 @@ cd ..
 ::start /WAIT cmd /c "npm create vite@latest frontend -- --template react-ts"
 ::copy /Y tools\package.json frontend\package.json
 cd frontend
-start /WAIT cmd /c "npm install"
+start /WAIT cmd /c "npm install & pause"
 ::npm install react-router-dom react-hook-form react-hot-toast axios js-cookie @react-oauth/google react-select rsuite lightweight-charts
 ::npm install -D autoprefixer postcss tailwindcss
 ::npx tailwindcss init -p
