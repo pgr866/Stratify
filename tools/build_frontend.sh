@@ -6,11 +6,10 @@
 cd "$(dirname "$0")"
 cd ..
 
-mkdir frontend/dist
+mkdir -p frontend/dist
 # Node.js configuration: type frontend, React, JavaScript
 #npm create vite
 cd frontend
-npm install
 npm install react-router-dom react-hot-toast axios react-hook-form react-select js-cookie
 npm install -D tailwindcss postcss autoprefixer
 #npx tailwindcss init -p

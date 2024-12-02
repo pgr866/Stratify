@@ -11,9 +11,6 @@ cd "$(dirname "$0")"
 # Python version
 version=$(cat python_version.txt | awk -F. '{print $1"."$2}')
 
-# Upgrade system
-sudo apt upgrade -y
-
 # The "deadsnakes" team maintains Launchpad PPA and consistently updates this repository with the latest Python versions
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 

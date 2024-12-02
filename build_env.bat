@@ -9,15 +9,13 @@ call install_python.bat
 echo Installing PostgreSQL...
 call install_postgresql.bat
 
+echo Installing Node.js...
+call install_nodejs.bat
+
 echo Building Backend...
 call build_backend.bat
 
-echo Installing Node.js...
-cd tools
-call install_node.bat
-
 echo Building Frontend...
-cd tools
 call build_frontend.bat
 
 echo.

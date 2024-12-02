@@ -6,7 +6,7 @@
 cd /d %~dp0
 
 :: Node.js version
-set /p version=<node_version.txt
+set /p version=<nodejs_version.txt
 
 :: Download and install Node.js
 curl -L -o node-v%version%-x64.msi https://nodejs.org/dist/v%version%/node-v%version%-x64.msi

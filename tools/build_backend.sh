@@ -31,19 +31,30 @@ wget https://bootstrap.pypa.io/get-pip.py
 sudo $python get-pip.py
 sudo rm -rf get-pip.py
 
+# Install TA-Lib
+wget https://deac-fra.dl.sourceforge.net/project/ta-lib/ta-lib/0.4.0/ta-lib-0.4.0-src.tar.gz
+tar -xzf ta-lib-0.4.0-src.tar.gz
+sudo rm -rf ta-lib-0.4.0-src.tar.gz
+cd ta-lib/
+./configure
+make
+sudo make install
+cd ..
+sudo rm -rf ta-lib
+
 # Install libraries listed in tools/python_requirements.txt
 $python -m pip install -U -r tools/python_requirements.txt
 
 # List installed libraries
 $python -m pip list
 
-# Install and configure PostgreSQL Database
+# Configure PostgreSQL Database
 PG_VERSION=$(cat tools/postgresql_version.txt | awk -F. '{print $1}')
 DB_NAME=stratify_db
 DB_USER=admin
 DB_PASSWORD=1234
 
-# Stop and start PostgreSQL server
+# Start PostgreSQL server
 sudo systemctl stop postgresql
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
@@ -66,12 +77,11 @@ EOF
 # Create Django project
 #mkdir backend
 #cd backend
-#django-admin startproject backend .
-# Start app
+#$python -m django startproject backend .
 #$python manage.py startapp stratify
 #cd ..
 # Make migrations
-$python backend/manage.py makemigrations stratify
+$python backend/manage.py makemigrations
 # Migrate
 $python backend/manage.py migrate
 # Create superuser

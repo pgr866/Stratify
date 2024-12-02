@@ -9,3 +9,4 @@ psycopg2
 whitenoise
 ccxt
 pandas
+ta-lib

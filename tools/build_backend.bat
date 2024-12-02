@@ -30,13 +30,20 @@ curl -o get-pip.py https://bootstrap.pypa.io/get-pip.py
 %python% get-pip.py
 del get-pip.py
 
-:: Install libraries listed in tools\python_requirements.txt
-%python% -m pip install -U -r tools\python_requirements.txt
+:: Create a temporary requirements file without ta-lib
+findstr /v /i "ta-lib" tools\python_requirements.txt > tools\python_requirements_no_ta_lib.txt
+:: Install libraries listed in tools\python_requirements.txt, except for ta-lib
+%python% -m pip install -U -r tools\python_requirements_no_ta_lib.txt
+:: Clean up temporary requirements file
+del tools\python_requirements_no_ta_lib.txt
+
+:: Install TA-Lib
+%python% -m pip install -U https://github.com/cgohlke/talib-build/releases/download/v0.5.1/ta_lib-0.5.1-cp312-cp312-win_amd64.whl
 
 :: List installed libraries
 %python% -m pip list
 
-:: Configure PostgreSQL
+:: Configure PostgreSQL Database
 set /p PG_VERSION=<tools\postgresql_version.txt
 set DB_NAME=stratify_db
 set DB_USER=admin
@@ -60,19 +67,18 @@ echo GRANT ALL PRIVILEGES ON DATABASE %DB_NAME% TO %DB_USER%;
 echo GRANT ALL PRIVILEGES ON SCHEMA public TO %DB_USER%;
 ) > create_db.sql
 
-:: Run SQL script as postgres user
+:: Run SQL script to configure Database and Roles as postgres user
 psql -U postgres -d postgres -f create_db.sql
 del create_db.sql
 
 :: Create Django project
 ::mkdir backend
 ::cd backend
-::django-admin startproject backend .
-:: Start app
+::%python% -m django startproject backend . 
 ::%python% manage.py startapp stratify
 ::cd ..
 :: Make migrations
-%python% backend\manage.py makemigrations stratify
+%python% backend\manage.py makemigrations
 :: Migrate
 %python% backend\manage.py migrate
 :: Create superuser
