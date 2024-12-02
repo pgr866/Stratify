@@ -77,7 +77,7 @@ mkdir frontend\dist
 
 :: Create Django project
 ::cd backend
-::%python% -m django startproject backend . 
+::%python% -m django startproject backend .
 ::%python% manage.py startapp stratify
 ::cd ..
 :: Make migrations
