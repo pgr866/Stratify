@@ -16,11 +16,14 @@ set /p version=<tools\python_version.txt
 set _python=%userprofile%\AppData\Local\Programs\Python\Python%version:~0,1%%version:~2,2%\python.exe
 
 :: Create Python venv
+mkdir backend 2>nul
+cd backend
 %_python% -m venv venv
-call %cd%\venv\Scripts\activate.bat
+cd ..
+call %cd%\backend\venv\Scripts\activate.bat
 
 :: New Python venv path
-set python=%cd%\venv\Scripts\python.exe
+set python=%cd%\backend\venv\Scripts\python.exe
 
 :: Check Python venv version
 %python% --version
@@ -72,7 +75,6 @@ psql -U postgres -d postgres -f create_db.sql
 del create_db.sql
 
 :: Create Django project
-::mkdir backend
 ::cd backend
 ::%python% -m django startproject backend . 
 ::%python% manage.py startapp stratify

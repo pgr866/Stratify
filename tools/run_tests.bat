@@ -7,7 +7,7 @@ cd /d %~dp0
 cd ..
 
 :: Python venv path
-set python=%cd%\venv\Scripts\python.exe
+set python=%cd%\backend\venv\Scripts\python.exe
 
 :: Run Django Tests
 %python% backend\manage.py test stratify

@@ -6,7 +6,7 @@
 cd "$(dirname "$0")"
 
 # Python venv path
-python="$(pwd)/venv/bin/python"
+python="$(pwd)/backend/venv/bin/python"
 
 # Run PostgreSQL and Django servers
 gnome-terminal -- bash -c "sudo systemctl stop postgresql; clear; sudo systemctl start postgresql; gnome-terminal -- bash -c '$python backend/manage.py runserver; exec bash'; sudo systemctl status postgresql; exec bash"

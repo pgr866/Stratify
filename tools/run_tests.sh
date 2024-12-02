@@ -7,7 +7,7 @@ cd "$(dirname "$0")"
 cd ..
 
 # Python venv path
-python="$(pwd)/venv/bin/python"
+python="$(pwd)/backend/venv/bin/python"
 
 # Run Django Tests
 $python backend/manage.py test stratify

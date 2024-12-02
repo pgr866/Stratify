@@ -14,13 +14,16 @@ version=$(cat tools/python_version.txt | awk -F. '{print $1"."$2}')
 
 # Create Python venv
 sudo apt install -y python$version-venv
+sudo mkdir -p backend 2>/dev/null
+cd backend
 sudo mkdir venv
 python$version -m venv venv
-source "$(pwd)/venv/bin/activate"
+cd ..
+source "$(pwd)/backend/venv/bin/activate"
 sudo chmod -R 777 venv
 
 # New Python venv path
-python="$(pwd)/venv/bin/python"
+python="$(pwd)/backend/venv/bin/python"
 
 # Check Python venv version
 $python --version
