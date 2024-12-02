@@ -73,6 +73,7 @@ echo GRANT ALL PRIVILEGES ON SCHEMA public TO %DB_USER%;
 :: Run SQL script to configure Database and Roles as postgres user
 psql -U postgres -d postgres -f create_db.sql
 del create_db.sql
+mkdir frontend\dist
 
 :: Create Django project
 ::cd backend
