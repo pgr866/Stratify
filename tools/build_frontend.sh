@@ -6,12 +6,13 @@
 cd "$(dirname "$0")"
 cd ..
 
-mkdir -p frontend/dist
-# Node.js configuration: type frontend, React, JavaScript
-#npm create vite
+# Node.js configuration: React, JavaScript
+#npm create vite@latest frontend
+#cp -f tools/package.json frontend/package.json
 cd frontend
-npm install react-router-dom react-hot-toast axios react-hook-form react-select js-cookie
-npm install -D tailwindcss postcss autoprefixer
+npm install
+#npm install react-router-dom react-hot-toast axios js-cookie @react-oauth/google react-hook-form react-select rsuite lightweight-charts
+#npm install -D tailwindcss postcss autoprefixer @babel/plugin-proposal-private-property-in-object
 #npx tailwindcss init -p
 
 echo

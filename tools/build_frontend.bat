@@ -6,12 +6,13 @@
 cd /d %~dp0
 cd ..
 
-mkdir frontend\dist
-:: Node.js configuration: type frontend, React, JavaScript
-::start /WAIT cmd /c "npm create vite"
+:: Node.js configuration: React, JavaScript
+::start /WAIT cmd /c "npm create vite@latest frontend"
+::copy /Y tools\package.json frontend\package.json
 cd frontend
-npm install react-router-dom react-hot-toast axios react-hook-form react-select js-cookie
-npm install -D tailwindcss postcss autoprefixer
+start /WAIT cmd /c "npm install"
+::npm install react-router-dom react-hot-toast axios js-cookie @react-oauth/google react-hook-form react-select rsuite lightweight-charts
+::npm install -D tailwindcss postcss autoprefixer @babel/plugin-proposal-private-property-in-object
 ::npx tailwindcss init -p
 
 echo.

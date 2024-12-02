@@ -2,6 +2,7 @@ django
 djangorestframework
 django-cors-headers
 djangorestframework-simplejwt
+social-auth-app-django
 coreapi
 setuptools
 dj_database_url
