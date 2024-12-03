@@ -10,20 +10,28 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@radix-ui/react-dropdown-menu": "^2.1.2",
+    "@radix-ui/react-slot": "^1.1.0",
     "@react-oauth/google": "^0.12.1",
     "axios": "^1.7.8",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "js-cookie": "^3.0.5",
     "lightweight-charts": "^4.2.1",
+    "lucide-react": "^0.464.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.2",
     "react-hot-toast": "^2.4.1",
     "react-router-dom": "^7.0.1",
     "react-select": "^5.8.3",
-    "rsuite": "^5.74.2"
+    "rsuite": "^5.74.2",
+    "tailwind-merge": "^2.5.5",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "@types/node": "^22.10.1",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.4",
