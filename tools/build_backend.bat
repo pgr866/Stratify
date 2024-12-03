@@ -75,7 +75,7 @@ psql -U postgres -d postgres -f create_db.sql
 del create_db.sql
 mkdir frontend\dist
 
-:: Create Django project
+:: Uncomment to create a new Django project
 ::cd backend
 ::%python% -m django startproject backend .
 ::%python% manage.py startapp stratify

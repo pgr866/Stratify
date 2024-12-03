@@ -60,8 +60,6 @@ DB_PASSWORD=1234
 # Start PostgreSQL server
 sudo systemctl stop postgresql
 sudo systemctl start postgresql
-sudo systemctl enable postgresql
-sudo systemctl status postgresql &
 sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD '$DB_PASSWORD';"
 
 # Configure Database and Roles as postgres user
@@ -76,10 +74,9 @@ CREATE DATABASE $DB_NAME WITH OWNER $DB_USER;
 GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
 GRANT ALL PRIVILEGES ON SCHEMA public TO $DB_USER;
 EOF
-mkdir frontend/dist
+mkdir -p frontend/dist
 
-# Create Django project
-#mkdir backend
+# Uncomment to create a new Django project
 #cd backend
 #$python -m django startproject backend .
 #$python manage.py startapp stratify
