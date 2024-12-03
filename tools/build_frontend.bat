@@ -17,7 +17,7 @@ start /WAIT cmd /c "npm install & pause"
 ::npm install -D autoprefixer postcss tailwindcss
 ::npx tailwindcss init -p
 
-:: Configure shadcnui: follow https://ui.shadcn.com/docs/
+:: Configure shadcnui for vite: follow https://ui.shadcn.com/docs/
 ::npx shadcn@latest init
 ::npx shadcn@latest add button dropdown-menu
 
