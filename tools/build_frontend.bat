@@ -16,7 +16,7 @@ start /WAIT cmd /c "npm install & pause"
 ::npx tailwindcss init -p
 :: Configure shadcnui
 ::npx shadcn@latest init
-::npx shadcn@latest add button
+::npx shadcn@latest add button dropdown-menu
 
 echo.
 echo Frontend built.
