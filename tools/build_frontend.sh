@@ -12,14 +12,14 @@ cd ..
 #cp -f tools/package.json frontend/package.json
 # Node.js configuration
 cd frontend
-npm install
-#npm install react-router-dom react-hook-form react-hot-toast axios js-cookie @react-oauth/google react-select rsuite lightweight-charts
-#npm install -D autoprefixer postcss tailwindcss
+npm i
+#npm i react-router-dom react-hook-form react-hot-toast axios js-cookie @react-oauth/google lightweight-charts lucide-react
+#npm i -D autoprefixer postcss tailwindcss
 #npx tailwindcss init -p
 
 # Configure shadcnui for vite: follow https://ui.shadcn.com/docs/
 #npx shadcn@latest init
-#npx shadcn@latest add button dropdown-menu
+#npx shadcn@latest add button calendar popover scroll-area
 
 echo
 echo "Frontend built."
