@@ -13,7 +13,7 @@ export function DateTimeRangePicker() {
     from: undefined,
     to: undefined,
   });
-  const [isSettingStartTime, setIsSettingStartTime] = React.useState(true); // Esto controla si configuramos inicio o fin.
+  const [isSettingStartTime, setIsSettingStartTime] = React.useState(true);
   const [time, setTime] = React.useState({ hour: 0, minute: 0 });
   const [isOpen, setIsOpen] = React.useState(false);
 
@@ -61,11 +61,9 @@ export function DateTimeRangePicker() {
   const handleSelect = (range: DateRange | undefined) => {
     if (range) {
       const { from, to } = range;
-
-      // Si se selecciona un nuevo día inicial
       if (from && (!dateRange.from || from.getTime() !== dateRange.from.getTime())) {
         setDateRange({ from, to: undefined });
-        setTime({ hour: 0, minute: 0 }); // Resetea la hora y los minutos para el nuevo día de inicio
+        setTime({ hour: 0, minute: 0 });
         setIsSettingStartTime(true);
       } else if (from && to) {
         setDateRange({ from, to });
@@ -91,7 +89,7 @@ export function DateTimeRangePicker() {
               {formatDateTime(dateRange.from)} - {formatDateTime(dateRange.to)}
             </>
           ) : (
-            <span>Pick a date and time range</span>
+            <span>Pick date and time range</span>
           )}
         </Button>
       </PopoverTrigger>
