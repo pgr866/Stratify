@@ -29,7 +29,7 @@ class LoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'username', 'password']
+        fields = ['id', 'email', 'username', 'password']
         extra_kwargs = {
             'password': {'write_only': True, 'required': False}
         }
@@ -55,7 +55,7 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.get('password')
         if not password:
-            raise serializers.ValidationError("Password is required")
+            raise serializers.ValidationError({"password": ["This field may not be blank."]})
         
         validated_data.pop('password')
         user = User(**validated_data)

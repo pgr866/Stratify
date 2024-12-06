@@ -25,8 +25,6 @@ class LoginView(APIView):
             access_token = str(refresh.access_token)
             response_data = serializer.data
             response_data['id'] = user.id
-            response_data['first_name'] = user.first_name
-            response_data['last_name'] = user.last_name
             response_data['email'] = user.email
             response_data['username'] = user.username
             response = Response(response_data, status=status.HTTP_200_OK)
@@ -80,8 +78,6 @@ class UserView(viewsets.ModelViewSet):
             access_token = str(refresh.access_token)
             response_data = login_serializer.data
             response_data['id'] = user.id
-            response_data['first_name'] = user.first_name
-            response_data['last_name'] = user.last_name
             response_data['email'] = user.email
             response_data['username'] = user.username
 
