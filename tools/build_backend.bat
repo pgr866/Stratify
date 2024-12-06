@@ -52,6 +52,15 @@ set DB_NAME=stratify_db
 set DB_USER=admin
 set DB_PASSWORD=1234
 
+:: Read backend\.env if exists
+if exist backend\.env (
+    for /f "tokens=1,2 delims==" %%a in (backend\.env) do (
+        if /i "%%a"=="DB_NAME" set DB_NAME=%%b
+        if /i "%%a"=="DB_USER" set DB_USER=%%b
+        if /i "%%a"=="DB_PASSWORD" set DB_PASSWORD=%%b
+    )
+)
+
 :: Start PostgreSQL server
 "C:\Program Files\PostgreSQL\%PG_VERSION:~0,2%\bin\pg_ctl.exe" stop -D "C:\Program Files\PostgreSQL\%PG_VERSION:~0,2%\data"
 "C:\Program Files\PostgreSQL\%PG_VERSION:~0,2%\bin\pg_ctl.exe" start -D "C:\Program Files\PostgreSQL\%PG_VERSION:~0,2%\data" -l "C:\Program Files\PostgreSQL\%PG_VERSION:~0,2%\data\postgresql.log" -w
