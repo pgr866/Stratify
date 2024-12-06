@@ -36,7 +36,7 @@ class LoginView(APIView):
                 httponly=True,
                 secure=not settings.DEBUG,
                 samesite='Strict',
-                max_age=604800,  # 7 days
+                max_age=86400,  # 1 day
             )
             return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -46,7 +46,7 @@ class LogoutView(APIView):
 
     def post(self, request):
         response = Response(status=status.HTTP_200_OK)
-        response.delete_cookie('access_token')
+        response.delete_cookie('access_token', path='/', samesite='Strict')
         return response
     
 class UserView(viewsets.ModelViewSet):
@@ -92,7 +92,7 @@ class UserView(viewsets.ModelViewSet):
                 httponly=True,
                 secure=not settings.DEBUG,
                 samesite='Strict',
-                max_age=604800,  # 7 days
+                max_age=86400,  # 1 days
             )
             return response
 
