@@ -11,10 +11,16 @@ class LoginSerializer(serializers.Serializer):
         username = attrs.get('username')
         password = attrs.get('password')
         if username and password:
-            user = authenticate(username=username, password=password)
-            if user:
+            try:
+                if '@' in username:
+                    user = User.objects.get(email=username)
+                else:
+                    user = User.objects.get(username=username)
+                user = authenticate(username=user.username, password=password)
+                if not user:
+                    raise serializers.ValidationError("Invalid credentials")
                 attrs['user'] = user
-            else:
+            except Exception:
                 raise serializers.ValidationError("Invalid credentials")
         else:
             raise serializers.ValidationError("Both username and password are required")

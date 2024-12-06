@@ -7,6 +7,6 @@ class JWTCookieAuthentication(JWTAuthentication):
             try:
                 validated_token = self.get_validated_token(access_token)
                 return self.get_user(validated_token), validated_token
-            except:
+            except Exception:
                 return None
         return None
