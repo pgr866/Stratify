@@ -5,9 +5,7 @@ djangorestframework-simplejwt
 social-auth-app-django
 coreapi
 setuptools
-dj_database_url
 psycopg2
-whitenoise
 ccxt
 pandas
 ta-lib
