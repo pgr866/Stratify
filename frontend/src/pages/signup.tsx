@@ -14,7 +14,7 @@ export function Signup() {
             <div className="fixed top-4 right-4">
                 <ThemeToggle />
             </div>
-            {/* <img src="/logo.svg" alt="Logo" className="size-[500px] logo"/> */}
+            {/* <img src="/logo.svg" alt="Logo" className="logo"/> */}
             <Card className="mx-auto max-w-sm">
                 <CardHeader>
                     <CardTitle className="text-2xl">Create an account</CardTitle>

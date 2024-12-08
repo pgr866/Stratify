@@ -12,9 +12,11 @@ export function Dashboard() {
 
     return (
         <div>
+            <div className="fixed top-4 right-4">
+                <ThemeToggle />
+            </div>
             <img src="/logo.svg" className="logo" alt="Logo" />
             <Button onClick={handleLogout}>Log out</Button>
-            <ThemeToggle />
             <DateTimeRangePicker></DateTimeRangePicker>
             <h1>Taxing Laughter: The Joke Tax Chronicles</h1>
             <p>Hola Mundo.</p>

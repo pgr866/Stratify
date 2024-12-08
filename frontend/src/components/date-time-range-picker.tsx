@@ -93,7 +93,7 @@ export function DateTimeRangePicker() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-4">
+      <PopoverContent className="w-auto p-4 border-2 border-border">
         <div className="flex gap-4">
           {/* Calendar */}
           <div className="flex-1">
@@ -124,6 +124,7 @@ export function DateTimeRangePicker() {
                         key={hour}
                         size="sm"
                         variant={time.hour === hour ? "default" : "ghost"}
+                        className="mr-3"
                         onClick={() => handleTimeChange("hour", hour)}
                       >
                         {hour.toString().padStart(2, "0")}
@@ -143,6 +144,7 @@ export function DateTimeRangePicker() {
                         key={minute}
                         size="sm"
                         variant={time.minute === minute ? "default" : "ghost"}
+                        className="mr-3"
                         onClick={() => handleTimeChange("minute", minute)}
                       >
                         {minute.toString().padStart(2, "0")}
