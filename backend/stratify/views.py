@@ -7,6 +7,10 @@ from .models import User
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsOwner, IsNotAuthenticated, NoBody
 from django.conf import settings
+from allauth.socialaccount.models import SocialAccount
+from rest_framework.exceptions import AuthenticationFailed
+from social_django.utils import load_strategy, load_backend
+from social_core.exceptions import AuthException
 
 class CheckAuthView(APIView):
     permission_classes = []
@@ -93,3 +97,52 @@ class UserView(viewsets.ModelViewSet):
             return response
 
         return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class GoogleLoginView(APIView):
+    permission_classes = [IsNotAuthenticated]
+
+    def get(self, request):
+        token = request.query_params.get('access_token')
+        if not token:
+            raise AuthenticationFailed("Google token is missing")
+
+        try:
+            user = load_backend(load_strategy(request), "google-oauth2", None).do_auth(token)
+            if not user or not user.is_active:
+                raise AuthenticationFailed("Authentication failed or user is inactive")
+        except AuthException as e:
+            raise AuthenticationFailed(f"Authentication failed: {e}")
+
+        user, _ = User.objects.get_or_create(
+            email=user.email,
+            defaults={'username': user.username or user.email.split('@')[0]}
+        )
+
+        refresh = RefreshToken.for_user(user)
+        return Response({'access': str(refresh.access_token), 'refresh': str(refresh)}, status=200)
+
+class GithubLoginView(APIView):
+    permission_classes = [IsNotAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        # Autenticación con GitHub
+        social_account = SocialAccount.objects.get(provider="github", user=request.user)
+
+        # Accedemos a los datos del usuario de GitHub
+        email = social_account.user.email
+        username = social_account.user.username or email  # Si no tiene username, usamos el email
+
+        # Si el usuario no existe, lo creamos
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={'username': username}
+        )
+
+        # Generar el JWT
+        refresh = RefreshToken.for_user(user)
+
+        # Devolvemos el JWT como respuesta
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh)
+        }, status=200)

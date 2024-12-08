@@ -1,24 +1,43 @@
-import logo from '/logo.svg'
 import './App.css'
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Button } from "@/components/ui/button"
-import { DateTimeRangePicker } from "@/components/date-time-range-picker"
+import { useEffect, useState } from "react";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { checkAuth } from "../api/api";
+import { Dashboard } from "./pages/dashboard";
+import { Login } from "./pages/login";
+import { Signup } from "./pages/signup";
+import { Toaster } from "@/components/ui/toaster"
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const fetchAuthStatus = async () => {
+      try {
+        const response = await checkAuth();
+        if (response.status === 200) {
+          setIsAuthenticated(response.data.authenticated);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        setIsAuthenticated(false);
+      }
+    };
+    fetchAuthStatus();
+  }, [location]);
 
   return (
-    <>
-      <div>
-        <img src={logo} className="logo" alt="Logo" />
-        <Button>Hola</Button>
-        <ThemeToggle />
-        <DateTimeRangePicker></DateTimeRangePicker>
-        <h1>Taxing Laughter: The Joke Tax Chronicles</h1>
-        <p>Hola Mundo.</p>
-      </div>
-
-    </>
-  )
+    <div className="container mx-auto">
+      <Routes>
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
+        <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />} />
+        <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+        <Route path="*" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
+      </Routes>
+      <Toaster />
+    </div>
+  );
 }
 
 export default App
