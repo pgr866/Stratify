@@ -26,12 +26,12 @@ export function Login() {
     };
 
     return (
-        <div className="flex h-[90vh] w-full items-center justify-center px-4">
+        <div className="flex h-[90vh] w-full items-center justify-center px-4 flex-wrap">
             <div className="fixed top-4 right-4">
                 <ThemeToggle />
             </div>
-            {/* <img src="/logo.svg" alt="Logo" className="logo"/> */}
-            <Card className="mx-auto max-w-sm">
+            {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
+            <Card className="mx-auto w-full max-w-sm">
                 <CardHeader>
                     <CardTitle className="text-2xl">Login</CardTitle>
                     <CardDescription>
@@ -52,7 +52,7 @@ export function Login() {
                         </div>
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t" />
+                                <span className="w-full border-[1px] border-border" />
                             </div>
                             <div className="relative flex justify-center text-xs uppercase">
                                 <span className="bg-card px-2 text-muted-foreground">

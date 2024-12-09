@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 .logo {
-  @apply size-[25rem] mx-auto hover:drop-shadow-[0_0_2em_hsl(var(--primary))];
+  @apply mx-auto hover:drop-shadow-[0_0_2em_hsl(var(--primary))];
 }

@@ -6,9 +6,9 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 20 14.3% 4.1%;
-    --card: 0 0% 100%;
+    --card: 0 0% 99%;
     --card-foreground: 20 14.3% 4.1%;
-    --popover: 0 0% 100%;
+    --popover: 0 0% 99%;
     --popover-foreground: 20 14.3% 4.1%;
     --primary: 47.9 95.8% 53.1%;
     --primary-foreground: 26 83.3% 14.1%;
@@ -67,47 +67,47 @@
     @apply max-w-screen-xl mx-auto p-8 text-center;
   }
 
+  ::-webkit-scrollbar {
+    @apply size-2.5;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border border-[1px] border-transparent border-solid bg-clip-padding;
+  }
+
   h1 {
-    @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl !important;
+    @apply scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl;
   }
 
   h2 {
-    @apply scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 !important;
+    @apply scroll-m-20 border-b border-border pb-2 text-3xl font-semibold tracking-tight first:mt-0;
   }
 
   h3 {
-    @apply scroll-m-20 text-2xl font-semibold tracking-tight !important;
+    @apply scroll-m-20 text-2xl font-semibold tracking-tight;
   }
 
   h4 {
-    @apply scroll-m-20 text-xl font-semibold tracking-tight !important;
+    @apply scroll-m-20 text-xl font-semibold tracking-tight;
   }
 
   p {
-    @apply leading-7 [&:not(:first-child)]:mt-6 !important;
+    @apply leading-7 [&:not(:first-child)]:mt-6;
   }
 
   blockquote {
-    @apply mt-6 border-l-2 pl-6 italic !important;
-  }
-
-  .muted {
-    @apply text-sm text-muted-foreground !important;
-  }
-
-  .large {
-    @apply text-lg font-semibold !important;
+    @apply mt-6 border-l-2 border-border pl-6 italic;
   }
 
   small {
-    @apply text-sm font-medium leading-none !important;
+    @apply text-sm font-medium leading-none;
   }
 
-  /* ::-webkit-scrollbar {
-    @apply size-2.5;
+  .large {
+    @apply text-lg font-semibold;
   }
-  
-  ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-border border-[1px] border-transparent border-solid bg-clip-padding;
-  }   */
+
+  .muted {
+    @apply text-sm text-muted-foreground;
+  }
 }

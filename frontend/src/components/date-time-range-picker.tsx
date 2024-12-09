@@ -93,7 +93,7 @@ export function DateTimeRangePicker() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-4 border-2 border-border">
+      <PopoverContent className="w-auto p-4 border-[1px] border-border">
         <div className="flex gap-4">
           {/* Calendar */}
           <div className="flex-1">
