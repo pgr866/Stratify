@@ -15,6 +15,9 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       console.error("API Error:", error.response.data);
+      if (error.response.status === 401) {
+        window.location.href = "/login";
+      }
     } else {
       console.error("Network Error:", error.message);
     }
@@ -38,6 +41,12 @@ export const login = (username: string, password: string) => api.post("login/", 
 
 // ** Logout API Call **
 export const logout = () => api.post("logout/");
+
+// ** Google Login API Call **
+export const googleLogin = (token: string) => api.post("google-login/", {}, { headers: { Authorization: `Bearer ${token}` } });
+
+// ** GitHub Login API Call **
+export const githubLogin = (token: string) => api.post("github-login/", {}, { headers: { Authorization: `Bearer ${token}` } });
 
 // ** User API Calls **
 

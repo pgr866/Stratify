@@ -16,6 +16,5 @@ export function ThemeToggle() {
         <Moon className="size-[1.2rem] block transition-all dark:hidden" />
       </Button>
     </div>
-
   );
 }

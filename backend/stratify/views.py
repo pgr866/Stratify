@@ -2,15 +2,13 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializer import LoginSerializer, UserSerializer
+from .serializers import LoginSerializer, UserSerializer
 from .models import User
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsOwner, IsNotAuthenticated, NoBody
 from django.conf import settings
-from allauth.socialaccount.models import SocialAccount
-from rest_framework.exceptions import AuthenticationFailed
-from social_django.utils import load_strategy, load_backend
-from social_core.exceptions import AuthException
+import requests
+from django.contrib.auth import get_user_model
 
 class CheckAuthView(APIView):
     permission_classes = []
@@ -101,48 +99,48 @@ class UserView(viewsets.ModelViewSet):
 class GoogleLoginView(APIView):
     permission_classes = [IsNotAuthenticated]
 
-    def get(self, request):
-        token = request.query_params.get('access_token')
-        if not token:
-            raise AuthenticationFailed("Google token is missing")
-
+    def post(self, request):
         try:
-            user = load_backend(load_strategy(request), "google-oauth2", None).do_auth(token)
-            if not user or not user.is_active:
-                raise AuthenticationFailed("Authentication failed or user is inactive")
-        except AuthException as e:
-            raise AuthenticationFailed(f"Authentication failed: {e}")
-
-        user, _ = User.objects.get_or_create(
-            email=user.email,
-            defaults={'username': user.username or user.email.split('@')[0]}
-        )
-
-        refresh = RefreshToken.for_user(user)
-        return Response({'access': str(refresh.access_token), 'refresh': str(refresh)}, status=200)
+            token = request.headers.get('Authorization').split(' ')[1]
+            response = requests.get(f'https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={token}')
+            data = response.json()
+            google_email = data.get("email")
+            google_username = google_email.split('@')[0]
+            google_id = data.get("sub")
+            
+            user = get_user_model().objects.filter(google_id=google_id).first()
+            if not user:
+                if get_user_model().objects.filter(username=google_username).first():
+                    google_username = google_email
+                
+                user = get_user_model().objects.create(
+                    email=google_email,
+                    username=google_username,
+                    google_id=google_id
+                )
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            response_data = {
+                "id": user.id,
+                "email": user.email,
+                "username": user.username,
+            }
+            response = Response(response_data, status=status.HTTP_200_OK)
+            response.set_cookie(
+                key='access_token',
+                value=access_token,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite='Strict',
+                max_age=86400, # 1 day
+            )
+            return response
+        except Exception:
+            return Response({"message": "Google Login failed. Try to login with credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 class GithubLoginView(APIView):
     permission_classes = [IsNotAuthenticated]
     
     def get(self, request, *args, **kwargs):
-        # Autenticación con GitHub
-        social_account = SocialAccount.objects.get(provider="github", user=request.user)
-
-        # Accedemos a los datos del usuario de GitHub
-        email = social_account.user.email
-        username = social_account.user.username or email  # Si no tiene username, usamos el email
-
-        # Si el usuario no existe, lo creamos
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults={'username': username}
-        )
-
-        # Generar el JWT
-        refresh = RefreshToken.for_user(user)
-
-        # Devolvemos el JWT como respuesta
-        return Response({
-            'access': str(refresh.access_token),
-            'refresh': str(refresh)
-        }, status=200)
+        
+        return Response({}, status=200)
