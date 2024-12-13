@@ -57,16 +57,11 @@ DB_NAME=stratify_db
 DB_USER=admin
 DB_PASSWORD=1234
 
-# Read backend/.env if exists
-if [[ -f backend/.env ]]; then
-    while IFS='=' read -r key value; do
-        case "$key" in
-            "DB_NAME") DB_NAME="$value" ;;
-            "DB_USER") DB_USER="$value" ;;
-            "DB_PASSWORD") DB_PASSWORD="$value" ;;
-        esac
-    done < backend/.env
-fi
+# Read .env if exists
+while IFS='=' read -r key value; do
+    [[ -z "$key" || "$key" =~ ^# ]] && continue
+    export "$key=$(echo "$value" | xargs)"
+done < .env
 
 # Start PostgreSQL server
 sudo systemctl stop postgresql

@@ -27,7 +27,6 @@ export function GoogleSignin() {
                 <GoogleLogin
                     onSuccess={handleGoogleLogin}
                     onError={() => toast({ title: "Google Login failed", description: "An error occurred during Google login." })}
-                    useOneTap
                     containerProps={{ className: 'absolute size-full opacity-0' }}
                 />
             </Button>

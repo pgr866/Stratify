@@ -14,7 +14,7 @@ export function GithubSignin() {
     const handleGithubLogin = async () => {
         try {
             const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID;
-            const redirectUri = window.location.origin + "/login";
+            const redirectUri = window.location.origin + "/login/";
             const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=user`;
             window.location.href = githubAuthUrl;
         } catch (error) {
