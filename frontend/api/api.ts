@@ -46,7 +46,7 @@ export const logout = () => api.post("logout/");
 export const googleLogin = (token: string) => api.post("google-login/", {}, { headers: { Authorization: `Bearer ${token}` } });
 
 // ** GitHub Login API Call **
-export const githubLogin = (token: string) => api.post("github-login/", {}, { headers: { Authorization: `Bearer ${token}` } });
+export const githubLogin = (code: string) => api.post("github-login/", {}, { headers: { Authorization: `Bearer ${code}` } });
 
 // ** User API Calls **
 

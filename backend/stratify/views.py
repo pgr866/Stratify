@@ -118,6 +118,7 @@ class GoogleLoginView(APIView):
                     username=google_username,
                     google_id=google_id
                 )
+            
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             response_data = {
@@ -140,7 +141,54 @@ class GoogleLoginView(APIView):
 
 class GithubLoginView(APIView):
     permission_classes = [IsNotAuthenticated]
-    
-    def get(self, request, *args, **kwargs):
-        
-        return Response({}, status=200)
+
+    def post(self, request):
+        try:
+            code = request.headers.get('Authorization').split(' ')[1]
+            token_response = requests.post(
+                "https://github.com/login/oauth/access_token",
+                data={"code": code},
+                headers={"Accept": "application/json"}
+            )
+            token_data = token_response.json()
+            access_token = token_data.get('access_token')
+            user_response = requests.get(
+                'https://api.github.com/user',
+                headers={'Authorization': f'Bearer {access_token}'}
+            )
+            user_data = user_response.json()
+            github_id = user_data.get("id")
+            github_username = user_data.get("login")
+            github_email = user_data.get("email") or f"{github_username}@github.local"
+
+            user = get_user_model().objects.filter(github_id=github_id).first()
+            if not user:
+                if get_user_model().objects.filter(username=github_username).exists():
+                    github_username = github_email
+
+                user = get_user_model().objects.create(
+                    email=github_email,
+                    username=github_username,
+                    github_id=github_id
+                )
+            
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            response_data = {
+                "id": user.id,
+                "email": user.email,
+                "username": user.username,
+            }
+            response = Response(response_data, status=status.HTTP_200_OK)
+            response.set_cookie(
+                key='access_token',
+                value=access_token,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite='Strict',
+                max_age=86400,  # 1 día
+            )
+            return response
+
+        except Exception:
+            return Response({"message": "GitHub Login failed. Try to login with credentials"}, status=status.HTTP_400_BAD_REQUEST)

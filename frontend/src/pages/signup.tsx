@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Icons } from "@/components/icons"
+import { GoogleSignin } from "@/components/google-signin"
+import { GithubSignin } from "@/components/github-signin"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { login } from "../../api/api";
@@ -76,14 +77,8 @@ export function Signup() {
                     <CardContent>
                         <div className="grid gap-4">
                             <div className="grid grid-cols-2 gap-6">
-                                <Button variant="outline">
-                                    <Icons.gitHub />
-                                    GitHub
-                                </Button>
-                                <Button variant="outline">
-                                    <Icons.google />
-                                    Google
-                                </Button>
+                                <GithubSignin></GithubSignin>
+                                <GoogleSignin></GoogleSignin>
                             </div>
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">

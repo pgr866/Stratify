@@ -1,14 +1,14 @@
 import { useNavigate, Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Icons } from "@/components/icons"
+import { GoogleSignin } from "@/components/google-signin"
+import { GithubSignin } from "@/components/github-signin"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { login, googleLogin } from "../../api/api";
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { login } from "../../api/api";
 
 export function Login() {
     const { toast } = useToast()
@@ -25,19 +25,9 @@ export function Login() {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
             const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
-                    k === "non_field_errors" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
+                    k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "An unknown error occurred.";
             toast({ title: "Login failed", description: errorMessage });
-        }
-    };
-
-    const handleGoogleLogin = async (response: any) => {
-        try {
-            await googleLogin(response.credential);
-            navigate("/dashboard");
-            toast({ description: "Google Login successfully", });
-        } catch {
-            toast({ title: "Google Login failed", description: "Try to login with credentials", });
         }
     };
 
@@ -57,22 +47,8 @@ export function Login() {
                 <CardContent>
                     <div className="grid gap-4">
                         <div className="grid grid-cols-2 gap-6">
-                            <Button variant="outline">
-                                <Icons.gitHub />
-                                GitHub
-                            </Button>
-                            <GoogleOAuthProvider clientId="342211032228-mpne21vi7q9v3gi3m92aqnu6t9tbdk9o.apps.googleusercontent.com">
-                                <Button variant="outline" className="relative">
-                                    <Icons.google />
-                                    Google
-                                    <GoogleLogin
-                                        onSuccess={handleGoogleLogin}
-                                        onError={() => toast({ title: "Google Login failed", description: "An error occurred during Google login." })}
-                                        useOneTap
-                                        containerProps={{ className: 'absolute size-full opacity-0' }}
-                                    />
-                                </Button>
-                            </GoogleOAuthProvider>
+                            <GithubSignin></GithubSignin>
+                            <GoogleSignin></GoogleSignin>
                         </div>
                         <div className="relative">
                             <div className="absolute inset-0 flex items-center">
