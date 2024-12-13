@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import environ
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,19 +21,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 ENV_FILE = Path(BASE_DIR) / '.env'
-
-if ENV_FILE.exists():
-    try:
-        with ENV_FILE.open() as file:
-            for line in file:
-                if '=' in line and not line.strip().startswith('#'):
-                    key, value = line.strip().split('=', 1)
-                    os.environ[key] = value
-    except Exception as e:
-        print(f"Error reading .env: {e}")
+env = environ.Env()
+environ.Env.read_env(ENV_FILE)
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-jr^vb$n6jw2(eizglxs@yc+f7oiy+ym!9yvmtc+s)opsu7jzt$")
+SECRET_KEY = env('SECRET_KEY', default='django-insecure-jr^vb$n6jw2(eizglxs@yc+f7oiy+ym!9yvmtc+s)opsu7jzt$')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -103,11 +96,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "stratify_db"),
-        "USER": os.getenv("DB_USER", "admin"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "1234"),
-        "HOST": os.getenv("DB_HOST", "localhost"),
-        "PORT":  os.getenv("DB_PORT", "5432"),
+        "NAME": env('DB_NAME', default='stratify_db'),
+        "USER": env('DB_USER', default='admin'),
+        "PASSWORD": env('DB_PASSWORD', default='1234'),
+        "HOST": env('DB_HOST', default='localhost'),
+        "PORT":  env('DB_PORT', default='5432'),
         "CONN_MAX_AGE": 600,
         "OPTIONS": {
             "sslmode": "require" if not DEBUG else "disable",
