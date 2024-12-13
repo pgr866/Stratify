@@ -3,6 +3,8 @@ djangorestframework
 django-cors-headers
 djangorestframework-simplejwt
 django-environ
+google-auth
+PyGithub
 coreapi
 setuptools
 psycopg2
