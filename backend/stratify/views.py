@@ -1,4 +1,4 @@
-import requests
+from types import SimpleNamespace
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -10,7 +10,8 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from google.auth.transport.requests import Request
 from google.oauth2 import id_token
-from github import Github
+from github import Github, Requester
+from github.ApplicationOAuth import ApplicationOAuth
 
 from .models import User
 from .permissions import IsNotAuthenticated, IsOwner, NoBody
@@ -96,7 +97,7 @@ class UserView(viewsets.ModelViewSet):
                 httponly=True,
                 secure=not settings.DEBUG,
                 samesite='Strict',
-                max_age=86400, # 1 days
+                max_age=86400, # 1 day
             )
             return response
 
@@ -154,26 +155,26 @@ class GithubLoginView(APIView):
 
     def post(self, request):
         try:
-            auth_header = request.headers.get('Authorization')
-            if not auth_header or not auth_header.startswith('Bearer '):
-                raise Exception("Missing or invalid Authorization header")
-            code = auth_header.split(' ')[1]
-            token_response = requests.post(
-                "https://github.com/login/oauth/access_token",
-                data={
-                    "code": code,
-                    "client_id": settings.VITE_GITHUB_CLIENT_ID,
-                    "client_secret": settings.GITHUB_CLIENT_SECRET,
-                    "redirect_uri": settings.GITHUB_REDIRECT_URI,
-                },
-                headers={"Accept": "application/json"}
+            code = request.data.get('code')
+            state = request.data.get('state')
+            cookie_state = request.COOKIES.get('github_oauth_state')
+            if not state or state != cookie_state:
+                raise Exception("State mismatch")
+            requester = Requester.Requester(
+                base_url="https://api.github.com",
+                auth=None,
+                timeout=10,
+                user_agent="stratify",
+                per_page=30,
+                verify=True,
+                retry=3,
+                pool_size=10
             )
-            token_data = token_response.json()
-            if token_response.status_code != 200 or "error" in token_data:
-                raise Exception("Invalid code")
-            token = token_data.get('access_token')
-            
-            user_data = Github(token).get_user()
+            oauth = ApplicationOAuth(requester=requester, headers={}, attributes={}, completed=False)
+            oauth._client_id = SimpleNamespace(value=settings.VITE_GITHUB_CLIENT_ID)
+            oauth._client_secret = SimpleNamespace(value=settings.GITHUB_CLIENT_SECRET)
+            token = oauth.get_access_token(code=code, state=state)
+            user_data = Github(token.token).get_user()
             github_id = user_data.id
             github_username = user_data.login
             github_email = user_data.email or f"{github_username}@github.local"
@@ -202,7 +203,7 @@ class GithubLoginView(APIView):
                 httponly=True,
                 secure=not settings.DEBUG,
                 samesite='Strict',
-                max_age=86400, # 1 día
+                max_age=86400, # 1 day
             )
             return response
 
