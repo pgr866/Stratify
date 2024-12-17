@@ -46,10 +46,12 @@ export function GithubSignin() {
                         throw new Error("State mismatch. Security check failed.");
                     }
                     await githubLogin(code, stateFromUrl);
-                    document.cookie = "github_oauth_state=; path=/; max-age=0"; 
+                    document.cookie = "github_oauth_state=; path=/; max-age=0";
                     navigate("/dashboard");
                     toast({ description: "GitHub Login successfully", });
                 } catch (error) {
+                    document.cookie = "github_oauth_state=; path=/; max-age=0";
+                    navigate("/login");
                     toast({ title: "GitHub Login failed", description: "Try to login with credentials", });
                 }
             };

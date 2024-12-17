@@ -173,7 +173,7 @@ class GithubLoginView(APIView):
             oauth = ApplicationOAuth(requester=requester, headers={}, attributes={}, completed=False)
             oauth._client_id = SimpleNamespace(value=settings.VITE_GITHUB_CLIENT_ID)
             oauth._client_secret = SimpleNamespace(value=settings.GITHUB_CLIENT_SECRET)
-            token = oauth.get_access_token(code=code, state=state)
+            token = oauth.get_access_token(code=code)
             user_data = Github(token.token).get_user()
             github_id = user_data.id
             github_username = user_data.login
