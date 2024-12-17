@@ -8,7 +8,7 @@ import { GoogleSignin } from "@/components/google-signin"
 import { GithubSignin } from "@/components/github-signin"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { login } from "../../api/api";
+import { createUser } from "../../api/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 export function Signup() {
@@ -20,23 +20,24 @@ export function Signup() {
     const [repeatPassword, setRepeatPassword] = useState("");
     const [code, setCode] = useState(["", "", "", "", "", ""]);
 
+    const handleSendEmail = async () => {
+        // verificar campos de signup y enviar correo. compartir codigo del correo entre los dos endpoints?
+    }
+
     const handleSignup = async () => {
         try {
-            await login(email, password);
+            toast({ description: code });
+            await createUser({email: email, username: username, password: password});
             navigate("/dashboard");
-            toast({ description: "Login successfully" });
+            toast({ description: "Sign up successfully" });
         } catch (error) {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
             const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "An unknown error occurred.";
-            toast({ title: "Login failed", description: errorMessage });
+            toast({ title: "Sign up failed", description: errorMessage });
         }
-    };
-
-    const handleVerify = async () => {
-        toast({ description: code });
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
@@ -94,28 +95,56 @@ export function Signup() {
                                 <div className="flex items-center">
                                     <Label htmlFor="username">Username</Label>
                                 </div>
-                                <Input id="username" type="username" placeholder="username" />
+                                <Input
+                                    id="username"
+                                    type="text"
+                                    placeholder="username"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
+                                    required
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <div className="flex items-center">
                                     <Label htmlFor="email">Email</Label>
                                 </div>
-                                <Input id="email" type="email" placeholder="m@example.com" />
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="m@example.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <div className="flex items-center">
                                     <Label htmlFor="password">Password</Label>
                                 </div>
-                                <Input id="password" type="password" placeholder="password" />
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    placeholder="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <div className="flex items-center">
                                     <Label htmlFor="repeat_password">Repeat Password</Label>
                                 </div>
-                                <Input id="repeat_password" type="password" placeholder="repeat password" />
+                                <Input
+                                    id="repeat_password"
+                                    type="password"
+                                    placeholder="repeat password"
+                                    value={repeatPassword}
+                                    onChange={(e) => setRepeatPassword(e.target.value)}
+                                    required
+                                />
                             </div>
                             <DialogTrigger asChild>
-                                <Button onClick={handleSignup} className="w-full">
+                                <Button onClick={handleSendEmail} className="w-full">
                                     Create account
                                 </Button>
                             </DialogTrigger>
@@ -153,7 +182,7 @@ export function Signup() {
                     ))}
                 </div>
                 <DialogFooter>
-                    <Button onClick={handleVerify} className="w-full">Verify</Button>
+                    <Button onClick={handleSignup} className="w-full">Verify</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
