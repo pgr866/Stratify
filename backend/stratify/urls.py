@@ -16,4 +16,6 @@ urlpatterns = [
     path('api/v1/google-login/', views.GoogleLoginView.as_view(), name='google-login'),
     path('api/v1/github-login/', views.GithubLoginView.as_view(), name='github-login'),
     path('api/v1/validate-email/', views.ValidateEmailView.as_view(), name='validate-email'),
+    path('api/v1/recover-password/', views.RecoverPasswordView.as_view(), name='recover-password'),
+    path('api/v1/change-password/', views.ChangePasswordView.as_view(), name='change-password'),
 ]

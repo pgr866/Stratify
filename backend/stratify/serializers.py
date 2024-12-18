@@ -71,9 +71,9 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
 class UserValidationSerializer(serializers.Serializer):
-    username = serializers.CharField(max_length=150)
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
+    username = serializers.CharField(max_length=150, required=True)
+    email = serializers.EmailField(required=True)
+    password = serializers.CharField(write_only=True, required=True)
 
     def validate_username(self, value):
         if User.objects.filter(username=value).exists():
@@ -86,6 +86,33 @@ class UserValidationSerializer(serializers.Serializer):
         return value
 
     def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("The password must be at least 8 characters long")
+        
+        if not re.search(r'[A-Z]', value):
+            raise serializers.ValidationError("The password must contain at least one uppercase letter")
+        
+        if not re.search(r'[a-z]', value):
+            raise serializers.ValidationError("The password must contain at least one lowercase letter")
+        
+        if not re.search(r'[^\w\s]', value):
+            raise serializers.ValidationError("The password must contain at least one special character")
+        
+        if not re.search(r'\d', value):
+            raise serializers.ValidationError("The password must contain at least one number")
+        
+        return value
+
+class RecoverPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    new_password = serializers.CharField(write_only=True, required=True)
+
+    def validate_email(self, value):
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email is not registered")
+        return value
+
+    def validate_new_password(self, value):
         if len(value) < 8:
             raise serializers.ValidationError("The password must be at least 8 characters long")
         

@@ -18,7 +18,7 @@ from github.ApplicationOAuth import ApplicationOAuth
 
 from .models import User
 from .permissions import IsNotAuthenticated, IsOwner, NoBody
-from .serializers import LoginSerializer, UserSerializer, UserValidationSerializer
+from .serializers import LoginSerializer, UserSerializer, UserValidationSerializer, RecoverPasswordSerializer
 
 class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
@@ -93,11 +93,66 @@ class ValidateEmailView(APIView):
             return Response({'detail': 'Verification code sent to yout email'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class CheckAuthView(APIView):
-    permission_classes = []
+class RecoverPasswordView(APIView):
+    permission_classes = [IsNotAuthenticated]
+    
+    def post(self, request):
+        serializer = RecoverPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            verification_code = ''.join([secrets.choice('0123456789') for _ in range(6)])
+            cache.set(email, verification_code, timeout=600)
+            subject = "Verification code"
+            message = f"Your verification code is: {verification_code}. This code expires in 10 minutes"
+            from_email = settings.DEFAULT_FROM_EMAIL
+            send_mail(subject, message, from_email, [email])
+            return Response({'detail': 'Verification code sent to yout email'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class ChangePasswordView(APIView):
+    permission_classes = [IsNotAuthenticated]
+    
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        new_password = request.data.get('new_password')
+        verification_code = request.data.get('code')
+        
+        cached_code = cache.get(email)
+        if not cached_code:
+            return Response({'detail': 'Verification code not found or expired'}, status=status.HTTP_400_BAD_REQUEST)
+        if verification_code != cached_code:
+            return Response({'detail': 'Incorrect verification code'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        cache.delete(email)
+        
+        serializer = RecoverPasswordSerializer(data={
+                'email': email,
+                'new_password': new_password,
+        })
+        serializer.is_valid(raise_exception=True)
+        user = User.objects.filter(email=email).first()
+        user.set_password(new_password)
+        user.save()
 
-    def get(self, request):
-        return Response({'authenticated': request.user.is_authenticated}, status=status.HTTP_200_OK)
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+        response_data = {
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "access_token": access_token
+        }
+        
+        response = Response(response_data, status=status.HTTP_200_OK)
+        response.set_cookie(
+            key='access_token',
+            value=access_token,
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite='Strict',
+            max_age=86400, # 1 día
+        )
+        return response
 
 class LoginView(APIView):
     permission_classes = [IsNotAuthenticated]
@@ -230,6 +285,12 @@ class GithubLoginView(APIView):
 
         except Exception as e:
             return Response({"message": f"Github Login failed. {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+class CheckAuthView(APIView):
+    permission_classes = []
+
+    def get(self, request):
+        return Response({'authenticated': request.user.is_authenticated}, status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]

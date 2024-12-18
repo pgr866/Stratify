@@ -67,3 +67,9 @@ export const deleteUser = (id: number) => api.delete(`user/${id}/`);
 
 // Send email verification
 export const validateEmail = (email: string, username: string, password: string) => api.post("validate-email/", { email, username, password });
+
+// Send recover password verification to email
+export const recoverPassword = (email: string, new_password: string) => api.post("recover-password/", { email, new_password });
+
+// Change password
+export const changePassword = (email: string, new_password: string, code: string) => api.post("change-password/", { email, new_password, code });
