@@ -4,17 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { GoogleSignin } from "@/components/google-signin"
-import { GithubSignin } from "@/components/github-signin"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { createUser, validateEmail } from "../../api/api";
+import { changePassword, recoverPassword } from "../../api/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
-export function Signup() {
+export function RecoverPassword() {
     const { toast } = useToast()
     const navigate = useNavigate();
-    const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
@@ -22,13 +19,13 @@ export function Signup() {
     const [emailSent, setEmailSent] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSendEmail = async () => {
+    const handleRecoverPassword = async () => {
         try {
             if (password !== repeatPassword) {
                 throw new Error("Passwords do not match");
             }
             setIsLoading(true);
-            await validateEmail(email, username, password);
+            await recoverPassword(email, password);
             setEmailSent(true);
         } catch (error) {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
@@ -36,25 +33,25 @@ export function Signup() {
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "Passwords do not match";
-            toast({ title: "Sign-up failed", description: errorMessage });
+            toast({ title: "Password change failed", description: errorMessage });
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleSignup = async () => {
+    const handleChangePassword = async () => {
         try {
             setIsLoading(true);
-            await createUser({ email: email, username: username, password: password }, code.join(''));
+            await changePassword(email, password, code.join(''));
             navigate("/dashboard");
-            toast({ description: "Sign-up successful" });
+            toast({ description: "Password changed successfully" });
         } catch (error) {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
             const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "Something went wrong";
-            toast({ title: "Sign-up failed", description: errorMessage });
+            toast({ title: "Password change failed", description: errorMessage });
         } finally {
             setIsLoading(false);
         }
@@ -90,40 +87,13 @@ export function Signup() {
                 {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
                 <Card className="mx-auto w-full max-w-[26rem]">
                     <CardHeader>
-                        <CardTitle className="text-2xl">Create an account</CardTitle>
+                        <CardTitle className="text-2xl">Recover password</CardTitle>
                         <CardDescription>
-                            Enter your email below to create your account
+                            Enter your email and new password below
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="grid gap-4">
-                            <div className="grid grid-cols-2 gap-6">
-                                <GithubSignin></GithubSignin>
-                                <GoogleSignin></GoogleSignin>
-                            </div>
-                            <div className="relative">
-                                <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-[1px] border-border" />
-                                </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-card px-2 text-muted-foreground">
-                                        Or continue with
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="grid gap-2">
-                                <div className="flex items-center">
-                                    <Label htmlFor="username">Username</Label>
-                                </div>
-                                <Input
-                                    id="username"
-                                    type="text"
-                                    placeholder="username"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    required
-                                />
-                            </div>
                             <div className="grid gap-2">
                                 <div className="flex items-center">
                                     <Label htmlFor="email">Email</Label>
@@ -139,12 +109,12 @@ export function Signup() {
                             </div>
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">New Password</Label>
                                 </div>
                                 <Input
                                     id="password"
                                     type="password"
-                                    placeholder="password"
+                                    placeholder="new password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -152,23 +122,23 @@ export function Signup() {
                             </div>
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="repeat_password">Repeat Password</Label>
+                                    <Label htmlFor="repeat_password">Repeat New Password</Label>
                                 </div>
                                 <Input
                                     id="repeat_password"
                                     type="password"
-                                    placeholder="repeat password"
+                                    placeholder="repeat new password"
                                     value={repeatPassword}
                                     onChange={(e) => setRepeatPassword(e.target.value)}
                                     required
                                 />
                             </div>
-                            <Button onClick={handleSendEmail} disabled={isLoading} className="w-full">
-                                {isLoading ? "Loading..." : "Create account"}
+                            <Button onClick={handleRecoverPassword} disabled={isLoading} className="w-full">
+                                {isLoading ? "Loading..." : "Recover password"}
                             </Button>
                         </div>
                         <div className="mt-4 text-center text-sm">
-                            Already have an account?{" "}
+                            Have you remembered your password?{" "}
                             <Link to="/login" className="underline">
                                 Sign in
                             </Link>
@@ -201,7 +171,7 @@ export function Signup() {
                         ))}
                     </div>
                     <DialogFooter>
-                        <Button onClick={handleSignup} disabled={isLoading} className="w-full">
+                        <Button onClick={handleChangePassword} disabled={isLoading} className="w-full">
                             {isLoading ? "Loading..." : "Verify"}
                         </Button>
                     </DialogFooter>
