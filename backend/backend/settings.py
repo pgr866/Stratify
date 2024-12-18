@@ -52,6 +52,15 @@ GITHUB_CLIENT_SECRET = env('GITHUB_CLIENT_SECRET', default='')
 
 GITHUB_REDIRECT_URI = env('GITHUB_REDIRECT_URI', default='')
 
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True 
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -124,6 +133,13 @@ DATABASES = {
         "OPTIONS": {
             "sslmode": "disable" if DEBUG else "require",
         },
+    }
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'TIMEOUT': 600,
     }
 }
 

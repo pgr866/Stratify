@@ -15,4 +15,5 @@ urlpatterns = [
     path("api/v1/logout/", views.LogoutView.as_view(), name='logout'),
     path('api/v1/google-login/', views.GoogleLoginView.as_view(), name='google-login'),
     path('api/v1/github-login/', views.GithubLoginView.as_view(), name='github-login'),
+    path('api/v1/validate-email/', views.ValidateEmailView.as_view(), name='validate-email'),
 ]

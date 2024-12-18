@@ -14,7 +14,7 @@ class LoginSerializer(serializers.Serializer):
         password = attrs.get('password')
         if not username or not password:
             raise serializers.ValidationError("Both username and password are required")
-        user = User.objects.filter(username=username).first() or User.objects.filter(email=username).first()
+        user = User.objects.filter(username=username, is_active=True).first() or User.objects.filter(email=username, is_active=True).first()
         if not user:
             raise serializers.ValidationError("Invalid credentials")
         user = authenticate(username=user.username, password=password)
@@ -69,3 +69,36 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+class UserValidationSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=150)
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def validate_username(self, value):
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("Username already in use")
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email already in use")
+        return value
+
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError("The password must be at least 8 characters long")
+        
+        if not re.search(r'[A-Z]', value):
+            raise serializers.ValidationError("The password must contain at least one uppercase letter")
+        
+        if not re.search(r'[a-z]', value):
+            raise serializers.ValidationError("The password must contain at least one lowercase letter")
+        
+        if not re.search(r'[^\w\s]', value):
+            raise serializers.ValidationError("The password must contain at least one special character")
+        
+        if not re.search(r'\d', value):
+            raise serializers.ValidationError("The password must contain at least one number")
+        
+        return value

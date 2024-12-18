@@ -1,7 +1,10 @@
+import secrets
 from types import SimpleNamespace
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
+from django.core.mail import send_mail
 
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -15,7 +18,80 @@ from github.ApplicationOAuth import ApplicationOAuth
 
 from .models import User
 from .permissions import IsNotAuthenticated, IsOwner, NoBody
-from .serializers import LoginSerializer, UserSerializer
+from .serializers import LoginSerializer, UserSerializer, UserValidationSerializer
+
+class UserView(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+
+    def get_permissions(self):
+        if self.action in ['create']:
+            self.permission_classes = [IsNotAuthenticated]
+        elif self.action in ['retrieve']:
+            self.permission_classes = [IsAuthenticated]
+        elif self.action in ['update', 'partial_update', 'destroy']:
+            self.permission_classes = [IsOwner]
+        elif self.action in ['list']:
+            self.permission_classes = [NoBody]
+        return super().get_permissions()
+
+    def create(self, request, *args, **kwargs):
+        verification_code = request.data.get('code')
+        email = request.data.get('email')
+        cached_code = cache.get(email)
+        if not cached_code:
+            return Response({'detail': 'Verification code not found or expired'}, status=status.HTTP_400_BAD_REQUEST)
+        if verification_code != cached_code:
+            return Response({'detail': 'Incorrect verification code'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        
+        cache.delete(email)
+
+        login_serializer = LoginSerializer(data={
+            'username': user.username,
+            'password': request.data['password']
+        })
+
+        if login_serializer.is_valid():
+            user = login_serializer.validated_data['user']
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            response_data = login_serializer.data
+            response_data['id'] = user.id
+            response_data['email'] = user.email
+            response_data['username'] = user.username
+
+            response = Response(response_data, status=status.HTTP_201_CREATED)
+            response.set_cookie(
+                key='access_token',
+                value=access_token,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite='Strict',
+                max_age=86400, # 1 day
+            )
+            return response
+
+        return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ValidateEmailView(APIView):
+    permission_classes = [IsNotAuthenticated]
+
+    def post(self, request):
+        serializer = UserValidationSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            verification_code = ''.join([secrets.choice('0123456789') for _ in range(6)])
+            cache.set(email, verification_code, timeout=600)
+            subject = "Verification code"
+            message = f"Your verification code is: {verification_code}. This code expires in 10 minutes"
+            from_email = settings.DEFAULT_FROM_EMAIL
+            send_mail(subject, message, from_email, [email])
+            return Response({'detail': 'Verification code sent to yout email'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CheckAuthView(APIView):
     permission_classes = []
@@ -47,61 +123,6 @@ class LoginView(APIView):
             )
             return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        response = Response(status=status.HTTP_200_OK)
-        response.delete_cookie('access_token', path='/', samesite='Strict')
-        return response
-    
-class UserView(viewsets.ModelViewSet):
-    serializer_class = UserSerializer
-    queryset = User.objects.all()
-
-    def get_permissions(self):
-        if self.action in ['create']:
-            self.permission_classes = [IsNotAuthenticated]
-        elif self.action in ['retrieve']:
-            self.permission_classes = [IsAuthenticated]
-        elif self.action in ['update', 'partial_update', 'destroy']:
-            self.permission_classes = [IsOwner]
-        elif self.action in ['list']:
-            self.permission_classes = [NoBody]
-        return super().get_permissions()
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-
-        login_serializer = LoginSerializer(data={
-            'username': user.username,
-            'password': request.data['password']
-        })
-
-        if login_serializer.is_valid():
-            user = login_serializer.validated_data['user']
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            response_data = login_serializer.data
-            response_data['id'] = user.id
-            response_data['email'] = user.email
-            response_data['username'] = user.username
-
-            response = Response(response_data, status=status.HTTP_201_CREATED)
-            response.set_cookie(
-                key='access_token',
-                value=access_token,
-                httponly=True,
-                secure=not settings.DEBUG,
-                samesite='Strict',
-                max_age=86400, # 1 day
-            )
-            return response
-
-        return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class GoogleLoginView(APIView):
     permission_classes = [IsNotAuthenticated]
@@ -209,3 +230,11 @@ class GithubLoginView(APIView):
 
         except Exception as e:
             return Response({"message": f"Github Login failed. {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        response = Response(status=status.HTTP_200_OK)
+        response.delete_cookie('access_token', path='/', samesite='Strict')
+        return response

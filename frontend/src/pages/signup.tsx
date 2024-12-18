@@ -8,7 +8,7 @@ import { GoogleSignin } from "@/components/google-signin"
 import { GithubSignin } from "@/components/github-signin"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { createUser } from "../../api/api";
+import { createUser, validateEmail } from "../../api/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 export function Signup() {
@@ -19,23 +19,36 @@ export function Signup() {
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
     const [code, setCode] = useState(["", "", "", "", "", ""]);
+    const [emailSent, setEmailSent] = useState(false);
 
     const handleSendEmail = async () => {
-        // verificar campos de signup y enviar correo. compartir codigo del correo entre los dos endpoints?
-    }
+        try {
+            if (password !== repeatPassword) {
+                throw new Error("Passwords do not match");
+            }
+            await validateEmail(email, username, password);
+            setEmailSent(true);
+        } catch (error) {
+            const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
+            const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
+                ? Object.entries(axiosError.response.data).map(([k, v]) =>
+                    k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
+                : "Passwords do not match";
+            toast({ title: "Login failed", description: errorMessage });
+        }
+    };
 
     const handleSignup = async () => {
         try {
-            toast({ description: code });
-            await createUser({email: email, username: username, password: password});
+            await createUser({ email: email, username: username, password: password }, code.join(''));
             navigate("/dashboard");
             toast({ description: "Sign up successfully" });
         } catch (error) {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
             const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
-                    k === "non_field_errors" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
-                : "An unknown error occurred.";
+                    k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
+                : "Something went wrong";
             toast({ title: "Sign up failed", description: errorMessage });
         }
     };
@@ -62,7 +75,7 @@ export function Signup() {
     };
 
     return (
-        <Dialog>
+        <div>
             <div className="flex h-[90vh] w-full items-center justify-center px-4 flex-wrap">
                 <div className="fixed top-4 right-4">
                     <ThemeToggle />
@@ -143,11 +156,11 @@ export function Signup() {
                                     required
                                 />
                             </div>
-                            <DialogTrigger asChild>
-                                <Button onClick={handleSendEmail} className="w-full">
-                                    Create account
-                                </Button>
-                            </DialogTrigger>
+
+                            <Button onClick={handleSendEmail} className="w-full">
+                                Create account
+                            </Button>
+
                         </div>
                         <div className="mt-4 text-center text-sm">
                             Already have an account?{" "}
@@ -158,33 +171,35 @@ export function Signup() {
                     </CardContent>
                 </Card>
             </div>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle className="text-2xl">Verify your email</DialogTitle>
-                    <DialogDescription>
-                        Enter the 6-digit code sent to your email address to verify your account.
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="grid grid-cols-6 gap-4 mb-2">
-                    {code.map((digit, index) => (
-                        <Input
-                            key={index}
-                            id={`code-input-${index}`}
-                            value={digit}
-                            onChange={(e) => handleChange(e, index)}
-                            onClick={handleClick}
-                            onKeyDown={(e) => handleKeyDown(e, index)}
-                            maxLength={1}
-                            pattern="[0-9]*"
-                            inputMode="numeric"
-                            className="h-12 w-full text-center text-lg font-medium"
-                        />
-                    ))}
-                </div>
-                <DialogFooter>
-                    <Button onClick={handleSignup} className="w-full">Verify</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            <Dialog open={emailSent} onOpenChange={(open) => setEmailSent(open)}>
+                <DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => {e.preventDefault();}}>
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl">Verify your email</DialogTitle>
+                        <DialogDescription>
+                            Enter the 6-digit code sent to your email address to verify your account.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid grid-cols-6 gap-4 mb-2">
+                        {code.map((digit, index) => (
+                            <Input
+                                key={index}
+                                id={`code-input-${index}`}
+                                value={digit}
+                                onChange={(e) => handleChange(e, index)}
+                                onClick={handleClick}
+                                onKeyDown={(e) => handleKeyDown(e, index)}
+                                maxLength={1}
+                                pattern="[0-9]*"
+                                inputMode="numeric"
+                                className="h-12 w-full text-center text-lg font-medium"
+                            />
+                        ))}
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={handleSignup} className="w-full">Verify</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
     )
 }

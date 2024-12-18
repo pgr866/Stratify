@@ -57,10 +57,13 @@ export const getAllUsers = () => api.get<User[]>("user/");
 export const getUser = (id: number) => api.get<User>(`user/${id}/`);
 
 // Create a new user
-export const createUser = (user: User) => api.post<User>("user/", user);
+export const createUser = (user: User, code: string) => api.post<User>("user/", { ...user, code });
 
 // Update an existing user by ID
 export const updateUser = (id: number, user: Partial<User>) => api.put<User>(`user/${id}/`, user);
 
 // Delete a specific user by ID
 export const deleteUser = (id: number) => api.delete(`user/${id}/`);
+
+// Send email verification
+export const validateEmail = (email: string, username: string, password: string) => api.post("validate-email/", { email, username, password });
