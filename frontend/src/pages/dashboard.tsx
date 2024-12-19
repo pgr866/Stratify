@@ -1,6 +1,7 @@
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@/components/ui/button"
 import { DateTimeRangePicker } from "@/components/date-time-range-picker"
+import { CandleChart } from "@/components/candle-chart"
 import { logout } from "../../api/api";
 
 export function Dashboard() {
@@ -18,6 +19,7 @@ export function Dashboard() {
             {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]" /> */}
             <Button onClick={handleLogout}>Log out</Button>
             <DateTimeRangePicker></DateTimeRangePicker>
+            <CandleChart></CandleChart>
             <h1>Taxing Laughter: The Joke Tax Chronicles</h1>
             <p>Hola Mundo</p>
         </div>
