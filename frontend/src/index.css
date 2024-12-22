@@ -2,13 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 20 14.3% 4.1%;
-    --card: 0 0% 99%;
+    --card: 0 0% 100%;
     --card-foreground: 20 14.3% 4.1%;
-    --popover: 0 0% 99%;
+    --popover: 0 0% 100%;
     --popover-foreground: 20 14.3% 4.1%;
     --primary: 47.9 95.8% 53.1%;
     --primary-foreground: 26 83.3% 14.1%;
@@ -32,7 +33,7 @@
   }
 
   .dark {
-    --background: 240 10% 4%;
+    --background: 20 14.3% 4.1%;
     --foreground: 60 9.1% 97.8%;
     --card: 20 14.3% 4.1%;
     --card-foreground: 60 9.1% 97.8%;
@@ -57,22 +58,37 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+  
+  * {
+    @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground overscroll-none;
     font-family: 'Poppins', sans-serif;
   }
 
   #root {
-    @apply max-w-screen-xl mx-auto p-8 text-center;
+    @apply max-w-screen-xl mx-auto p-8 text-center m-0;
   }
 
   ::-webkit-scrollbar {
     @apply size-2.5;
   }
 
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
   ::-webkit-scrollbar-thumb {
-    @apply rounded-full bg-border border-[1px] border-transparent border-solid bg-clip-padding;
+    background: hsl(var(--border));
+    border-radius: 5px;
   }
 
   h1 {
@@ -99,12 +115,20 @@
     @apply mt-6 border-l-2 border-border pl-6 italic;
   }
 
-  small {
-    @apply text-sm font-medium leading-none;
+  code {
+    @apply relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold
+  }
+
+  .lead {
+    @apply text-xl text-muted-foreground
   }
 
   .large {
     @apply text-lg font-semibold;
+  }
+
+  small {
+    @apply text-sm font-medium leading-none;
   }
 
   .muted {

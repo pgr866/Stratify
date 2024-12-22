@@ -1,5 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Loader2 } from "lucide-react"
 import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -164,7 +165,11 @@ export function Signup() {
                                 />
                             </div>
                             <Button onClick={handleSendEmail} disabled={isLoading} className="w-full">
-                                {isLoading ? "Loading..." : "Create account"}
+                                {isLoading ? (
+                                    <><Loader2 className="animate-spin mr-2" />Loading...</>
+                                ) : (
+                                    "Create account"
+                                )}
                             </Button>
                         </div>
                         <div className="mt-4 text-center text-sm">
@@ -202,7 +207,11 @@ export function Signup() {
                     </div>
                     <DialogFooter>
                         <Button onClick={handleSignup} disabled={isLoading} className="w-full">
-                            {isLoading ? "Loading..." : "Verify"}
+                            {isLoading ? (
+                                <><Loader2 className="animate-spin mr-2" />Loading...</>
+                            ) : (
+                                "Verify"
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

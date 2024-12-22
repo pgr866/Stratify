@@ -1,5 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Loader2 } from "lucide-react"
 import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -134,7 +135,11 @@ export function RecoverPassword() {
                                 />
                             </div>
                             <Button onClick={handleRecoverPassword} disabled={isLoading} className="w-full">
-                                {isLoading ? "Loading..." : "Recover password"}
+                            {isLoading ? (
+                                    <><Loader2 className="animate-spin mr-2" />Loading...</>
+                                ) : (
+                                    "Recover password"
+                                )}
                             </Button>
                         </div>
                         <div className="mt-4 text-center text-sm">
@@ -172,7 +177,11 @@ export function RecoverPassword() {
                     </div>
                     <DialogFooter>
                         <Button onClick={handleChangePassword} disabled={isLoading} className="w-full">
-                            {isLoading ? "Loading..." : "Verify"}
+                        {isLoading ? (
+                                    <><Loader2 className="animate-spin mr-2" />Loading...</>
+                                ) : (
+                                    "Verify"
+                                )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

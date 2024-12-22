@@ -16,7 +16,7 @@ export function Dashboard() {
             <div className="fixed top-4 right-4">
                 <ThemeToggle />
             </div>
-            {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]" /> */}
+            <img src="/logo.svg" alt="Logo" className="logo size-[25rem]" />
             <Button onClick={handleLogout}>Log out</Button>
             <DateTimeRangePicker></DateTimeRangePicker>
             <CandleChart></CandleChart>
