@@ -32,7 +32,7 @@ SECRET_KEY = env('SECRET_KEY', default='django-insecure-jr^vb$n6jw2(eizglxs@yc+f
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
-CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=['http://localhost:5173'])
+CORS_ALLOWED_ORIGINS = env.list('VITE_ENV_PATH', default=['http://localhost:5173'])
 
 DB_NAME = env('DB_NAME', default='stratify_db')
 

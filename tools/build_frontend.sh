@@ -13,12 +13,8 @@ cd ..
 cd frontend
 npm i
 #npm i react-router-dom react-hook-form axios js-cookie @react-oauth/google lightweight-charts lucide-react
-#npm i -D autoprefixer postcss tailwindcss
+#npm i -D autoprefixer postcss tailwindcss @types/node
 #npx tailwindcss init -p
-# Update package.json versions
-#npx npm-check-updates
-#npx npm-check-updates -u
-#npm i
 
 # Configure shadcnui for vite: follow https://ui.shadcn.com/docs/
 #npx shadcn@latest init
