@@ -21,7 +21,15 @@ export function Dashboard() {
             <DateTimeRangePicker></DateTimeRangePicker>
             <CandleChart></CandleChart>
             <h1>Taxing Laughter: The Joke Tax Chronicles</h1>
-            <p>Hola Mundo</p>
+            <h2>Taxing Laughter: The Joke Tax Chronicles</h2>
+            <h3>Taxing Laughter: The Joke Tax Chronicles</h3>
+            <h4>Taxing Laughter: The Joke Tax Chronicles</h4>
+            <blockquote>Taxing Laughter: The Joke Tax Chronicles</blockquote>
+            <code>Taxing Laughter: The Joke Tax Chronicles</code>
+            <p className="lead">Taxing Laughter: The Joke Tax Chronicles</p>
+            <p className="large">Taxing Laughter: The Joke Tax Chronicles</p>
+            <small>Taxing Laughter: The Joke Tax Chronicles</small>
+            <p className="muted">Taxing Laughter: The Joke Tax Chronicles</p>
         </div>
     )
 }
