@@ -1,4 +1,5 @@
 import { ThemeToggle } from "@/components/theme-toggle"
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button"
 import { DateTimeRangePicker } from "@/components/date-time-range-picker"
 import { CandleChart } from "@/components/candle-chart"
@@ -17,7 +18,9 @@ export function Dashboard() {
                 <ThemeToggle />
             </div>
             {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]" /> */}
-            <Button onClick={handleLogout}>Log out</Button>
+            <Button onClick={handleLogout}>
+                <LogOut className="size-[1.2rem]"></LogOut>
+            </Button>
             <DateTimeRangePicker></DateTimeRangePicker>
             <CandleChart></CandleChart>
             <h1>Taxing Laughter: The Joke Tax Chronicles</h1>
