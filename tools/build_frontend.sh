@@ -18,7 +18,7 @@ npm i
 
 # Configure shadcnui for vite: follow https://ui.shadcn.com/docs/
 #npx shadcn@latest init
-#npx shadcn@latest add button calendar card dialog input label popover scroll-area toast
+#npx shadcn@latest add button calendar card dialog input label popover scroll-area toast input-otp
 
 echo
 echo "Frontend built."

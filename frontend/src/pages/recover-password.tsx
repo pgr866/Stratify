@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { changePassword, recoverPassword } from "../../api/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -16,7 +17,7 @@ export function RecoverPassword() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
-    const [code, setCode] = useState(["", "", "", "", "", ""]);
+    const [code, setCode] = useState("");
     const [emailSent, setEmailSent] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
@@ -43,7 +44,7 @@ export function RecoverPassword() {
     const handleChangePassword = async () => {
         try {
             setIsLoading(true);
-            await changePassword(email, password, code.join(''));
+            await changePassword(email, password, code);
             navigate("/dashboard");
             toast({ description: "Password changed successfully" });
         } catch (error) {
@@ -56,27 +57,6 @@ export function RecoverPassword() {
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-        const value = e.target.value;
-        if (/^[0-9]$/.test(value) || value === "") {
-            const newCode = [...code];
-            newCode[index] = value;
-            setCode(newCode);
-            if (value && index < 5) document.getElementById(`code-input-${index + 1}`)?.focus();
-        }
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-        if (e.key === "Backspace" && !code[index] && index > 0) {
-            document.getElementById(`code-input-${index - 1}`)?.focus();
-        }
-    };
-
-    const handleClick = () => {
-        const firstEmptyIndex = code.findIndex(d => !d);
-        document.getElementById(`code-input-${firstEmptyIndex !== -1 ? firstEmptyIndex : 5}`)?.focus();
     };
 
     return (
@@ -135,7 +115,7 @@ export function RecoverPassword() {
                                 />
                             </div>
                             <Button onClick={handleRecoverPassword} disabled={isLoading} className="w-full">
-                            {isLoading ? (
+                                {isLoading ? (
                                     <><Loader2 className="animate-spin mr-2" />Loading...</>
                                 ) : (
                                     "Recover password"
@@ -159,29 +139,29 @@ export function RecoverPassword() {
                             Enter the 6-digit code sent to your email address to verify your account.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid grid-cols-6 gap-4 mb-2">
-                        {code.map((digit, index) => (
-                            <Input
-                                key={index}
-                                id={`code-input-${index}`}
-                                value={digit}
-                                onChange={(e) => handleChange(e, index)}
-                                onClick={handleClick}
-                                onKeyDown={(e) => handleKeyDown(e, index)}
-                                maxLength={1}
-                                pattern="[0-9]*"
-                                inputMode="numeric"
-                                className="h-12 w-full text-center text-lg font-medium"
-                            />
-                        ))}
-                    </div>
+                    <InputOTP containerClassName="flex justify-center mb-2" maxLength={6} value={code} onChange={(newCode) => setCode(newCode)}>
+                        <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                        </InputOTPGroup>
+                        <InputOTPSeparator />
+                        <InputOTPGroup>
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                        </InputOTPGroup>
+                        <InputOTPSeparator />
+                        <InputOTPGroup>
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                    </InputOTP>
                     <DialogFooter>
                         <Button onClick={handleChangePassword} disabled={isLoading} className="w-full">
-                        {isLoading ? (
-                                    <><Loader2 className="animate-spin mr-2" />Loading...</>
-                                ) : (
-                                    "Verify"
-                                )}
+                            {isLoading ? (
+                                <><Loader2 className="animate-spin mr-2" />Loading...</>
+                            ) : (
+                                "Verify"
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
