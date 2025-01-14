@@ -29,37 +29,34 @@ environ.Env.read_env(os.path.join(BASE_DIR.parent, '.env'))
 # Configure enviroment variables in production!
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY', default='django-insecure-jr^vb$n6jw2(eizglxs@yc+f7oiy+ym!9yvmtc+s)opsu7jzt$')
-
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
-
 CORS_ALLOWED_ORIGINS = env.list('VITE_ENV_PATH', default=['http://localhost:5173'])
-
 DB_NAME = env('DB_NAME', default='stratify_db')
-
 DB_USER = env('DB_USER', default='admin')
-
 DB_PASSWORD = env('DB_PASSWORD', default='1234')
-
 DB_HOST = env('DB_HOST', default='localhost')
-
 DB_PORT = env('DB_PORT', default='5432')
-
 VITE_GOOGLE_CLIENT_ID = env('VITE_GOOGLE_CLIENT_ID', default='')
-
 VITE_GITHUB_CLIENT_ID = env('VITE_GITHUB_CLIENT_ID', default='')
-
 GITHUB_CLIENT_SECRET = env('GITHUB_CLIENT_SECRET', default='')
-
 GITHUB_REDIRECT_URI = env('GITHUB_REDIRECT_URI', default='')
-
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
-
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_USE_TLS = True 
+EMAIL_USE_TLS = True
+
+SECURE_SSL_REDIRECT = not DEBUG
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # Application definition
 
