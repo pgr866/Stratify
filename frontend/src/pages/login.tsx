@@ -91,7 +91,7 @@ export function Login() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required />
                         </div>
-                        <Button onClick={handleLogin} className="w-full">
+                        <Button onClick={handleLogin} disabled={isLoading} className="w-full">
                             {isLoading ? (
                                 <><Loader2 className="animate-spin mr-2" />Loading...</>
                             ) : (
