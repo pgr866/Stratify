@@ -29,7 +29,7 @@ export function Login() {
             const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
-                : "An unknown error occurred.";
+                : "Something went wrong";
             toast({ title: "Login failed", description: errorMessage, className: "text-left" });
         } finally {
             setIsLoading(false);
@@ -46,7 +46,7 @@ export function Login() {
                 <CardHeader>
                     <CardTitle className="text-2xl">Login</CardTitle>
                     <CardDescription>
-                        Enter your email below to login to your account
+                        Login with your GitHub or Google account
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -72,6 +72,7 @@ export function Login() {
                             <Input
                                 id="email"
                                 type="email"
+                                placeholder="m@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required

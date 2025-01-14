@@ -95,7 +95,6 @@ export function RecoverPassword() {
                                 <Input
                                     id="password"
                                     type="password"
-                                    placeholder="new password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -108,7 +107,6 @@ export function RecoverPassword() {
                                 <Input
                                     id="repeat_password"
                                     type="password"
-                                    placeholder="repeat new password"
                                     value={repeatPassword}
                                     onChange={(e) => setRepeatPassword(e.target.value)}
                                     required

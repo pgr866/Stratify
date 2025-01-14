@@ -73,7 +73,7 @@ export function Signup() {
                     <CardHeader>
                         <CardTitle className="text-2xl">Create an account</CardTitle>
                         <CardDescription>
-                            Enter your email below to create your account
+                            Sign up with your GitHub or Google account
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -99,7 +99,7 @@ export function Signup() {
                                 <Input
                                     id="username"
                                     type="text"
-                                    placeholder="username"
+                                    placeholder="Username"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     required
@@ -125,7 +125,6 @@ export function Signup() {
                                 <Input
                                     id="password"
                                     type="password"
-                                    placeholder="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -138,7 +137,6 @@ export function Signup() {
                                 <Input
                                     id="repeat_password"
                                     type="password"
-                                    placeholder="repeat password"
                                     value={repeatPassword}
                                     onChange={(e) => setRepeatPassword(e.target.value)}
                                     required
