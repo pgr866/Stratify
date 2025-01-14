@@ -31,7 +31,7 @@ export function GithubSignin() {
             const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user&state=${state}`;
             window.location.href = githubAuthUrl;
         } catch (error) {
-            toast({ title: "GitHub Login failed", description: "Try to login with credentials", });
+            toast({ title: "GitHub Login failed", description: "Try to login with credentials", className: "text-left" });
         }
     };
 
@@ -48,11 +48,11 @@ export function GithubSignin() {
                     await githubLogin(code, stateFromUrl);
                     document.cookie = "github_oauth_state=; path=/; max-age=0";
                     navigate("/dashboard");
-                    toast({ description: "GitHub Login successfully", });
+                    toast({ description: "GitHub Login successfully" });
                 } catch (error) {
                     document.cookie = "github_oauth_state=; path=/; max-age=0";
                     navigate("/login");
-                    toast({ title: "GitHub Login failed", description: "Try to login with credentials", });
+                    toast({ title: "GitHub Login failed", description: "Try to login with credentials", className: "text-left" });
                 }
             };
             gihubLogin();

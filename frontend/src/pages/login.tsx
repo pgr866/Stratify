@@ -1,5 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Loader2 } from "lucide-react"
 import { useState } from "react";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,9 +16,11 @@ export function Login() {
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleLogin = async () => {
         try {
+            setIsLoading(true);
             await login(email, password);
             navigate("/dashboard");
             toast({ description: "Login successfully" });
@@ -27,7 +30,9 @@ export function Login() {
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "An unknown error occurred.";
-            toast({ title: "Login failed", description: errorMessage });
+            toast({ title: "Login failed", description: errorMessage, className: "text-left" });
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -87,7 +92,11 @@ export function Login() {
                                 required />
                         </div>
                         <Button onClick={handleLogin} className="w-full">
-                            Login
+                            {isLoading ? (
+                                <><Loader2 className="animate-spin mr-2" />Loading...</>
+                            ) : (
+                                "Login"
+                            )}
                         </Button>
                     </div>
                     <div className="mt-4 text-center text-sm">

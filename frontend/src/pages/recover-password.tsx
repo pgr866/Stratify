@@ -23,10 +23,10 @@ export function RecoverPassword() {
 
     const handleRecoverPassword = async () => {
         try {
+            setIsLoading(true);
             if (password !== repeatPassword) {
                 throw new Error("Passwords do not match");
             }
-            setIsLoading(true);
             await recoverPassword(email, password);
             setEmailSent(true);
         } catch (error) {
@@ -35,7 +35,7 @@ export function RecoverPassword() {
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "Passwords do not match";
-            toast({ title: "Password change failed", description: errorMessage });
+            toast({ title: "Password change failed", description: errorMessage, className: "text-left" });
         } finally {
             setIsLoading(false);
         }
@@ -53,7 +53,7 @@ export function RecoverPassword() {
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "Something went wrong";
-            toast({ title: "Password change failed", description: errorMessage });
+            toast({ title: "Password change failed", description: errorMessage, className: "text-left" });
         } finally {
             setIsLoading(false);
         }
@@ -66,7 +66,7 @@ export function RecoverPassword() {
                     <ThemeToggle />
                 </div>
                 {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
-                <Card className="mx-auto w-full max-w-[26rem]">
+                <Card className="mx-auto w-full max-w-sm">
                     <CardHeader>
                         <CardTitle className="text-2xl">Recover password</CardTitle>
                         <CardDescription>

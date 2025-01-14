@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { GoogleSignin } from "@/components/google-signin"
 import { GithubSignin } from "@/components/github-signin"
 import { useToast } from "@/hooks/use-toast"
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { createUser, validateEmail } from "../../api/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -19,16 +20,16 @@ export function Signup() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [repeatPassword, setRepeatPassword] = useState("");
-    const [code, setCode] = useState(["", "", "", "", "", ""]);
+    const [code, setCode] = useState("");
     const [emailSent, setEmailSent] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSendEmail = async () => {
         try {
+            setIsLoading(true);
             if (password !== repeatPassword) {
                 throw new Error("Passwords do not match");
             }
-            setIsLoading(true);
             await validateEmail(email, username, password);
             setEmailSent(true);
         } catch (error) {
@@ -37,7 +38,7 @@ export function Signup() {
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "Passwords do not match";
-            toast({ title: "Sign-up failed", description: errorMessage });
+            toast({ title: "Sign-up failed", description: errorMessage, className: "text-left" });
         } finally {
             setIsLoading(false);
         }
@@ -46,7 +47,7 @@ export function Signup() {
     const handleSignup = async () => {
         try {
             setIsLoading(true);
-            await createUser({ email: email, username: username, password: password }, code.join(''));
+            await createUser({ email: email, username: username, password: password }, code);
             navigate("/dashboard");
             toast({ description: "Sign-up successful" });
         } catch (error) {
@@ -55,31 +56,10 @@ export function Signup() {
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "Something went wrong";
-            toast({ title: "Sign-up failed", description: errorMessage });
+            toast({ title: "Sign-up failed", description: errorMessage, className: "text-left" });
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-        const value = e.target.value;
-        if (/^[0-9]$/.test(value) || value === "") {
-            const newCode = [...code];
-            newCode[index] = value;
-            setCode(newCode);
-            if (value && index < 5) document.getElementById(`code-input-${index + 1}`)?.focus();
-        }
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-        if (e.key === "Backspace" && !code[index] && index > 0) {
-            document.getElementById(`code-input-${index - 1}`)?.focus();
-        }
-    };
-
-    const handleClick = () => {
-        const firstEmptyIndex = code.findIndex(d => !d);
-        document.getElementById(`code-input-${firstEmptyIndex !== -1 ? firstEmptyIndex : 5}`)?.focus();
     };
 
     return (
@@ -89,7 +69,7 @@ export function Signup() {
                     <ThemeToggle />
                 </div>
                 {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
-                <Card className="mx-auto w-full max-w-[26rem]">
+                <Card className="mx-auto w-full max-w-sm">
                     <CardHeader>
                         <CardTitle className="text-2xl">Create an account</CardTitle>
                         <CardDescription>
@@ -189,22 +169,22 @@ export function Signup() {
                             Enter the 6-digit code sent to your email address to verify your account.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid grid-cols-6 gap-4 mb-2">
-                        {code.map((digit, index) => (
-                            <Input
-                                key={index}
-                                id={`code-input-${index}`}
-                                value={digit}
-                                onChange={(e) => handleChange(e, index)}
-                                onClick={handleClick}
-                                onKeyDown={(e) => handleKeyDown(e, index)}
-                                maxLength={1}
-                                pattern="[0-9]*"
-                                inputMode="numeric"
-                                className="h-12 w-full text-center text-lg font-medium"
-                            />
-                        ))}
-                    </div>
+                    <InputOTP containerClassName="flex justify-center mb-2" maxLength={6} value={code} onChange={(newCode) => setCode(newCode)}>
+                        <InputOTPGroup>
+                            <InputOTPSlot index={0} />
+                            <InputOTPSlot index={1} />
+                        </InputOTPGroup>
+                        <InputOTPSeparator />
+                        <InputOTPGroup>
+                            <InputOTPSlot index={2} />
+                            <InputOTPSlot index={3} />
+                        </InputOTPGroup>
+                        <InputOTPSeparator />
+                        <InputOTPGroup>
+                            <InputOTPSlot index={4} />
+                            <InputOTPSlot index={5} />
+                        </InputOTPGroup>
+                    </InputOTP>
                     <DialogFooter>
                         <Button onClick={handleSignup} disabled={isLoading} className="w-full">
                             {isLoading ? (
