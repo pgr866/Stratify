@@ -16,5 +16,5 @@ sudo certbot --nginx -d stratify.eastus.cloudapp.azure.com
 read -p "Press any key to continue..."
 # Run docker-compose
 cd TFG
-docker-compose up --build
+docker-compose up -d --build
 docker ps
