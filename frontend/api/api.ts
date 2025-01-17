@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const URL = import.meta.env.DEBUG === "True"
-  ? import.meta.env.VITE_BACKEND_URL
+const URL = import.meta.env.DEBUG.toLowerCase() === "true"
+  ? import.meta.env.BACKEND_URL
   : "http://localhost:8000";
 
 const api = axios.create({
