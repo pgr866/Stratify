@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const URL = import.meta.env.MODE === "production"
+const URL = import.meta.env.DEBUG === "True"
   ? import.meta.env.VITE_BACKEND_URL
   : "http://localhost:8000";
 

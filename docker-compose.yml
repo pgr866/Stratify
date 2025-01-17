@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:17.2
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DJANGO_SUPERUSER_USERNAME}
+      POSTGRES_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    depends_on:
+      - db
+    env_file:
+      - .env
+    networks:
+      - backend
+      - frontend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    env_file:
+      - .env
+    networks:
+      - frontend
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  backend:
+  frontend:

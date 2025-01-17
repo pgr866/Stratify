@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
-import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,32 +20,28 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-env = environ.Env()
-environ.Env.read_env(os.path.join(BASE_DIR.parent, '.env'))
-
-# Configure enviroment variables in production!
+DEBUG = os.getenv('DEBUG', default='False').lower() == 'true'
+# Configure enviroment variables in production! (/.env)
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY', default='django-insecure-jr^vb$n6jw2(eizglxs@yc+f7oiy+ym!9yvmtc+s)opsu7jzt$')
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
-CORS_ALLOWED_ORIGINS = env.list('VITE_ENV_PATH', default=['http://localhost:5173'])
-DB_NAME = env('DB_NAME', default='stratify_db')
-DB_USER = env('DB_USER', default='admin')
-DB_PASSWORD = env('DB_PASSWORD', default='1234')
-DB_HOST = env('DB_HOST', default='localhost')
-DB_PORT = env('DB_PORT', default='5432')
-VITE_GOOGLE_CLIENT_ID = env('VITE_GOOGLE_CLIENT_ID', default='')
-VITE_GITHUB_CLIENT_ID = env('VITE_GITHUB_CLIENT_ID', default='')
-GITHUB_CLIENT_SECRET = env('GITHUB_CLIENT_SECRET', default='')
-GITHUB_REDIRECT_URI = env('GITHUB_REDIRECT_URI', default='')
-EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+SECRET_KEY = os.getenv('SECRET_KEY') if not DEBUG else 'django-insecure-jr^vb$n6jw2(eizglxs@yc+f7oiy+ym!9yvmtc+s)opsu7jzt$'
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',') if not DEBUG else ['localhost', '127.0.0.1']
+CORS_ALLOWED_ORIGINS = os.getenv('VITE_ENV_PATH').split(',') if not DEBUG else ['http://localhost:5173']
+DB_NAME = os.getenv('DB_NAME')
+DJANGO_SUPERUSER_USERNAME = os.getenv('DJANGO_SUPERUSER_USERNAME')
+DJANGO_SUPERUSER_PASSWORD = os.getenv('DJANGO_SUPERUSER_PASSWORD')
+DB_HOST = os.getenv('DB_HOST') if not DEBUG else 'db'
+DB_PORT = os.getenv('DB_PORT') if not DEBUG else '5432'
+VITE_GOOGLE_CLIENT_ID = os.getenv('VITE_GOOGLE_CLIENT_ID', default='')
+VITE_GITHUB_CLIENT_ID = os.getenv('VITE_GITHUB_CLIENT_ID', default='')
+GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET', default='')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', default='')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
+CORS_ALLOW_CREDENTIALS = True
 SECURE_SSL_REDIRECT = not DEBUG
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_HTTPONLY = True
@@ -72,7 +67,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
-    'coreapi',
+    'drf_yasg',
     'stratify'
 ]
 
@@ -122,8 +117,8 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": DB_NAME,
-        "USER": DB_USER,
-        "PASSWORD": DB_PASSWORD,
+        "USER": DJANGO_SUPERUSER_USERNAME,
+        "PASSWORD": DJANGO_SUPERUSER_PASSWORD,
         "HOST": DB_HOST,
         "PORT":  DB_PORT,
         "CONN_MAX_AGE": 600,
@@ -181,10 +176,8 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_CREDENTIALS = True
-
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema',
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'stratify.authentication.JWTCookieAuthentication'
     ],
