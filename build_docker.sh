@@ -8,13 +8,16 @@ echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin docker-compose
+
+sudo apt install -y docker-compose
+docker-compose --version
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 git clone git@github.com:pgr866/TFG.git
-# Get SSL certificate
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d stratify.eastus.cloudapp.azure.com
-read -p "Press any key to continue..."
 # Run docker-compose
 cd TFG
 docker-compose up -d --build
+read -p "Press any key to continue..."
 docker ps
+# Get SSL certificate
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d stratify.eastus.cloudapp.azure.com
