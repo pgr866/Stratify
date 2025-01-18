@@ -20,5 +20,6 @@ CMD ["sh", "-c", "wait-for-it db:5432 --timeout=30 --strict && \
     if [ \"$(echo $DEBUG | tr '[:upper:]' '[:lower:]')\" = \"true\" ]; then \
         python manage.py runserver 0.0.0.0:8000; \
     else \
-        gunicorn myproject.wsgi:application --bind 0.0.0.0:8000 --timeout 60 --workers $(python -c 'import multiprocessing; print(multiprocessing.cpu_count()*2+1)'); \
+        export DJANGO_SETTINGS_MODULE=stratify.settings \
+        gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --timeout 60 --workers $(python -c 'import multiprocessing; print(multiprocessing.cpu_count()*2+1)'); \
     fi"]
