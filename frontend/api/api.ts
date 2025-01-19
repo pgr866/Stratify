@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const URL = (import.meta.env.DEBUG || "").toLowerCase() === "true"
+const URL = (import.meta.env.DEBUG || "").toLowerCase() !== "true"
   ? import.meta.env.BACKEND_URL
   : "http://localhost:8000";
 
