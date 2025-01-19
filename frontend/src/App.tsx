@@ -35,6 +35,7 @@ function App() {
         <Route path="/recover-password" element={isAuthenticated ? <Navigate to="/dashboard" /> : <RecoverPassword />} />
         <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />} />
         <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+        <Route path="/api*" />
         <Route path="*" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
       </Routes>
       <Toaster />

@@ -1,8 +1,6 @@
 import axios from "axios";
 
-const URL = (import.meta.env.DEBUG || "").toLowerCase() !== "true"
-  ? import.meta.env.BACKEND_URL
-  : "http://localhost:8000";
+const URL = "https://stratify-ual.eastus.cloudapp.azure.com/api"
 
 const api = axios.create({
   baseURL: `${URL}/stratify/api/v1/`,

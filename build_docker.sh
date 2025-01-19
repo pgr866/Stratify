@@ -14,10 +14,11 @@ sudo apt update -y
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 source .env
-# Get SSL certificate
+# Get nginx SSL certificate
 sudo apt install -y nginx certbot python3-certbot-nginx
 sudo certbot --nginx -d $ALLOWED_HOSTS --email $EMAIL_HOST_USER --agree-tos --no-eff-email
 
+# Get postgresql SSL certificate
 mkdir -p ./certs
 sudo openssl genrsa -aes256 -passout pass:$SSL_PASSPHRASE -out ./certs/postgresdb.key 2048
 sudo openssl rsa -in ./certs/postgresdb.key -passin pass:$SSL_PASSPHRASE -out ./certs/postgresdb.key
