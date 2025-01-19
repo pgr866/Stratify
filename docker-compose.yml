@@ -47,6 +47,17 @@ services:
     depends_on:
       - backend
       - frontend
+    command: >
+      /bin/sh -c "
+        apt update -y &&
+        apt install -y --no-install-recommends certbot python3-certbot-nginx &&
+        rm -rf /var/lib/apt/lists/* &&
+        echo holaa &&
+        certbot --nginx -d stratify.eastus.cloudapp.azure.com --email ${EMAIL_HOST_USER} --agree-tos --no-eff-email &&
+        echo holaa &&
+        sleep 15 &&
+        nginx -g 'daemon off;'
+      "
     networks:
       - frontend
       - backend

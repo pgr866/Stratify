@@ -1,4 +1,5 @@
 FROM node:22.13.0-slim
+RUN apt update -y && apt install -y --no-install-recommends npm && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY frontend/ /app/
 RUN npm ci
