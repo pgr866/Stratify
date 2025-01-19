@@ -19,10 +19,10 @@ sudo apt install -y nginx certbot python3-certbot-nginx
 sudo certbot --nginx -d $ALLOWED_HOSTS --email $EMAIL_HOST_USER --agree-tos --no-eff-email
 
 mkdir -p ./certs
-openssl genrsa -aes256 -passout pass:$SSL_PASSPHRASE -out ./certs/postgresdb.key 2048
-openssl rsa -in ./certs/postgresdb.key -passin pass:$SSL_PASSPHRASE -out ./certs/postgresdb.key
-openssl req -new -key ./certs/postgresdb.key -passin pass:$SSL_PASSPHRASE -out ./certs/postgresdb.csr
-openssl x509 -req -in ./certs/postgresdb.csr -signkey ./certs/postgresdb.key -passin pass:$SSL_PASSPHRASE -out ./certs/postgresdb.crt -days 365
+sudo openssl genrsa -aes256 -passout pass:$SSL_PASSPHRASE -out ./certs/postgresdb.key 2048
+sudo openssl rsa -in ./certs/postgresdb.key -passin pass:$SSL_PASSPHRASE -out ./certs/postgresdb.key
+sudo openssl req -new -key ./certs/postgresdb.key -passin pass:$SSL_PASSPHRASE -out ./certs/postgresdb.csr
+sudo openssl x509 -req -in ./certs/postgresdb.csr -signkey ./certs/postgresdb.key -passin pass:$SSL_PASSPHRASE -out ./certs/postgresdb.crt -days 365
 rm ./certs/postgresdb.csr
 sudo chmod -R 600 ./certs
 sudo chown -R 999:999 ./certs
