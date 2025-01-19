@@ -1,11 +1,12 @@
 FROM node:22.13.0-slim
-RUN apt update -y && apt install -y --no-install-recommends npm && rm -rf /var/lib/apt/lists/*
+RUN npm i -g npm@latest
 WORKDIR /app
 COPY frontend/ /app/
 RUN npm ci
-EXPOSE 51737
+EXPOSE 5173
 CMD ["sh", "-c", "if [ \"$(echo $DEBUG | tr '[:upper:]' '[:lower:]')\" = \"true\" ]; then \
         npm run dev -- --host; \
     else \
-        npm run build && npx serve -s build -l 80; \
+        npm run build; \
+        npx serve -s dist -l 80; \
     fi"]

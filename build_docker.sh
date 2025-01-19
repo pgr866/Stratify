@@ -1,3 +1,4 @@
+#!/bin/bash
 # Add Docker's official GPG key:
 sudo apt update -y
 sudo apt install -y ca-certificates curl
@@ -12,12 +13,22 @@ echo \
 sudo apt update -y
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+source .env
+# Get SSL certificate
+sudo apt install -y nginx certbot python3-certbot-nginx
+sudo certbot --nginx -d $ALLOWED_HOSTS --email $EMAIL_HOST_USER --agree-tos --no-eff-email
+
+mkdir -p ./certs
+openssl genrsa -aes256 -passout pass:$SSL_PASSPHRASE -out ./certs/postgresdb.key 2048
+openssl rsa -in ./certs/postgresdb.key -passin pass:$SSL_PASSPHRASE -out ./certs/postgresdb.key
+openssl req -new -key ./certs/postgresdb.key -passin pass:$SSL_PASSPHRASE -out ./certs/postgresdb.csr
+openssl x509 -req -in ./certs/postgresdb.csr -signkey ./certs/postgresdb.key -passin pass:$SSL_PASSPHRASE -out ./certs/postgresdb.crt -days 365
+rm ./certs/postgresdb.csr
+sudo chmod -R 600 ./certs
+sudo chown -R 999:999 ./certs
+
 # Install Docker Compose
 sudo apt install -y docker-compose
 git clone git@github.com:pgr866/TFG.git
 cd TFG
 sudo docker-compose up -d --build
-read -p "Press any key to continue..."
-# Get SSL certificate
-sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d stratify.eastus.cloudapp.azure.com
