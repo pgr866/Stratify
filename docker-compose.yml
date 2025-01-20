@@ -52,8 +52,6 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - frontend_dist:/usr/share/nginx/html
-      - ./staticfiles:/home/azureuser/stratify/staticfiles
-      - ./mediafiles:/home/azureuser/stratify/mediafiles
       - /etc/letsencrypt:/etc/letsencrypt
     ports:
       - "80:80"
