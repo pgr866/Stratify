@@ -17,6 +17,7 @@ source .env
 # Get nginx SSL certificate
 sudo apt install -y nginx certbot python3-certbot-nginx
 sudo certbot --nginx -d $ALLOWED_HOSTS --email $EMAIL_HOST_USER --agree-tos --no-eff-email
+sudo systemctl stop nginx
 
 # Get postgresql SSL certificate
 mkdir -p ./certs
