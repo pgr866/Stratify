@@ -1,9 +1,11 @@
 import axios from "axios";
 
-const URL = "https://stratify-ual.eastus.cloudapp.azure.com/api"
+const URL = process.env.NODE_ENV === "production"
+  ? `${import.meta.env.VITE_ENV_PATH}/api/`
+  : "http://localhost:8000/stratify/api/v1/"
 
 const api = axios.create({
-  baseURL: `${URL}/stratify/api/v1/`,
+  baseURL: URL,
   withCredentials: true,
 });
 
