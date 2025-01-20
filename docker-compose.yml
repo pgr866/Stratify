@@ -45,6 +45,8 @@ services:
 
   nginx:
     image: nginx:latest
+    environment:
+      - ALLOWED_HOST=${ALLOWED_HOST}
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - frontend_dist:/usr/share/nginx/html

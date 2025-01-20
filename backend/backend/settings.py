@@ -24,7 +24,7 @@ DEBUG = os.getenv('DEBUG', default='False').lower() == 'true'
 # Configure enviroment variables in production! (/.env)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY') if not DEBUG else 'django-insecure-jr^vb$n6jw2(eizglxs@yc+f7oiy+ym!9yvmtc+s)opsu7jzt$'
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',') if not DEBUG else ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = [os.getenv('ALLOWED_HOST')] if not DEBUG else ['localhost', '127.0.0.1']
 CORS_ALLOWED_ORIGINS = os.getenv('VITE_ENV_PATH').split(',') if not DEBUG else ['http://localhost:5173']
 DB_NAME = os.getenv('DB_NAME')
 DJANGO_SUPERUSER_USERNAME = os.getenv('DJANGO_SUPERUSER_USERNAME')
