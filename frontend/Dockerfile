@@ -1,9 +1,7 @@
 FROM node:22.13.0-slim
-RUN npm i -g npm@latest
 WORKDIR /app
 COPY frontend/ /app/
-RUN mkdir -p dist && chmod -R 644 dist
-RUN npm ci
+RUN npm i -g npm@latest && npm ci
 EXPOSE 5173
 CMD ["sh", "-c", "if [ \"$(echo $DEBUG | tr '[:upper:]' '[:lower:]')\" = \"true\" ]; then \
         npm run dev -- --host; \

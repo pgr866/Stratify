@@ -8,8 +8,8 @@ services:
       SSL_PASSPHRASE: ${SSL_PASSPHRASE}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./certs/postgresdb.key:/var/lib/postgresql/postgresdb.key
-      - ./certs/postgresdb.crt:/var/lib/postgresql/postgresdb.crt
+      - /etc/ssl/private/postgresdb.key:/var/lib/postgresql/postgresdb.key
+      - /etc/ssl/certs/postgresdb.crt:/var/lib/postgresql/postgresdb.crt
     command: >
       -c ssl=on
       -c ssl_cert_file=/var/lib/postgresql/postgresdb.crt
@@ -45,8 +45,6 @@ services:
 
   nginx:
     image: nginx:latest
-    environment:
-      - ALLOWED_HOST=${ALLOWED_HOST}
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - frontend_dist:/usr/share/nginx/html
