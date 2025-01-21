@@ -2,7 +2,7 @@ import axios from "axios";
 
 const URL = process.env.NODE_ENV === "production"
   ? `${import.meta.env.VITE_ENV_PATH}/api/`
-  : "http://localhost:8000/stratify/api/v1/"
+  : "http://localhost:8000/api/v1/"
 
 const api = axios.create({
   baseURL: URL,

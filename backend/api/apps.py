@@ -1,9 +1,9 @@
 from django.apps import AppConfig
 
 
-class StratifyConfig(AppConfig):
+class ApiConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'stratify'
+    name = 'api'
     
     def ready(self):
-        import stratify.signals
+        import api.signals

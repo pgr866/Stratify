@@ -26,6 +26,7 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+    # SECURITY WARNING: comment the line below in production!
     #ports: ["8000:8000"]
     depends_on:
       - db
@@ -39,6 +40,7 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
+    # SECURITY WARNING: comment the line below in production!
     #ports: ["5173:5173"]
     depends_on:
       - backend
@@ -62,11 +64,7 @@ services:
       - backend
       - frontend
     command: >
-      bash -c "if [ \"${DEBUG}\" == \"True\" ]; then
-                exit 0;
-              else
-                exec nginx -g 'daemon off;';
-              fi"
+      bash -c "[ \"${DEBUG}\" == \"True\" ] && exit 0; exec nginx -g 'daemon off;'"
     networks:
       - frontend
       - backend

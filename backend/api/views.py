@@ -240,7 +240,7 @@ class GithubLoginView(APIView):
                 base_url="https://api.github.com",
                 auth=None,
                 timeout=10,
-                user_agent="stratify",
+                user_agent="api",
                 per_page=30,
                 verify=True,
                 retry=3,
