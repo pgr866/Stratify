@@ -29,8 +29,6 @@ CORS_ALLOWED_ORIGINS = os.getenv('VITE_ENV_PATH').split(',') if not DEBUG else [
 DB_NAME = os.getenv('DB_NAME')
 DJANGO_SUPERUSER_USERNAME = os.getenv('DJANGO_SUPERUSER_USERNAME')
 DJANGO_SUPERUSER_PASSWORD = os.getenv('DJANGO_SUPERUSER_PASSWORD')
-DB_HOST = os.getenv('DB_HOST') if not DEBUG else 'db'
-DB_PORT = os.getenv('DB_PORT') if not DEBUG else '5432'
 VITE_GOOGLE_CLIENT_ID = os.getenv('VITE_GOOGLE_CLIENT_ID', default='')
 VITE_GITHUB_CLIENT_ID = os.getenv('VITE_GITHUB_CLIENT_ID', default='')
 GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET', default='')
@@ -120,8 +118,8 @@ DATABASES = {
         "NAME": DB_NAME,
         "USER": DJANGO_SUPERUSER_USERNAME,
         "PASSWORD": DJANGO_SUPERUSER_PASSWORD,
-        "HOST": DB_HOST,
-        "PORT":  DB_PORT,
+        "HOST": 'db',
+        "PORT":  '5432',
         "CONN_MAX_AGE": 600,
         "OPTIONS": {
             "sslmode": "disable" if DEBUG else "require",
@@ -131,7 +129,8 @@ DATABASES = {
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': 'memcached:11211',
         'TIMEOUT': 600,
     }
 }

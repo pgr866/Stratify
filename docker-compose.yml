@@ -50,9 +50,16 @@ services:
       - frontend
     volumes:
       - frontend_dist:/app/dist
+  
+  memcached:
+    image: memcached:latest
+    ports:
+      - "11211:11211"
+    networks:
+      - backend
 
   nginx:
-    image: nginx:latest
+    image: nginx:1.27.3
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - frontend_dist:/usr/share/nginx/html

@@ -231,11 +231,10 @@ class GithubLoginView(APIView):
 
     def post(self, request):
         try:
-            code = request.data.get('code')
-            state = request.data.get('state')
-            cookie_state = request.COOKIES.get('github_oauth_state')
-            if not state or state != cookie_state:
-                raise Exception("State mismatch")
+            auth_header = request.headers.get('Authorization')
+            if not auth_header or not auth_header.startswith('Bearer '):
+                raise Exception("Missing or invalid Authorization header")
+            code = auth_header.split(' ')[1]
             requester = Requester.Requester(
                 base_url="https://api.github.com",
                 auth=None,

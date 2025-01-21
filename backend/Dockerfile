@@ -16,7 +16,7 @@ CMD ["sh", "-c", "wait-for-it db:5432 --timeout=30 --strict && \
     python manage.py makemigrations --noinput && \
     python manage.py migrate --noinput && \
     python manage.py createsuperuser --noinput --email=$EMAIL_HOST_USER > /dev/null 2>&1 || true && \
-    if [ \"${DEBUG}\" == \"True\" ]; then \
+    if [ \"${DEBUG}\" = \"True\" ]; then \
         python manage.py runserver 0.0.0.0:8000; \
     else \
         gunicorn backend.wsgi:application --bind 0.0.0.0:8000 --timeout 60 --workers $(python -c 'import multiprocessing; print(multiprocessing.cpu_count()*2+1)'); \
