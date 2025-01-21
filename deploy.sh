@@ -7,7 +7,6 @@ source .env
 # Get nginx SSL certificate
 sudo apt install -y nginx certbot python3-certbot-nginx
 sudo certbot --nginx -d $ALLOWED_HOST --email $EMAIL_HOST_USER --agree-tos --no-eff-email
-sudo systemctl stop nginx
 
 # Get postgresql SSL certificate
 sudo openssl genrsa -aes256 -passout pass:$SSL_PASSPHRASE -out /etc/ssl/private/postgresdb.key 2048
@@ -21,4 +20,5 @@ sudo chown 999:999 /etc/ssl/certs/postgresdb.crt
 
 # Install Docker Compose
 sudo apt install -y docker-compose
+sudo systemctl stop nginx
 sudo docker-compose up -d --build
