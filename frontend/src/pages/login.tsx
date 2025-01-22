@@ -44,7 +44,7 @@ export function Login() {
             {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
             <Card className="mx-auto w-full max-w-sm">
                 <CardHeader>
-                    <CardTitle className="text-2xl">Loginyee</CardTitle>
+                    <CardTitle className="text-2xl">Login</CardTitle>
                     <CardDescription>
                         Login with your GitHub or Google account
                     </CardDescription>
