@@ -21,4 +21,4 @@ sudo chown 999:999 /etc/ssl/certs/postgresdb.crt
 # Install Docker Compose
 sudo apt install -y docker-compose
 sudo systemctl stop nginx
-sudo docker-compose up -d --build
+gnome-terminal -- bash -c 'sudo docker-compose up -d --build'
