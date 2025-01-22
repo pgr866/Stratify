@@ -1,17 +1,20 @@
 #!/bin/bash
+#sudo chmod +x azure_deploy.sh && ./azure_deploy.sh
 sudo apt update -y
 sudo apt -o APT::Get::Always-Include-Phased-Updates=true upgrade -y
 
+sudo chmod +r .env
 source .env
 # Get nginx SSL certificate
-if [ ! -f /etc/letsencrypt/live/${ALLOWED_HOST}/fullchain.pem ] || [ ! -f /etc/letsencrypt/live/${ALLOWED_HOST}/privkey.pem ]; then
-    sudo rm -rf /etc/letsencrypt/live/${ALLOWED_HOST}
+if sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST//$'\r'/}/fullchain.pem" || sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST//$'\r'/}/privkey.pem"; then
+    sudo rm -rf "/etc/letsencrypt/live/${ALLOWED_HOST//$'\r'/}"
+    sudo apt purge -y nginx certbot python3-certbot-nginx
     sudo apt install -y nginx certbot python3-certbot-nginx
     sudo certbot --nginx -d $ALLOWED_HOST --email $EMAIL_HOST_USER --agree-tos --no-eff-email
 fi
 
 # Get postgresql SSL certificate
-if [ ! -f /etc/ssl/private/postgresdb.key ] || [ ! -f /etc/ssl/certs/postgresdb.crt ]; then
+if sudo test ! -f /etc/ssl/private/postgresdb.key || sudo test ! -f /etc/ssl/certs/postgresdb.crt; then
     sudo rm -f /etc/ssl/private/postgresdb.key /etc/ssl/certs/postgresdb.crt
     sudo openssl genrsa -aes256 -passout pass:$SSL_PASSPHRASE -out /etc/ssl/private/postgresdb.key 2048
     sudo openssl req -new -key /etc/ssl/private/postgresdb.key -passin pass:$SSL_PASSPHRASE -out /etc/ssl/certs/postgresdb.csr
@@ -26,4 +29,4 @@ fi
 # Install Docker Compose
 sudo apt install -y docker-compose
 sudo systemctl stop nginx
-gnome-terminal -- bash -c 'sudo docker-compose up -d --build'
+bash -c 'sudo docker-compose up -d --build'
