@@ -9,7 +9,7 @@ import { GoogleSignin } from "@/components/google-signin"
 import { GithubSignin } from "@/components/github-signin"
 import { useToast } from "@/hooks/use-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { login } from "../../api/api";
+import { login } from "@/api";
 
 export function Login() {
     const { toast } = useToast()
@@ -44,7 +44,7 @@ export function Login() {
             {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
             <Card className="mx-auto w-full max-w-sm">
                 <CardHeader>
-                    <CardTitle className="text-2xl">Login</CardTitle>
+                    <CardTitle className="text-2xl">Loginyee</CardTitle>
                     <CardDescription>
                         Login with your GitHub or Google account
                     </CardDescription>

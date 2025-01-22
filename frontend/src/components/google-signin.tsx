@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button"
 import { Icons } from "@/components/icons"
 import { useToast } from "@/hooks/use-toast"
-import { googleLogin } from "../../api/api";
+import { googleLogin } from "@/api";
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 export function GoogleSignin() {

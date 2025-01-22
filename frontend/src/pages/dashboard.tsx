@@ -3,7 +3,7 @@ import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button"
 import { DateTimeRangePicker } from "@/components/date-time-range-picker"
 import { CandleChart } from "@/components/candle-chart"
-import { logout } from "../../api/api";
+import { logout } from "@/api";
 
 export function Dashboard() {
 

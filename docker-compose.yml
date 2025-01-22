@@ -27,8 +27,8 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    # SECURITY WARNING: comment the line below in production!
-    #ports: ["8000:8000"]
+    volumes: ["./backend/backend:/app/backend", "./backend/api:/app/api"] # SECURITY WARNING: comment this line in production!
+    ports: ["8000:8000"] # SECURITY WARNING: comment this line in production!
     depends_on:
       - db
     env_file:
@@ -42,16 +42,17 @@ services:
     build:
       context: .
       dockerfile: frontend/Dockerfile
-    # SECURITY WARNING: comment the line below in production!
-    #ports: ["5173:5173"]
+    volumes:
+      - frontend_dist:/app/dist
+      - ./frontend/src:/app/src # SECURITY WARNING: comment this line in production!
+    ports: ["5173:5173"] # SECURITY WARNING: comment this line in production!
     depends_on:
       - backend
     env_file:
       - .env
     networks:
       - frontend
-    volumes:
-      - frontend_dist:/app/dist
+    
     restart: always
   
   memcached:

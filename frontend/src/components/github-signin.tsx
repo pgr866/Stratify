@@ -3,7 +3,7 @@ import { Icons } from "@/components/icons";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-import { githubLogin } from "../../api/api";
+import { githubLogin } from "@/api";
 import { useSearchParams } from "react-router-dom";
 
 export function GithubSignin() {

@@ -1,7 +1,7 @@
 import './App.css'
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { checkAuth } from "../api/api";
+import { checkAuth } from "@/api";
 import { Dashboard } from "./pages/dashboard";
 import { Login } from "./pages/login";
 import { RecoverPassword } from "./pages/recover-password";
