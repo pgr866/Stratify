@@ -76,7 +76,7 @@ services:
       - backend
       - frontend
     command: >
-      bash -c "[ \"${DEBUG}\" = \"False\" ] && exec nginx -g 'daemon off;'"
+      bash -c "[ \"${DEBUG}\" = \"True\" ] && sleep infinity; exec nginx -g 'daemon off;'"
     networks:
       - frontend
       - backend
