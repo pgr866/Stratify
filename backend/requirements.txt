@@ -5,7 +5,7 @@ djangorestframework-simplejwt
 google-auth
 PyGithub
 drf-yasg
-python-memcached
+pymemcache
 gunicorn
 setuptools
 psycopg2

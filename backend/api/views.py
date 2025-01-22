@@ -5,6 +5,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.mail import send_mail
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
 
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
@@ -20,6 +22,7 @@ from .models import User
 from .permissions import IsNotAuthenticated, IsOwner, NoBody
 from .serializers import LoginSerializer, UserSerializer, UserValidationSerializer, RecoverPasswordSerializer
 
+@method_decorator(cache_page(60*15), name='dispatch')
 class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()

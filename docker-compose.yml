@@ -10,7 +10,7 @@ services:
       - /etc/ssl/private/postgresdb.key:/var/lib/postgresql/postgresdb.key
       - /etc/ssl/certs/postgresdb.crt:/var/lib/postgresql/postgresdb.crt
     command: >
-      bash -c "if [ \"${DEBUG}\" == \"True\" ]; then
+      bash -c "if [ \"${DEBUG}\" = \"True\" ]; then
                 exec docker-entrypoint.sh postgres -c ssl=off;
               else
                 exec docker-entrypoint.sh postgres \
@@ -21,6 +21,7 @@ services:
               fi"
     networks:
       - backend
+    restart: always
 
   backend:
     build:
@@ -35,6 +36,7 @@ services:
     networks:
       - backend
       - frontend
+    restart: always
 
   frontend:
     build:
@@ -50,13 +52,16 @@ services:
       - frontend
     volumes:
       - frontend_dist:/app/dist
+    restart: always
   
   memcached:
-    image: memcached:latest
+    image: memcached:1.6.34
+    command: memcached -m 128 -p 11211 -u memcache
     ports:
       - "11211:11211"
     networks:
       - backend
+    restart: always
 
   nginx:
     image: nginx:1.27.3
@@ -71,10 +76,11 @@ services:
       - backend
       - frontend
     command: >
-      bash -c "[ \"${DEBUG}\" == \"True\" ] && exit 0; exec nginx -g 'daemon off;'"
+      bash -c "[ \"${DEBUG}\" = \"False\" ] && exec nginx -g 'daemon off;'"
     networks:
       - frontend
       - backend
+    restart: always
 
 volumes:
   postgres_data:
