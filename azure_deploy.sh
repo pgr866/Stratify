@@ -4,7 +4,7 @@ sudo apt update -y
 sudo apt -o APT::Get::Always-Include-Phased-Updates=true upgrade -y
 
 # Load .env
-sudo apt-get install dos2unix
+sudo apt install -y dos2unix
 dos2unix .env
 sudo chmod +r .env
 source .env
