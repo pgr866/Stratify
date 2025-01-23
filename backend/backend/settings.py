@@ -189,7 +189,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
@@ -227,5 +226,8 @@ AUTHENTICATION_BACKENDS = (
 )
 
 AUTH_USER_MODEL = 'api.User'
+
+ACCESS_TOKEN_MAX_AGE = 3600 # 1 hour
+REFRESH_TOKEN_MAX_AGE = 604800 # 7 days
 
 SITE_ID = 1

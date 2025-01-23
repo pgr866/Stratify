@@ -62,6 +62,7 @@ class UserView(viewsets.ModelViewSet):
             user = login_serializer.validated_data['user']
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
             response_data = login_serializer.data
             response_data['id'] = user.id
             response_data['email'] = user.email
@@ -74,7 +75,15 @@ class UserView(viewsets.ModelViewSet):
                 httponly=True,
                 secure=not settings.DEBUG,
                 samesite='Strict',
-                max_age=86400, # 1 day
+                max_age=settings.ACCESS_TOKEN_MAX_AGE,
+            )
+            response.set_cookie(
+                key='refresh_token',
+                value=refresh_token,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite='Strict',
+                max_age=settings.REFRESH_TOKEN_MAX_AGE,
             )
             return response
 
@@ -139,6 +148,7 @@ class ChangePasswordView(APIView):
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
         response_data = {
             "id": user.id,
             "email": user.email,
@@ -153,7 +163,15 @@ class ChangePasswordView(APIView):
             httponly=True,
             secure=not settings.DEBUG,
             samesite='Strict',
-            max_age=86400, # 1 día
+            max_age=settings.ACCESS_TOKEN_MAX_AGE,
+        )
+        response.set_cookie(
+            key='refresh_token',
+            value=refresh_token,
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite='Strict',
+            max_age=settings.REFRESH_TOKEN_MAX_AGE,
         )
         return response
 
@@ -166,6 +184,7 @@ class LoginView(APIView):
             user = serializer.validated_data['user']
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
             response_data = serializer.data
             response_data['id'] = user.id
             response_data['email'] = user.email
@@ -177,7 +196,15 @@ class LoginView(APIView):
                 httponly=True,
                 secure=not settings.DEBUG,
                 samesite='Strict',
-                max_age=86400, # 1 day
+                max_age=settings.ACCESS_TOKEN_MAX_AGE,
+            )
+            response.set_cookie(
+                key='refresh_token',
+                value=refresh_token,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite='Strict',
+                max_age=settings.REFRESH_TOKEN_MAX_AGE,
             )
             return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -211,6 +238,7 @@ class GoogleLoginView(APIView):
             
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
             response_data = {
                 "id": user.id,
                 "email": user.email,
@@ -223,7 +251,15 @@ class GoogleLoginView(APIView):
                 httponly=True,
                 secure=not settings.DEBUG,
                 samesite='Strict',
-                max_age=86400, # 1 day
+                max_age=settings.ACCESS_TOKEN_MAX_AGE,
+            )
+            response.set_cookie(
+                key='refresh_token',
+                value=refresh_token,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite='Strict',
+                max_age=settings.REFRESH_TOKEN_MAX_AGE,
             )
             return response
         except Exception as e:
@@ -269,6 +305,7 @@ class GithubLoginView(APIView):
             
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
             response_data = {
                 "id": user.id,
                 "email": user.email,
@@ -281,7 +318,15 @@ class GithubLoginView(APIView):
                 httponly=True,
                 secure=not settings.DEBUG,
                 samesite='Strict',
-                max_age=86400, # 1 day
+                max_age=settings.ACCESS_TOKEN_MAX_AGE,
+            )
+            response.set_cookie(
+                key='refresh_token',
+                value=refresh_token,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite='Strict',
+                max_age=settings.REFRESH_TOKEN_MAX_AGE,
             )
             return response
 
@@ -292,7 +337,25 @@ class CheckAuthView(APIView):
     permission_classes = []
 
     def get(self, request):
-        return Response({'authenticated': request.user.is_authenticated}, status=status.HTTP_200_OK)
+        if request.user.is_authenticated:
+            return Response({'authenticated': True}, status=status.HTTP_200_OK)
+        refresh_token = request.COOKIES.get('refresh_token')
+        if refresh_token:
+            try:
+                refresh = RefreshToken(refresh_token)
+                new_access_token = str(refresh.access_token)
+                response = Response({'authenticated': True}, status=status.HTTP_200_OK)
+                response.set_cookie(
+                    key='access_token',
+                    value=new_access_token,
+                    httponly=True,
+                    secure=not settings.DEBUG,
+                    samesite='Strict',
+                    max_age=settings.ACCESS_TOKEN_MAX_AGE,
+                )
+                return response
+            except TokenError: pass
+        return Response({'authenticated': False}, status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -300,4 +363,5 @@ class LogoutView(APIView):
     def post(self, request):
         response = Response(status=status.HTTP_200_OK)
         response.delete_cookie('access_token', path='/', samesite='Strict')
+        response.delete_cookie('refresh_token', path='/', samesite='Strict')
         return response
