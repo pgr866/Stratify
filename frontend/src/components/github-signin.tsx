@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Icons } from "@/components/icons";
+import { GitHubLogoIcon } from "@radix-ui/react-icons"
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -55,7 +55,7 @@ export function GithubSignin() {
 
     return (
         <Button variant="outline" onClick={handleGithubLogin}>
-            <Icons.gitHub />
+            <GitHubLogoIcon />
             GitHub
         </Button>
     );
