@@ -15,7 +15,7 @@ fi
 
 # Get postgresql SSL certificate
 if sudo test ! -f /etc/ssl/private/postgresdb.key || sudo test ! -f /etc/ssl/certs/postgresdb.crt; then
-    sudo rm -f /etc/ssl/private/postgresdb.key /etc/ssl/certs/postgresdb.crt
+    sudo rm -rf /etc/ssl/private/postgresdb.key /etc/ssl/certs/postgresdb.crt
     sudo openssl genrsa -aes256 -passout pass:$SSL_PASSPHRASE -out /etc/ssl/private/postgresdb.key 2048
     sudo openssl req -new -key /etc/ssl/private/postgresdb.key -passin pass:$SSL_PASSPHRASE -out /etc/ssl/certs/postgresdb.csr
     sudo openssl x509 -req -in /etc/ssl/certs/postgresdb.csr -signkey /etc/ssl/private/postgresdb.key -passin pass:$SSL_PASSPHRASE -out /etc/ssl/certs/postgresdb.crt -days 365
@@ -29,4 +29,4 @@ fi
 # Install Docker Compose
 sudo apt install -y docker-compose
 sudo systemctl stop nginx
-bash -c 'sudo docker-compose up -d --build'
+bash -c 'sudo docker-compose down && sudo docker-compose up -d --build'
