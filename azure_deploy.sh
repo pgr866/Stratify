@@ -3,8 +3,12 @@
 sudo apt update -y
 sudo apt -o APT::Get::Always-Include-Phased-Updates=true upgrade -y
 
+# Load .env
+sudo apt-get install dos2unix
+dos2unix .env
 sudo chmod +r .env
 source .env
+
 # Get nginx SSL certificate
 if sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST//$'\r'/}/fullchain.pem" || sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST//$'\r'/}/privkey.pem"; then
     sudo rm -rf "/etc/letsencrypt/live/${ALLOWED_HOST//$'\r'/}"
