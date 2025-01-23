@@ -270,10 +270,7 @@ class GithubLoginView(APIView):
 
     def post(self, request):
         try:
-            auth_header = request.headers.get('Authorization')
-            if not auth_header or not auth_header.startswith('Bearer '):
-                raise Exception("Missing or invalid Authorization header")
-            code = auth_header.split(' ')[1]
+            code = request.data.get('code')
             requester = Requester.Requester(
                 base_url="https://api.github.com",
                 auth=None,
@@ -354,7 +351,7 @@ class CheckAuthView(APIView):
                     max_age=settings.ACCESS_TOKEN_MAX_AGE,
                 )
                 return response
-            except TokenError: pass
+            except Exception: pass
         return Response({'authenticated': False}, status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
