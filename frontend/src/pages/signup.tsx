@@ -64,7 +64,7 @@ export function Signup() {
 
     return (
         <div>
-            <div className="flex h-[90vh] w-full items-center justify-center px-4 flex-wrap">
+            <div className="flex h-[100vh] w-full items-center justify-center px-4 flex-wrap">
                 <div className="fixed top-4 right-4">
                     <ThemeToggle />
                 </div>

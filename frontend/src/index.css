@@ -90,7 +90,7 @@
   }
 
   #root {
-    @apply max-w-screen-xl mx-auto p-8 text-center m-0;
+    @apply max-w-screen-xl mx-auto text-center;
   }
 
   ::-webkit-scrollbar {
