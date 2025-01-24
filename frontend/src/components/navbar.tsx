@@ -7,12 +7,7 @@ import { Separator } from "@/components/ui/separator"
 import { Menu } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle"
 
-interface RouteProps {
-  href: string;
-  label: string;
-}
-
-const routeList: RouteProps[] = [
+const routeList = [
   {
     href: "#features",
     label: "Features",
@@ -31,15 +26,15 @@ const routeList: RouteProps[] = [
   },
 ];
 
-export const Navbar = () => {
+export function Navbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (
     <header className="mt-1">
       <NavigationMenu className="mx-auto">
-        <NavigationMenuList className="flex justify-between w-screen max-w-[90vw] h-14 gap-8">
+        <NavigationMenuList className="container flex justify-between w-screen max-w-[90vw] h-14 gap-8">
           <NavigationMenuItem className="font-bold">
-            <a rel="noreferrer noopener" href="/home">
+            <a href="/home" rel="noreferrer noopener">
               <h4 className="flex gap-2">
                 <img src="/logo.svg" alt="Logo" className="logo size-[2rem]" />
                 Stratify
@@ -68,14 +63,14 @@ export const Navbar = () => {
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex flex-col justify-center items-center gap-2 mt-4">
-                  {routeList.map(({ href, label }: RouteProps) => (
-                    <a rel="noreferrer noopener" href={href} key={label} onClick={() => setIsOpen(false)}>
+                  {routeList.map(({ href, label }) => (
+                    <a href={href} rel="noreferrer noopener" key={label} onClick={() => setIsOpen(false)}>
                       <Button variant="ghost">
                         {label}
                       </Button>
                     </a>
                   ))}
-                  <a rel="noreferrer noopener" href="https://github.com/pgr866/TFG" target="_blank">
+                  <a href="https://github.com/pgr866/TFG" rel="noreferrer noopener" target="_blank">
                     <Button variant="secondary">
                       <GitHubLogoIcon />
                       GitHub
@@ -89,8 +84,8 @@ export const Navbar = () => {
 
           {/* Desktop */}
           <nav className="hidden md:flex gap-2">
-            {routeList.map(({ href, label }: RouteProps) => (
-              <a rel="noreferrer noopener" href={href} key={label}>
+            {routeList.map(({ href, label }) => (
+              <a href={href} rel="noreferrer noopener" key={label}>
                 <Button variant="ghost">
                   {label}
                 </Button>
@@ -99,7 +94,7 @@ export const Navbar = () => {
           </nav>
 
           <div className="hidden md:flex gap-2">
-            <a rel="noreferrer noopener" href="https://github.com/pgr866/TFG" target="_blank">
+            <a href="https://github.com/pgr866/TFG" rel="noreferrer noopener" target="_blank">
               <Button variant="secondary">
                 <GitHubLogoIcon />
                 GitHub
@@ -109,7 +104,7 @@ export const Navbar = () => {
           </div>
         </NavigationMenuList>
       </NavigationMenu>
-      <Separator className="absolute left-0 w-full"/>
+      <Separator className="absolute left-0 w-full" />
     </header>
-  );
-};
+  )
+}

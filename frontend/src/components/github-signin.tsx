@@ -58,5 +58,5 @@ export function GithubSignin() {
             <GitHubLogoIcon />
             GitHub
         </Button>
-    );
+    )
 }

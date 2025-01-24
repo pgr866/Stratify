@@ -30,5 +30,5 @@ export function CandleChart() {
         <div className="w-[50%] h-[50vh] mx-auto">
             <div id="chart-container" className="size-full"></div>
         </div>
-    );
+    )
 }

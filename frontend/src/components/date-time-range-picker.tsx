@@ -161,5 +161,5 @@ export function DateTimeRangePicker() {
         </div>
       </PopoverContent>
     </Popover>
-  );
+  )
 }

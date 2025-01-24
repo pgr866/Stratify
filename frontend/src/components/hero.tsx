@@ -1,20 +1,20 @@
-import { Button } from "./ui/button";
-import { HeroCards } from "./hero-cards";
+import { Button } from "@/components/ui/button";
+import { HeroCards } from "@/components/hero-cards";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
 
-export const Hero = () => {
+export function Hero() {
     const navigate = useNavigate();
 
     return (
-        <section className="grid lg:grid-cols-2 place-items-center py-20 md:py-32 gap-10">
+        <section className="container grid lg:grid-cols-2 place-items-center py-20 md:py-32 gap-10">
             <div className="text-center lg:text-start space-y-6">
-                <main className="text-5xl md:text-6xl font-bold">
+                <main className="text-5xl md:text-6xl font-bold max-w-lg">
                     <h1 className="inline">
                         <span className="inline bg-gradient-to-r from-[#F596D3]  to-[#D247BF] text-transparent bg-clip-text">
                             Shadcn
                         </span>
-                        {" "}landing page<br></br>for{" "}
+                        {" "}landing page for{" "}
                         <span className="inline bg-gradient-to-r from-[#61DAFB] via-[#1fc0f1] to-[#03a3d7] text-transparent bg-clip-text">
                             React
                         </span>
@@ -28,12 +28,11 @@ export const Hero = () => {
 
                 <div className="space-y-4 md:space-y-0 md:space-x-4">
                     <Button className="w-full md:w-1/3" onClick={() => navigate("/login")}>Get Started</Button>
-                    <Button variant="outline" className="w-full md:w-1/3 relative top-1">
+                    <a href="https://github.com/pgr866/TFG" rel="noreferrer noopener" target="_blank">
+                        <Button variant="outline" className="w-full md:w-1/3 relative top-1">
                             <GitHubLogoIcon />
                             GitHub Repository
                         </Button>
-                    <a rel="noreferrer noopener" href="https://github.com/pgr866/TFG" target="_blank">
-                        
                     </a>
                 </div>
             </div>
@@ -46,5 +45,5 @@ export const Hero = () => {
             {/* Shadow effect */}
             <div className="shadow"></div>
         </section>
-    );
-};
+    )
+}
