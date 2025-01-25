@@ -16,7 +16,7 @@ import { ScrollToTop } from "@/components/scroll-to-top";
 
 export function Home() {
   return (
-    <div>
+    <div className="px-2">
       <Navbar />
       <Hero />
       <Sponsors />
