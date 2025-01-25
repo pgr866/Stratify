@@ -1,4 +1,4 @@
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -9,18 +9,19 @@ export function HeroCards() {
   return (
     <div className="hidden lg:flex flex-row flex-wrap gap-8 relative w-[700px] h-[500px]">
       {/* Testimonial */}
-      <Card className="absolute w-[340px] -top-[15px]">
+      <Card className="absolute w-[340px] -top-[15px] text-left">
         <CardHeader className="flex flex-row items-center gap-4 pb-2">
           <Avatar>
             <AvatarImage src="https://github.com/shadcn.png" />
+            <AvatarFallback>SH</AvatarFallback>
           </Avatar>
 
           <div className="flex flex-col">
             <CardTitle className="text-lg">John Doe React</CardTitle>
-            <CardDescription className="text-left">@john_doe</CardDescription>
+            <CardDescription>@john_doe</CardDescription>
           </div>
         </CardHeader>
-        <CardContent className="text-left">This landing page is awesome!</CardContent>
+        <CardContent>This landing page is awesome!</CardContent>
       </Card>
 
       {/* Team */}
@@ -28,6 +29,7 @@ export function HeroCards() {
         <CardHeader className="mt-8 flex justify-center items-center pb-2">
           <Avatar className="absolute -top-12 w-24 h-24">
             <AvatarImage src="https://avatars.githubusercontent.com/u/114260059" />
+            <AvatarFallback>User</AvatarFallback>
           </Avatar>
 
           <CardTitle className="text-center">Pablo Gómez</CardTitle>
@@ -45,7 +47,7 @@ export function HeroCards() {
               </Button>
             </a>
 
-            <a href="https://twitter.com/pgr866" rel="noreferrer noopener" target="_blank">
+            <a href="https://twitter.com/" rel="noreferrer noopener" target="_blank">
               <Button variant="ghost" size="sm">
                 <svg viewBox="0 0 24 24" fill="currentColor" >
                   <path d="M19 1h4l-8 9 9 13h-7l-6-8-7 8H0l9-10L0 1h8l5 7Zm-1 20h2L6 3H4Z" />
@@ -63,7 +65,7 @@ export function HeroCards() {
       </Card>
 
       {/* Pricing */}
-      <Card className="absolute top-[150px] left-[50px] w-72">
+      <Card className="absolute top-[150px] left-[50px] w-72 text-left">
         <CardHeader>
           <CardTitle className="flex item-center justify-between">
             Free
@@ -71,12 +73,12 @@ export function HeroCards() {
               Most popular
             </Badge>
           </CardTitle>
-          <div className="text-left">
+          <div>
             <span className="text-3xl font-bold">$0</span>
             <span className="text-muted-foreground"> /month</span>
           </div>
 
-          <CardDescription className="text-left">
+          <CardDescription>
             Lorem ipsum dolor sit, amet ipsum consectetur adipisicing.
           </CardDescription>
         </CardHeader>
@@ -88,10 +90,10 @@ export function HeroCards() {
         <CardFooter className="flex">
           <div className="space-y-4">
             {["4 Team member", "4 GB Storage", "Upto 6 pages"].map(
-              (benefit: string) => (
+              (benefit) => (
                 <span key={benefit} className="flex">
                   <Check className="text-green-500" />{" "}
-                  <h5 className="ml-2">{benefit}</h5>
+                  <small className="m-2">{benefit}</small>
                 </span>
               )
             )}
@@ -100,14 +102,14 @@ export function HeroCards() {
       </Card>
 
       {/* Service */}
-      <Card className="absolute w-[350px] -right-[10px] bottom-[35px]">
+      <Card className="absolute w-[320px] right-[20px] bottom-[35px] text-left">
         <CardHeader className="space-y-1 flex md:flex-row justify-start items-start gap-4">
           <div className="mt-1 bg-primary/20 p-1 rounded-2xl">
             <Lightbulb />
           </div>
           <div>
-            <CardTitle className="text-left">Light & dark mode</CardTitle>
-            <CardDescription className="text-left text-md mt-2">
+            <CardTitle>Light & dark mode</CardTitle>
+            <CardDescription className="text-md mt-2">
               Lorem ipsum dolor sit amet consect adipisicing elit. Consectetur natusm.
             </CardDescription>
           </div>

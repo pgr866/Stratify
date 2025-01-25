@@ -64,11 +64,9 @@ export function Navbar() {
                 </SheetHeader>
                 <nav className="flex flex-col justify-center items-center gap-2 mt-4">
                   {routeList.map(({ href, label }) => (
-                    <a href={href} rel="noreferrer noopener" key={label} onClick={() => setIsOpen(false)}>
-                      <Button variant="ghost">
-                        {label}
-                      </Button>
-                    </a>
+                    <Button variant="ghost" onClick={() => { setIsOpen(false); setTimeout(() => { window.location.href = href; }, 500); }}>
+                      {label}
+                    </Button>
                   ))}
                   <a href="https://github.com/pgr866/TFG" rel="noreferrer noopener" target="_blank">
                     <Button variant="secondary">
