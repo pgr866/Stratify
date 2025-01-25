@@ -11,7 +11,7 @@ export const Newsletter = () => {
     <section id="newsletter">
       <hr className="w-full mx-auto" />
 
-      <div className="container py-24 sm:py-32">
+      <div className="py-24 sm:py-32 text-center">
         <h1 className="md:text-5xl">
           Join Our Daily{" "}
           <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">

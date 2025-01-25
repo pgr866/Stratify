@@ -37,7 +37,7 @@ const featureList = [
 
 export function Features() {
     return (
-        <section id="features" className="container py-24 sm:py-32 space-y-8">
+        <section id="features" className="py-24 sm:py-32 space-y-8">
             <h1 className="text-3xl lg:text-4xl md:text-center">
                 Many{" "}
                 <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
@@ -55,7 +55,7 @@ export function Features() {
                 ))}
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {features.map(({ title, description, image }) => (
                     <Card key={title}>
                         <CardHeader>

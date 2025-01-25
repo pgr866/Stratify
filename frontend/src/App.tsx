@@ -31,7 +31,7 @@ function App() {
   }, [location]);
 
   return (
-    <div className="container mx-auto">
+    <div>
       <Routes>
         <Route path="/home" element={<Home />} />
         <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />

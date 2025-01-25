@@ -30,9 +30,9 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (
-    <header className="mt-1">
+    <header className="sticky top-0 z-40 w-screen -mx-[calc(50vw-50%+6px)] bg-background">
       <NavigationMenu className="mx-auto">
-        <NavigationMenuList className="container flex justify-between w-screen max-w-[90vw] h-14 gap-8">
+        <NavigationMenuList className="flex justify-between w-screen max-w-[90vw] h-14 gap-8">
           <NavigationMenuItem className="font-bold">
             <a href="/home" rel="noreferrer noopener">
               <h4 className="flex gap-2">

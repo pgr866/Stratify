@@ -26,7 +26,7 @@ export function GithubSignin() {
             const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user&state=${state}`;
             window.location.href = githubAuthUrl;
         } catch (error) {
-            toast({ title: "GitHub Login failed", description: "Try to login with credentials", className: "text-left" });
+            toast({ title: "GitHub Login failed", description: "Try to login with credentials" });
         }
     };
 
@@ -46,7 +46,7 @@ export function GithubSignin() {
                     toast({ description: "GitHub Login successfully" });
                 } catch (error) {
                     navigate("/login");
-                    toast({ title: "GitHub Login failed", description: "Try to login with credentials", className: "text-left" });
+                    toast({ title: "GitHub Login failed", description: "Try to login with credentials" });
                 }
             };
             gihubLogin();

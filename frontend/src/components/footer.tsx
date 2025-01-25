@@ -3,7 +3,7 @@ export function Footer() {
         <footer id="footer">
             <hr className="w-full mx-auto" />
 
-            <section className="text-left container py-20 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-x-12 gap-y-8">
+            <section className="py-20 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-x-12 gap-y-8">
                 <div className="flex justify-left col-span-full xl:col-span-2">
                     <a href="/home" rel="noreferrer noopener">
                         <h4 className="flex gap-2">

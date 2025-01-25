@@ -53,8 +53,8 @@ const pricingList = [
 
 export function Pricing() {
     return (
-        <section id="pricing" className="container py-24 sm:py-32">
-            <h1 className="text-3xl md:text-4xl">
+        <section id="pricing" className="py-24 sm:py-32">
+            <h1 className="text-3xl md:text-4xl text-center">
                 Get
                 <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
                     {" "}
@@ -62,10 +62,10 @@ export function Pricing() {
                 </span>
                 Access
             </h1>
-            <p className="lead pb-8">
+            <p className="lead pb-8 text-center">
                 Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias reiciendis.
             </p>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {pricingList.map(({ title, popular, price, description, buttonText, benefitList }) => (
                     <Card
                         key={title}

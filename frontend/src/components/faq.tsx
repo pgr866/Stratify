@@ -35,7 +35,7 @@ const FAQList = [
 
 export const FAQ = () => {
     return (
-        <section id="faq" className="container py-24 sm:py-32 text-left">
+        <section id="faq" className="py-24 sm:py-32">
             <h1 className="text-3xl md:text-4xl mb-4">
                 Frequently Asked{" "}
                 <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">

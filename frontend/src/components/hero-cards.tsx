@@ -9,7 +9,7 @@ export function HeroCards() {
   return (
     <div className="hidden lg:flex flex-row flex-wrap gap-8 relative w-[700px] h-[500px]">
       {/* Testimonial */}
-      <Card className="absolute w-[340px] -top-[15px] text-left">
+      <Card className="absolute w-[340px] -top-[15px]">
         <CardHeader className="flex flex-row items-center gap-4 pb-2">
           <Avatar>
             <AvatarImage src="https://github.com/shadcn.png" />
@@ -65,7 +65,7 @@ export function HeroCards() {
       </Card>
 
       {/* Pricing */}
-      <Card className="absolute top-[150px] left-[50px] w-72 text-left">
+      <Card className="absolute top-[150px] left-[50px] w-72">
         <CardHeader>
           <CardTitle className="flex item-center justify-between">
             Free
@@ -102,7 +102,7 @@ export function HeroCards() {
       </Card>
 
       {/* Service */}
-      <Card className="absolute w-[320px] right-[20px] bottom-[35px] text-left">
+      <Card className="absolute w-[350px] -right-[10px] bottom-[35px]">
         <CardHeader className="space-y-1 flex md:flex-row justify-start items-start gap-4">
           <div className="mt-1 bg-primary/20 p-1 rounded-2xl">
             <Lightbulb />

@@ -14,7 +14,7 @@ export function GoogleSignin() {
             navigate("/dashboard");
             toast({ description: "Google Login successfully", });
         } catch {
-            toast({ title: "Google Login failed", description: "Try to login with credentials", className: "text-left" });
+            toast({ title: "Google Login failed", description: "Try to login with credentials" });
         }
     };
 
@@ -27,7 +27,7 @@ export function GoogleSignin() {
                 Google
                 <GoogleLogin
                     onSuccess={handleGoogleLogin}
-                    onError={() => toast({ title: "Google Login failed", description: "An error occurred during Google login.", className: "text-left" })}
+                    onError={() => toast({ title: "Google Login failed", description: "An error occurred during Google login." })}
                     containerProps={{ className: 'absolute size-full opacity-0' }}
                 />
             </Button>

@@ -24,7 +24,7 @@ const serviceList = [
 
 export function Services() {
   return (
-    <section className="text-left container py-24 sm:py-32">
+    <section className="py-24 sm:py-32">
       <div className="grid lg:grid-cols-[1fr,1fr] gap-8 place-items-center">
         <div>
           <h1 className="text-3xl md:text-4xl">

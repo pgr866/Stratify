@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 
 export function Cta() {
     return (
-        <section id="cta" className="py-16 my-24 sm:my-32 text-left relative">
+        <section id="cta" className="py-16 my-24 sm:my-32 relative">
             <div className="absolute w-screen -mx-[calc(50vw-50%+6px)] h-full -my-16 bg-muted/50 flex justify-center"></div>
-            <div className="relative container px-8 lg:grid lg:grid-cols-2 place-items-center flex justify-center">
+            <div className="relative px-8 lg:grid lg:grid-cols-2 place-items-center flex justify-center gap-8">
                 <div className="lg:col-start-1 max-w-lg">
                     <h1 className="text-3xl md:text-4xl">
                         All Your

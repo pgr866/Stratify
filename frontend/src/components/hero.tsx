@@ -7,8 +7,8 @@ export function Hero() {
     const navigate = useNavigate();
 
     return (
-        <section className="container grid lg:grid-cols-2 place-items-center py-20 md:py-32 gap-10">
-            <div className="lg:text-start space-y-6">
+        <section className="grid lg:grid-cols-2 place-items-center py-20 md:py-32 gap-10">
+            <div className="lg:text-start space-y-6 text-center">
                 <main className="text-5xl md:text-6xl font-bold max-w-lg lg:mx-0 mx-auto">
                     <h1 className="inline">
                         <span className="inline bg-gradient-to-r from-[#F596D3] to-[#D247BF] text-transparent bg-clip-text">

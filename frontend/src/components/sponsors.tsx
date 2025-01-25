@@ -11,7 +11,7 @@ const sponsors = [
 
 export function Sponsors() {
     return (
-        <section id="sponsors" className="container pt-24 sm:py-32">
+        <section id="sponsors" className="pt-24 sm:py-32">
             <h2 className="text-center text-md lg:text-xl font-bold mb-8 text-primary">
                 Investors and founders
             </h2>

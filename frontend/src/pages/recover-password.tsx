@@ -35,7 +35,7 @@ export function RecoverPassword() {
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "Passwords do not match";
-            toast({ title: "Password change failed", description: errorMessage, className: "text-left" });
+            toast({ title: "Password change failed", description: errorMessage });
         } finally {
             setIsLoading(false);
         }
@@ -53,7 +53,7 @@ export function RecoverPassword() {
                 ? Object.entries(axiosError.response.data).map(([k, v]) =>
                     k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
                 : "Something went wrong";
-            toast({ title: "Password change failed", description: errorMessage, className: "text-left" });
+            toast({ title: "Password change failed", description: errorMessage });
         } finally {
             setIsLoading(false);
         }
@@ -61,7 +61,7 @@ export function RecoverPassword() {
 
     return (
         <div>
-            <div className="flex h-[100vh] w-full items-center justify-center px-4 flex-wrap">
+            <div className="flex h-screen w-full items-center justify-center px-4 flex-wrap">
                 <div className="fixed top-4 right-4">
                     <ThemeToggle />
                 </div>

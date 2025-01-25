@@ -48,7 +48,7 @@ const testimonials = [
 
 export function Testimonials() {
     return (
-        <section id="testimonials" className="container py-24 sm:py-32 text-left">
+        <section id="testimonials" className="py-24 sm:py-32">
             <h1 className="text-3xl md:text-4xl">
                 Discover Why
                 <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">

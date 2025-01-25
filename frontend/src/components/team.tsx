@@ -77,7 +77,7 @@ const teamList = [
 
 export function Team() {
   return (
-    <section id="team" className="container py-24 sm:py-32 text-left">
+    <section id="team" className="py-24 sm:py-32">
       <h1 className="text-3xl md:text-4xl">
         <span className="bg-gradient-to-b from-primary/60 to-primary text-transparent bg-clip-text">
           Our Dedicated{" "}
