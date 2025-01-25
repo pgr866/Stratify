@@ -102,7 +102,7 @@ export function Footer() {
                 <small>
                     &copy; 2025 Landing page made by{" "}
                     <a
-                        href="https://www.linkedin.com/in/leopoldo-miranda/"
+                        href="https://www.linkedin.com/in/pablo-g%C3%B3mez-rivas-10b80b305/"
                         rel="noreferrer noopener"
                         target="_blank"
                         className="text-primary transition-all border-primary hover:border-b-2"

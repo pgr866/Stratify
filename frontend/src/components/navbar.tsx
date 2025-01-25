@@ -64,7 +64,7 @@ export function Navbar() {
                 </SheetHeader>
                 <nav className="flex flex-col justify-center items-center gap-2 mt-4">
                   {routeList.map(({ href, label }) => (
-                    <Button variant="ghost" onClick={() => { setIsOpen(false); setTimeout(() => { window.location.href = href; }, 500); }}>
+                    <Button key={label} variant="ghost" onClick={() => { setIsOpen(false); setTimeout(() => { window.location.href = href; }, 500); }}>
                       {label}
                     </Button>
                   ))}

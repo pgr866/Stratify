@@ -9,9 +9,9 @@ export function Hero() {
     return (
         <section className="container grid lg:grid-cols-2 place-items-center py-20 md:py-32 gap-10">
             <div className="lg:text-start space-y-6">
-                <main className="text-5xl md:text-6xl font-bold max-w-lg mx-0">
+                <main className="text-5xl md:text-6xl font-bold max-w-lg lg:mx-0 mx-auto">
                     <h1 className="inline">
-                        <span className="inline bg-gradient-to-r from-[#F596D3]  to-[#D247BF] text-transparent bg-clip-text">
+                        <span className="inline bg-gradient-to-r from-[#F596D3] to-[#D247BF] text-transparent bg-clip-text">
                             Shadcn
                         </span>
                         {" "}landing page for{" "}
@@ -22,7 +22,7 @@ export function Hero() {
                     </h1>
                 </main>
 
-                <p className="text-xl text-muted-foreground md:w-10/12 mx-auto lg:mx-0">
+                <p className="lead md:w-10/12 mx-auto lg:mx-0">
                     Build your React landing page effortlessly with the required sections to your project.
                 </p>
 

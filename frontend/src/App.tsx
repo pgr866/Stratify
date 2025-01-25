@@ -14,7 +14,7 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname === "/home") { return; }
+    if (location.pathname.startsWith("/home") || location.pathname.startsWith("/api")) { return; }
     const fetchAuthStatus = async () => {
       try {
         const response = await checkAuth();
