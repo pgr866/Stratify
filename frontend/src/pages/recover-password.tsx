@@ -45,7 +45,7 @@ export function RecoverPassword() {
         try {
             setIsLoading(true);
             await changePassword(email, password, code);
-            navigate("/dashboard");
+            navigate("/panel");
             toast({ description: "Password changed successfully" });
         } catch (error) {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
@@ -67,7 +67,7 @@ export function RecoverPassword() {
                 </div>
                 {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
                 <Card className="mx-auto w-full max-w-sm">
-                    <CardHeader>
+                    <CardHeader className="text-center">
                         <CardTitle className="text-2xl">Recover password</CardTitle>
                         <CardDescription>
                             Enter your email and new password below

@@ -11,7 +11,7 @@ export function GoogleSignin() {
     const handleGoogleLogin = async (response: any) => {
         try {
             await googleLogin(response.credential);
-            navigate("/dashboard");
+            navigate("/panel");
             toast({ description: "Google Login successfully", });
         } catch {
             toast({ title: "Google Login failed", description: "Try to login with credentials" });

@@ -48,7 +48,7 @@ export function Signup() {
         try {
             setIsLoading(true);
             await createUser({ email: email, username: username, password: password }, code);
-            navigate("/dashboard");
+            navigate("/panel");
             toast({ description: "Sign-up successful" });
         } catch (error) {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
@@ -70,7 +70,7 @@ export function Signup() {
                 </div>
                 {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
                 <Card className="mx-auto w-full max-w-sm">
-                    <CardHeader>
+                    <CardHeader className="text-center">
                         <CardTitle className="text-2xl">Create an account</CardTitle>
                         <CardDescription>
                             Sign up with your GitHub or Google account

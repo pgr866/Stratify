@@ -22,7 +22,7 @@ export function Login() {
         try {
             setIsLoading(true);
             await login(email, password);
-            navigate("/dashboard");
+            navigate("/panel");
             toast({ description: "Login successfully" });
         } catch (error) {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
@@ -43,7 +43,7 @@ export function Login() {
             </div>
             {/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
             <Card className="mx-auto w-full max-w-sm">
-                <CardHeader>
+                <CardHeader className="text-center">
                     <CardTitle className="text-2xl">Login</CardTitle>
                     <CardDescription>
                         Login with your GitHub or Google account
