@@ -13,7 +13,7 @@ WORKDIR /app
 COPY backend/ /app/
 RUN python -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
-RUN pip install --no-cache-dir -U -r requirements.txt && rm -rf /root/.cache
+RUN pip install --no-cache-dir -U pip && pip install --no-cache-dir -U -r requirements.txt && rm -rf /root/.cache
 CMD ["sh", "-c", "wait-for-it db:5432 --timeout=30 --strict && \
     python manage.py makemigrations --noinput && \
     python manage.py migrate --noinput && \

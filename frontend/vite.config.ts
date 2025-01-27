@@ -19,7 +19,7 @@ export default defineConfig({
     outDir: "dist",
     sourcemap: false,
     minify: "terser",
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000,
   },
   server: {
     port: 5173,
