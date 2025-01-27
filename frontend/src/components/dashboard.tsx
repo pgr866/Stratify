@@ -14,9 +14,9 @@ export function Dashboard() {
 		<div>
 			<div className="flex-col flex">
 				<div className="border-b">
-					<div className="flex h-auto items-center px-4 py-2 gap-y-2 flex-wrap">
+					<div className="flex h-auto items-center py-2 space-y-2 sm:space-y-auto flex-wrap">
 						<TeamSwitcher />
-						<MainNav className="ml-0 md:ml-6" />
+						<MainNav className="mt-0 mx-2 sm:ml-6" />
 						<div className="flex ml-0 md:ml-auto items-center space-x-4">
 							<Input
 								type="search"
@@ -29,7 +29,7 @@ export function Dashboard() {
 				</div>
 				<div className="flex-1 space-y-4 pt-6">
 					<div className="flex items-center justify-between space-y-2 gap-x-2 flex-wrap">
-						<h2 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h2>
+						<h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
 						<div className="flex items-center space-x-2">
 							<DatePickerWithRange className="[&>#date]:w-fit" />
 							<Button>Download</Button>
