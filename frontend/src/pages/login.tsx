@@ -37,7 +37,7 @@ export function Login() {
     };
 
     return (
-        <div className="flex h-screen w-full items-center justify-center px-4 flex-wrap">
+        <div className="flex h-screen w-full items-center justify-center px-4 flex-wrap overflow-hidden">
             <div className="fixed top-4 right-4">
                 <ThemeToggle />
             </div>

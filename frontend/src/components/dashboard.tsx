@@ -5,9 +5,9 @@ import { DatePickerWithRange } from "@/components/date-picker-with-range"
 import { MainNav } from "@/components/main-nav"
 import { Overview } from "@/components/overview"
 import { RecentSales } from "@/components/recent-sales"
-import { Search } from "@/components/search"
 import TeamSwitcher from "@/components/team-switcher"
 import { UserNav } from "@/components/user-nav"
+import { Input } from "@/components/ui/input"
 
 export function Dashboard() {
 	return (
@@ -16,33 +16,31 @@ export function Dashboard() {
 				<div className="border-b">
 					<div className="flex h-auto items-center px-4 py-2 gap-y-2 flex-wrap">
 						<TeamSwitcher />
-						<MainNav className="mx-6" />
+						<MainNav className="ml-0 md:ml-6" />
 						<div className="flex ml-0 md:ml-auto items-center space-x-4">
-							<Search />
+							<Input
+								type="search"
+								placeholder="Search..."
+								className="sm:w-[150px] lg:w-[300px]"
+							/>
 							<UserNav />
 						</div>
 					</div>
 				</div>
-				<div className="flex-1 space-y-4 p-8 pt-6">
+				<div className="flex-1 space-y-4 pt-6">
 					<div className="flex items-center justify-between space-y-2 gap-x-2 flex-wrap">
 						<h2 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h2>
 						<div className="flex items-center space-x-2">
-							<DatePickerWithRange />
+							<DatePickerWithRange className="[&>#date]:w-fit" />
 							<Button>Download</Button>
 						</div>
 					</div>
 					<Tabs defaultValue="overview" className="space-y-4">
 						<TabsList>
-							<TabsTrigger value="overview">Overview</TabsTrigger>
-							<TabsTrigger value="analytics">
-								Analytics
-							</TabsTrigger>
-							<TabsTrigger value="reports">
-								Reports
-							</TabsTrigger>
-							<TabsTrigger value="notifications">
-								Notifications
-							</TabsTrigger>
+							<TabsTrigger className="px-2 md:px-3" value="overview">Overview</TabsTrigger>
+							<TabsTrigger className="px-2 md:px-3" value="analytics">Analytics</TabsTrigger>
+							<TabsTrigger className="px-2 md:px-3" value="reports">Reports</TabsTrigger>
+							<TabsTrigger className="px-2 md:px-3" value="notifications">Notifications</TabsTrigger>
 						</TabsList>
 						<TabsContent value="overview" className="space-y-4">
 							<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -164,7 +162,7 @@ export function Dashboard() {
 											You made 265 sales this month.
 										</CardDescription>
 									</CardHeader>
-									<CardContent>
+									<CardContent className="p-2 sm:p-6">
 										<RecentSales />
 									</CardContent>
 								</Card>
