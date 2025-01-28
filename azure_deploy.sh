@@ -10,8 +10,8 @@ sudo chmod +r .env
 source .env
 
 # Get nginx SSL certificate
-if sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST//$'\r'/}/fullchain.pem" || sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST//$'\r'/}/privkey.pem"; then
-    sudo rm -rf "/etc/letsencrypt/live/${ALLOWED_HOST//$'\r'/}"
+if sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST}/fullchain.pem" || sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST}/privkey.pem"; then
+    sudo rm -rf "/etc/letsencrypt/live/${ALLOWED_HOST}"
     sudo apt purge -y nginx certbot python3-certbot-nginx
     sudo apt install -y nginx certbot python3-certbot-nginx
     sudo certbot --nginx -d $ALLOWED_HOST --email $EMAIL_HOST_USER --agree-tos --no-eff-email
