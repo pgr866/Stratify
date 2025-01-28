@@ -29,7 +29,7 @@ services:
       dockerfile: backend/Dockerfile
     # SECURITY WARNING: comment the 2 lines below in production!
     #ports: ["8000:8000"]
-    #develop: { watch: [ { action: sync, path: ./backend, target: /app, ignore: [venv/] } ] } # docker-compose up --build --watch
+    #develop: { watch: [ { action: sync, path: ./backend, target: /app, ignore: [venv/] } ] } # docker compose up --build --watch
     depends_on:
       - db
     env_file:
@@ -47,7 +47,7 @@ services:
       - frontend_dist:/app/dist
     # SECURITY WARNING: comment the 2 lines below in production!
     #ports: ["5173:5173"]
-    #develop: { watch: [ { action: sync, path: ./frontend, target: /app, ignore: [node_modules/] } ] } # docker-compose up --build --watch
+    #develop: { watch: [ { action: sync, path: ./frontend, target: /app, ignore: [node_modules/] } ] } # docker compose up --build --watch
     depends_on:
       - backend
     env_file:
