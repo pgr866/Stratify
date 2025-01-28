@@ -1,5 +1,5 @@
 #!/bin/bash
-#sudo chmod +x azure_deploy.sh && ./azure_deploy.sh
+#sudo chmod +x ubuntu_server_deploy.sh && ./ubuntu_server_deploy.sh
 sudo apt update -y
 sudo apt -o APT::Get::Always-Include-Phased-Updates=true upgrade -y
 
@@ -16,6 +16,7 @@ if sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST}/fullchain.pem" || sudo 
     sudo apt install -y nginx certbot python3-certbot-nginx
     sudo certbot --nginx -d $ALLOWED_HOST --email $EMAIL_HOST_USER --agree-tos --no-eff-email
 fi
+sudo systemctl stop nginx
 
 # Get postgresql SSL certificate
 if sudo test ! -f /etc/ssl/private/postgresdb.key || sudo test ! -f /etc/ssl/certs/postgresdb.crt; then
@@ -40,6 +41,7 @@ echo \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# Run Docker
 sudo service docker start
-sudo systemctl stop nginx
 bash -c 'sudo docker compose down && sudo docker compose up -d --build'
