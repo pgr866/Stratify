@@ -1,3 +1,4 @@
+import requests
 import secrets
 from types import SimpleNamespace
 
@@ -13,8 +14,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from google.auth.transport.requests import Request
-from google.oauth2 import id_token
 from github import Github, Requester
 from github.ApplicationOAuth import ApplicationOAuth
 
@@ -219,7 +218,11 @@ class GoogleLoginView(APIView):
                 raise Exception("Missing or invalid Authorization header")
             token = auth_header.split(' ')[1]
             
-            user_data = id_token.verify_oauth2_token(token, Request(), settings.VITE_GOOGLE_CLIENT_ID)
+            response = requests.get(f"https://oauth2.googleapis.com/tokeninfo?access_token={token}")
+            response.raise_for_status()
+            user_data = response.json()
+            if user_data['aud'] != settings.VITE_GOOGLE_CLIENT_ID:
+                raise Exception("Invalid client ID")
             if not user_data.get('email_verified', False):
                 raise Exception("Email not verified")
             google_email = user_data.get("email")

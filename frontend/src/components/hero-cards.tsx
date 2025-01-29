@@ -12,7 +12,7 @@ export function HeroCards() {
       <Card className="absolute w-[340px] -top-[15px]">
         <CardHeader className="flex flex-row items-center gap-4 pb-2">
           <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" />
+            <AvatarImage src="shadcn_avatar.jpeg" />
             <AvatarFallback>SH</AvatarFallback>
           </Avatar>
 
@@ -28,7 +28,7 @@ export function HeroCards() {
       <Card className="absolute right-[20px] top-4 w-80 flex flex-col justify-center items-center">
         <CardHeader className="mt-8 flex justify-center items-center pb-2">
           <Avatar className="absolute -top-12 w-24 h-24">
-            <AvatarImage src="https://avatars.githubusercontent.com/u/114260059" />
+            <AvatarImage src="pgr866.jpeg" />
             <AvatarFallback>User</AvatarFallback>
           </Avatar>
 

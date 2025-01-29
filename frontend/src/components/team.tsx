@@ -5,7 +5,7 @@ import { Facebook, Instagram, Linkedin } from "lucide-react";
 
 const teamList = [
   {
-    imageUrl: "https://i.pravatar.cc/150?img=35",
+    imageUrl: "user1.jpeg",
     name: "Emma Smith",
     position: "Product Manager",
     socialNetworks: [
@@ -24,7 +24,7 @@ const teamList = [
     ],
   },
   {
-    imageUrl: "https://i.pravatar.cc/150?img=60",
+    imageUrl: "user2.jpeg",
     name: "John Doe",
     position: "Tech Lead",
     socialNetworks: [
@@ -43,7 +43,7 @@ const teamList = [
     ],
   },
   {
-    imageUrl: "https://i.pravatar.cc/150?img=36",
+    imageUrl: "user3.jpeg",
     name: "Ashley Ross",
     position: "Frontend Developer",
     socialNetworks: [
@@ -59,7 +59,7 @@ const teamList = [
     ],
   },
   {
-    imageUrl: "https://i.pravatar.cc/150?img=17",
+    imageUrl: "user4.jpeg",
     name: "Bruce Rogers",
     position: "Backend Developer",
     socialNetworks: [

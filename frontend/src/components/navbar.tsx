@@ -36,7 +36,7 @@ export function Navbar() {
           <NavigationMenuItem className="font-bold">
             <a href="/home" rel="noreferrer noopener">
               <h4 className="flex gap-2">
-                <img src="/logo.svg" alt="Logo" className="logo size-[2rem]" />
+                <img src="logo.svg" alt="Logo" className="logo size-[2rem]" />
                 Stratify
               </h4>
             </a>

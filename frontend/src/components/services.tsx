@@ -57,7 +57,7 @@ export function Services() {
           </div>
         </div>
 
-        <img src="/logo.svg" alt="Logo" className="logo w-[300px] md:w-[500px] lg:w-[600px] object-contain" />
+        <img src="logo.svg" alt="Logo" className="logo w-[300px] md:w-[500px] lg:w-[600px] object-contain" />
       </div>
     </section>
   )
