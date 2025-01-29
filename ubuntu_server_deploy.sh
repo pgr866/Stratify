@@ -7,7 +7,7 @@ sudo apt -o APT::Get::Always-Include-Phased-Updates=true upgrade -y
 sudo apt install -y dos2unix
 dos2unix .env
 sudo chmod +r .env
-source .env
+export $(grep -v '^#' .env | xargs)
 
 sudo chmod 700 /etc/ssl/private/
 sudo chmod 755 /etc/ssl/certs/

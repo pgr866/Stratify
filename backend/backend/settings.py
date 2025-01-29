@@ -26,7 +26,7 @@ DEBUG = os.getenv('DEBUG', default='False').lower() == 'true'
 # Configure enviroment variables in production! (/.env)
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY') if not DEBUG else 'django-insecure-jr^vb$n6jw2(eizglxs@yc+f7oiy+ym!9yvmtc+s)opsu7jzt$'
-ALLOWED_HOSTS = [os.getenv('ALLOWED_HOST')] if not DEBUG else ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOST').split(',') if not DEBUG else ['localhost', '127.0.0.1']
 CORS_ALLOWED_ORIGINS = os.getenv('VITE_ENV_PATH').split(',') if not DEBUG else ['http://localhost:5173']
 DB_NAME = os.getenv('DB_NAME')
 DB_USER = os.getenv('DB_USER')
@@ -53,6 +53,7 @@ SESSION_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 31536000  # 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -133,7 +134,7 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "PASSWORD": REDIS_PASSWORD,
-            "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None},
+            "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None} if not DEBUG else {},
         }
     }
 }
@@ -218,7 +219,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'user': '100/minute',
         'anon': '20/minute',
-        'auth_attempt': '5/minute',
+        'auth_attempt': '10/minute',
     }
 }
 

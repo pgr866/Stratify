@@ -11,9 +11,9 @@ services:
       - /etc/ssl/certs/postgresdb.crt:/var/lib/postgresql/postgresdb.crt
     command: >
       bash -c "if [ \"${DEBUG}\" = \"True\" ]; then
-                docker-entrypoint.sh postgres -c ssl=off;
+                docker-entrypoint.sh postgres -c listen_addresses='db' -c ssl=off;
               else
-                docker-entrypoint.sh postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgresdb.crt -c ssl_key_file=/var/lib/postgresql/postgresdb.key -c ssl_passphrase_command='echo $POSTGRES_SSL_PASSPHRASE';
+                docker-entrypoint.sh postgres -c listen_addresses='db' -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgresdb.crt -c ssl_key_file=/var/lib/postgresql/postgresdb.key -c ssl_passphrase_command='echo $POSTGRES_SSL_PASSPHRASE';
               fi"
     networks:
       - backend
@@ -62,9 +62,9 @@ services:
       - /etc/ssl/private/redis-cert.key:/etc/ssl/private/redis-cert.key
     command: >
       bash -c "if [ \"${DEBUG}\" = \"True\" ]; then
-                redis-server --requirepass ${REDIS_PASSWORD} --bind 0.0.0.0;
+                redis-server --requirepass ${REDIS_PASSWORD} --bind redis;
               else
-                redis-server --requirepass ${REDIS_PASSWORD} --bind 0.0.0.0 --protected-mode yes --save '' --appendonly no --maxmemory 256mb --maxmemory-policy allkeys-lru --tls-port 6380 --port 0 --tls-cert-file /etc/ssl/certs/redis-cert.crt --tls-key-file /etc/ssl/private/redis-cert.key --tls-auth-clients no;
+                redis-server --requirepass ${REDIS_PASSWORD} --bind redis --protected-mode yes --save '' --appendonly no --maxmemory 256mb --maxmemory-policy allkeys-lru --tls-port 6380 --port 0 --tls-cert-file /etc/ssl/certs/redis-cert.crt --tls-key-file /etc/ssl/private/redis-cert.key --tls-auth-clients yes;
               fi"
     networks:
       - backend

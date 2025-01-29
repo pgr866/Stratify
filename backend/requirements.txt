@@ -3,7 +3,6 @@ djangorestframework
 django-cors-headers
 djangorestframework-simplejwt
 django-redis
-google-auth
 PyGithub
 drf-yasg
 gunicorn
