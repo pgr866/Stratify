@@ -3,8 +3,8 @@ services:
     image: postgres:17.2
     environment:
       POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DJANGO_SUPERUSER_USERNAME}
-      POSTGRES_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - /etc/ssl/private/postgresdb.key:/var/lib/postgresql/postgresdb.key
@@ -13,7 +13,7 @@ services:
       bash -c "if [ \"${DEBUG}\" = \"True\" ]; then
                 docker-entrypoint.sh postgres -c ssl=off;
               else
-                docker-entrypoint.sh postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgresdb.crt -c ssl_key_file=/var/lib/postgresql/postgresdb.key -c ssl_passphrase_command='echo $SSL_PASSPHRASE';
+                docker-entrypoint.sh postgres -c ssl=on -c ssl_cert_file=/var/lib/postgresql/postgresdb.crt -c ssl_key_file=/var/lib/postgresql/postgresdb.key -c ssl_passphrase_command='echo $POSTGRES_SSL_PASSPHRASE';
               fi"
     networks:
       - backend
@@ -23,11 +23,14 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     # SECURITY WARNING: comment the 2 lines below in production!
     #ports: ["8000:8000"]
     #develop: { watch: [ { action: sync, path: ./backend, target: /app, ignore: [venv/] } ] } # docker compose up --build --watch
     depends_on:
       - db
+      - redis
     env_file:
       - .env
     networks:
@@ -52,9 +55,17 @@ services:
       - frontend
     restart: always
   
-  memcached:
-    image: memcached:1.6.34
-    command: memcached -m 128 -p 11211 -u memcache
+  redis:
+    image: redis:7.4
+    volumes:
+      - /etc/ssl/certs/redis-cert.crt:/etc/ssl/certs/redis-cert.crt
+      - /etc/ssl/private/redis-cert.key:/etc/ssl/private/redis-cert.key
+    command: >
+      bash -c "if [ \"${DEBUG}\" = \"True\" ]; then
+                redis-server --requirepass ${REDIS_PASSWORD} --bind 0.0.0.0;
+              else
+                redis-server --requirepass ${REDIS_PASSWORD} --bind 0.0.0.0 --protected-mode yes --save '' --appendonly no --maxmemory 256mb --maxmemory-policy allkeys-lru --tls-port 6380 --port 0 --tls-cert-file /etc/ssl/certs/redis-cert.crt --tls-key-file /etc/ssl/private/redis-cert.key --tls-auth-clients no;
+              fi"
     networks:
       - backend
     restart: always
@@ -74,7 +85,12 @@ services:
       - backend
       - frontend
     command: >
-      bash -c "[ \"${DEBUG}\" = \"True\" ] && sleep infinity; envsubst '$$ALLOWED_HOST' < /etc/nginx/nginx.conf.tmp > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+      bash -c "if [ \"${DEBUG}\" = \"True\" ]; then
+                sleep infinity;
+              else
+                envsubst '$$ALLOWED_HOST' < /etc/nginx/nginx.conf.tmp > /etc/nginx/nginx.conf &&
+                nginx -g 'daemon off;'
+              fi"
     networks:
       - frontend
       - backend
@@ -88,4 +104,6 @@ volumes:
 
 networks:
   backend:
+    driver: bridge
   frontend:
+    driver: bridge

@@ -29,8 +29,11 @@ SECRET_KEY = os.getenv('SECRET_KEY') if not DEBUG else 'django-insecure-jr^vb$n6
 ALLOWED_HOSTS = [os.getenv('ALLOWED_HOST')] if not DEBUG else ['localhost', '127.0.0.1']
 CORS_ALLOWED_ORIGINS = os.getenv('VITE_ENV_PATH').split(',') if not DEBUG else ['http://localhost:5173']
 DB_NAME = os.getenv('DB_NAME')
+DB_USER = os.getenv('DB_USER')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
 DJANGO_SUPERUSER_USERNAME = os.getenv('DJANGO_SUPERUSER_USERNAME')
 DJANGO_SUPERUSER_PASSWORD = os.getenv('DJANGO_SUPERUSER_PASSWORD')
+REDIS_PASSWORD = os.getenv('REDIS_PASSWORD')
 VITE_GOOGLE_CLIENT_ID = os.getenv('VITE_GOOGLE_CLIENT_ID', default='')
 VITE_GITHUB_CLIENT_ID = os.getenv('VITE_GITHUB_CLIENT_ID', default='')
 GITHUB_CLIENT_SECRET = os.getenv('GITHUB_CLIENT_SECRET', default='')
@@ -112,8 +115,8 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": DB_NAME,
-        "USER": DJANGO_SUPERUSER_USERNAME,
-        "PASSWORD": DJANGO_SUPERUSER_PASSWORD,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
         "HOST": 'db',
         "PORT":  '5432',
         "CONN_MAX_AGE": 600,
@@ -124,15 +127,13 @@ DATABASES = {
 }
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
-        'LOCATION': 'memcached:11211',
-        'TIMEOUT': 600,
-        'OPTIONS': {
-            'no_delay': True,
-            'ignore_exc': True,
-            'max_pool_size': 10,
-            'use_pooling': True,
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://redis:6379/0" if DEBUG else "rediss://redis:6380/0",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "PASSWORD": REDIS_PASSWORD,
+            "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None},
         }
     }
 }

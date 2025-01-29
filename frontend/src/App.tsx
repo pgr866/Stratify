@@ -39,7 +39,7 @@ function App() {
         <Route path="/recover-password" element={isAuthenticated ? <Navigate to="/panel" /> : <RecoverPassword />} />
         <Route path="/signup" element={isAuthenticated ? <Navigate to="/panel" /> : <Signup />} />
         <Route path="/panel" element={isAuthenticated ? <Panel /> : <Navigate to="/login" />} />
-        <Route path="/api*" />
+        <Route path="/api/*" />
         <Route path="*" element={<Navigate to="/home" />} />
         <Route path="/temp" element={<Temp />} />
       </Routes>

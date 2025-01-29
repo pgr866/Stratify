@@ -2,10 +2,10 @@ django
 djangorestframework
 django-cors-headers
 djangorestframework-simplejwt
+django-redis
 google-auth
 PyGithub
 drf-yasg
-pymemcache
 gunicorn
 setuptools
 psycopg2
