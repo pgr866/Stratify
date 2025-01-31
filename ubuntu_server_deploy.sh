@@ -5,8 +5,18 @@ sudo apt -o APT::Get::Always-Include-Phased-Updates=true upgrade -y
 
 # Load .env
 sudo apt install -y dos2unix
-dos2unix .env
-sudo chmod +r .env
+if sudo test -f ".env"; then
+    dos2unix .env
+    sudo chmod 400 .env
+    sudo openssl enc -aes-256-cbc -salt -in .env -out .env.enc
+elif sudo test -f ".env.enc"; then
+    sudo openssl enc -d -aes-256-cbc -in .env.enc -out .env
+    sudo chmod 400 .env
+else
+    echo "Error: .env nor .env.enc file found"
+    exit 1
+fi
+
 export $(grep -v '^#' .env | xargs)
 
 sudo chmod 700 /etc/ssl/private/
@@ -73,4 +83,6 @@ sudo apt autoremove -y
 # Run Docker
 sudo sysctl vm.overcommit_memory=1
 sudo service docker start
-bash -c 'sudo docker compose down && sudo docker compose up -d --build'
+sudo docker compose down
+sudo docker compose up -d --build
+sudo rm -rf .env
