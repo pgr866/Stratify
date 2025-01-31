@@ -2,15 +2,18 @@
 #sudo chmod +x ubuntu_server_deploy.sh && ./ubuntu_server_deploy.sh
 sudo apt update -y
 sudo apt -o APT::Get::Always-Include-Phased-Updates=true upgrade -y
+set +o history
 
 # Load .env
 sudo apt install -y dos2unix
 if sudo test -f ".env"; then
     dos2unix .env
     sudo chmod 400 .env
-    sudo openssl enc -aes-256-cbc -salt -in .env -out .env.enc
+    read -sp "Enter your decryption password: " ENC_PASSWORD
+    sudo openssl enc -aes-256-cbc -salt -in .env -out .env.enc -pass stdin <<< "$ENC_PASSWORD"
 elif sudo test -f ".env.enc"; then
-    sudo openssl enc -d -aes-256-cbc -in .env.enc -out .env
+    read -sp "Enter your decryption password: " ENC_PASSWORD
+    sudo openssl enc -d -aes-256-cbc -in .env.enc -out .env -pass stdin <<< "$ENC_PASSWORD"
     sudo chmod 400 .env
 else
     echo "Error: .env nor .env.enc file found"
