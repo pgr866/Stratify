@@ -1,5 +1,6 @@
 FROM python:3.13.1-slim
-RUN apt update -y && apt install -y --no-install-recommends wget build-essential libpq-dev wait-for-it && \
+RUN apt update -y && apt install -y --no-install-recommends wget build-essential libpq-dev wait-for-it openssl && \
+    apt autoremove -y && \
     rm -rf /var/lib/apt/lists/* && \
     wget https://github.com/TA-Lib/ta-lib/releases/download/v0.6.4/ta-lib-0.6.4-src.tar.gz && \
     tar -xzf ta-lib*.tar.gz && \
@@ -9,12 +10,24 @@ RUN apt update -y && apt install -y --no-install-recommends wget build-essential
     make install && \
     cd .. && \
     rm -rf ta-lib*
+RUN groupadd -r postgres && useradd -r -g postgres postgres && \
+    groupadd -r redis && useradd -r -g redis redis
 WORKDIR /app
 COPY backend/ /app/
 RUN python -m venv /app/venv
 ENV PATH="/app/venv/bin:$PATH"
 RUN pip install --no-cache-dir -U pip && pip install --no-cache-dir -U -r requirements.txt && rm -rf /root/.cache
-CMD ["sh", "-c", "wait-for-it db:5432 --timeout=30 --strict && \
+RUN mkdir -p /etc/ssl/private_decrypted && chmod 700 /etc/ssl/private_decrypted
+CMD ["sh", "-c", "\
+    if [ \"${DEBUG}\" != \"True\" ]; then \
+        openssl rsa -in /etc/ssl/private/postgresdb.key.enc -out /etc/ssl/private_decrypted/postgresdb.key -passin pass:$POSTGRES_SSL_PASSPHRASE && \
+        chmod 400 /etc/ssl/private_decrypted/postgresdb.key && \
+        chown postgres:postgres /etc/ssl/private_decrypted/postgresdb.key && \
+        openssl rsa -in /etc/ssl/private/redis.key.enc -out /etc/ssl/private_decrypted/redis.key -passin pass:$REDIS_SSL_PASSPHRASE && \
+        chmod 400 /etc/ssl/private_decrypted/redis.key && \
+        chown redis:redis /etc/ssl/private_decrypted/redis.key; \
+    fi && \
+    wait-for-it db:5432 --timeout=30 --strict && \
     python manage.py makemigrations --noinput && \
     python manage.py migrate --noinput && \
     python manage.py createsuperuser --noinput --email=$EMAIL_HOST_USER > /dev/null 2>&1 || true && \

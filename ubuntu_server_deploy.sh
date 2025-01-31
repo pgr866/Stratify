@@ -21,30 +21,41 @@ if sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST}/fullchain.pem" || sudo 
 fi
 sudo systemctl stop nginx
 
+# Generate CA Certificates
+if sudo test ! -f /etc/ssl/certs/ca.crt || sudo test ! -f /etc/ssl/private/ca.key; then
+    sudo rm -rf /etc/ssl/private/ca.key /etc/ssl/certs/ca.crt
+    sudo openssl genpkey -algorithm RSA -aes256 -pass pass:$CA_SSL_PASSPHRASE -out /etc/ssl/private/ca.key
+    sudo openssl req -x509 -new -key /etc/ssl/private/ca.key -sha256 -days 3650 -out /etc/ssl/certs/ca.crt -subj "/C=ES/ST=Andalucia/L=Almeria/O=Stratify/CN=StratifyCA" -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign" -addext "subjectKeyIdentifier=hash" -addext "authorityKeyIdentifier=keyid:always,issuer" -passin pass:$CA_SSL_PASSPHRASE
+    sudo chmod 400 /etc/ssl/private/ca.key
+    sudo chmod 644 /etc/ssl/certs/ca.crt
+    sudo chown 999:999 /etc/ssl/private/ca.key
+    sudo chown 999:999 /etc/ssl/certs/ca.crt
+fi
+
 # Get postgresql SSL certificate
 if sudo test ! -f /etc/ssl/private/postgresdb.key || sudo test ! -f /etc/ssl/certs/postgresdb.crt; then
     sudo rm -rf /etc/ssl/private/postgresdb.key /etc/ssl/certs/postgresdb.crt
-    sudo openssl genpkey -algorithm RSA -out /etc/ssl/private/postgresdb.key -aes256 -pass pass:$POSTGRES_SSL_PASSPHRASE
-    sudo openssl req -new -key /etc/ssl/private/postgresdb.key -passin pass:$POSTGRES_SSL_PASSPHRASE -out /etc/ssl/certs/postgresdb.csr -subj "/C=US/ST=NY/L=NewYork/O=UAL/CN=${EMAIL_HOST_USER}"
-    sudo openssl x509 -req -in /etc/ssl/certs/postgresdb.csr -signkey /etc/ssl/private/postgresdb.key -passin pass:$POSTGRES_SSL_PASSPHRASE -out /etc/ssl/certs/postgresdb.crt -days 365
+    sudo openssl genpkey -algorithm RSA -aes256 -pass pass:$POSTGRES_SSL_PASSPHRASE -out /etc/ssl/private/postgresdb.key
+    sudo openssl req -new -key /etc/ssl/private/postgresdb.key -out /etc/ssl/certs/postgresdb.csr -subj "/C=ES/ST=Andalucia/L=Almeria/O=Stratify/CN=db" -passin pass:$POSTGRES_SSL_PASSPHRASE
+    sudo openssl x509 -req -in /etc/ssl/certs/postgresdb.csr -CA /etc/ssl/certs/ca.crt -CAkey /etc/ssl/private/ca.key -CAcreateserial -out /etc/ssl/certs/postgresdb.crt -days 365 -sha256 -passin pass:$CA_SSL_PASSPHRASE
     sudo rm -rf /etc/ssl/certs/postgresdb.csr
-    sudo chmod 600 /etc/ssl/private/postgresdb.key
+    sudo chmod 400 /etc/ssl/private/postgresdb.key
     sudo chmod 644 /etc/ssl/certs/postgresdb.crt
     sudo chown 999:999 /etc/ssl/private/postgresdb.key
     sudo chown 999:999 /etc/ssl/certs/postgresdb.crt
 fi
 
 # Get redis SSL certificate
-if sudo test ! -f /etc/ssl/private/redis-cert.key || sudo test ! -f /etc/ssl/certs/redis-cert.crt; then
-    sudo rm -rf /etc/ssl/private/redis-cert.key /etc/ssl/certs/redis-cert.crt
-    sudo openssl genpkey -algorithm RSA -out /etc/ssl/private/redis-cert.key
-    sudo openssl req -new -key /etc/ssl/private/redis-cert.key -out /etc/ssl/certs/redis-cert.csr -subj "/C=US/ST=NY/L=NewYork/O=UAL/CN=${EMAIL_HOST_USER}"
-    sudo openssl x509 -req -in /etc/ssl/certs/redis-cert.csr -signkey /etc/ssl/private/redis-cert.key -out /etc/ssl/certs/redis-cert.crt -days 365
-    sudo rm -rf /etc/ssl/certs/redis-cert.csr
-    sudo chmod 600 /etc/ssl/private/redis-cert.key
-    sudo chmod 644 /etc/ssl/certs/redis-cert.crt
-    sudo chown 999:999 /etc/ssl/private/redis-cert.key
-    sudo chown 999:999 /etc/ssl/certs/redis-cert.crt
+if sudo test ! -f /etc/ssl/private/redis.key || sudo test ! -f /etc/ssl/certs/redis.crt; then
+    sudo rm -rf /etc/ssl/private/redis.key /etc/ssl/certs/redis.crt
+    sudo openssl genpkey -algorithm RSA -aes256 -pass pass:$REDIS_SSL_PASSPHRASE -out /etc/ssl/private/redis.key
+    sudo openssl req -new -key /etc/ssl/private/redis.key -out /etc/ssl/certs/redis.csr -subj "/C=ES/ST=Andalucia/L=Almeria/O=Stratify/CN=redis" -passin pass:$REDIS_SSL_PASSPHRASE
+    sudo openssl x509 -req -in /etc/ssl/certs/redis.csr -CA /etc/ssl/certs/ca.crt -CAkey /etc/ssl/private/ca.key -CAcreateserial -out /etc/ssl/certs/redis.crt -days 365 -sha256 -passin pass:$CA_SSL_PASSPHRASE
+    sudo rm -rf /etc/ssl/certs/redis.csr
+    sudo chmod 400 /etc/ssl/private/redis.key
+    sudo chmod 644 /etc/ssl/certs/redis.crt
+    sudo chown 999:999 /etc/ssl/private/redis.key
+    sudo chown 999:999 /etc/ssl/certs/redis.crt
 fi
 
 # Install Docker
@@ -57,6 +68,7 @@ echo \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo apt autoremove -y
 
 # Run Docker
 sudo sysctl vm.overcommit_memory=1

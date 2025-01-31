@@ -119,11 +119,14 @@ DATABASES = {
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
         "HOST": 'db',
-        "PORT":  '5432',
+        "PORT": '5432',
         "CONN_MAX_AGE": 600,
         "OPTIONS": {
-            "sslmode": "disable" if DEBUG else "require",
-        },
+            "sslmode": "verify-full",
+            "sslcert": "/etc/ssl/certs/postgresdb.crt",
+            "sslkey": "/etc/ssl/private_decrypted/postgresdb.key",
+            "sslrootcert": "/etc/ssl/certs/ca.crt",
+        } if not DEBUG else {},
     }
 }
 
@@ -134,7 +137,13 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "PASSWORD": REDIS_PASSWORD,
-            "CONNECTION_POOL_KWARGS": {"ssl_cert_reqs": None} if not DEBUG else {},
+            "CONNECTION_POOL_KWARGS": {
+                "ssl_certfile": "/etc/ssl/certs/redis.crt",
+                "ssl_keyfile": "/etc/ssl/private_decrypted/redis.key",
+                "ssl_ca_certs": "/etc/ssl/certs/ca.crt",
+                "ssl_cert_reqs": "required",
+                "ssl_check_hostname": True,
+            } if not DEBUG else {},
         }
     }
 }
