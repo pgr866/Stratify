@@ -22,7 +22,7 @@ export function Login() {
         try {
             setIsLoading(true);
             await login(email, password);
-            navigate("/panel");
+            navigate("/dashboard");
             toast({ description: "Login successfully" });
         } catch (error) {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };

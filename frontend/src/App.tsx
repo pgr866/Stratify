@@ -2,7 +2,7 @@ import './App.css'
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { checkAuth } from "@/api";
-import { Panel } from "./pages/panel";
+import { Dashboard } from "./pages/dashboard";
 import { Home } from "./pages/home";
 import { Login } from "./pages/login";
 import { RecoverPassword } from "./pages/recover-password";
@@ -35,10 +35,10 @@ function App() {
     <div>
       <Routes>
         <Route path="/home" element={<Home />} />
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/panel" /> : <Login />} />
-        <Route path="/recover-password" element={isAuthenticated ? <Navigate to="/panel" /> : <RecoverPassword />} />
-        <Route path="/signup" element={isAuthenticated ? <Navigate to="/panel" /> : <Signup />} />
-        <Route path="/panel" element={isAuthenticated ? <Panel /> : <Navigate to="/login" />} />
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />} />
+        <Route path="/recover-password" element={isAuthenticated ? <Navigate to="/dashboard" /> : <RecoverPassword />} />
+        <Route path="/signup" element={isAuthenticated ? <Navigate to="/dashboard" /> : <Signup />} />
+        <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
         <Route path="/api/*" />
         <Route path="*" element={<Navigate to="/home" />} />
         <Route path="/temp" element={<Temp />} />

@@ -12,7 +12,7 @@ export function GoogleSignin() {
         onSuccess: async (tokenResponse) => {
             try {
                 await googleLogin(tokenResponse.access_token);
-                navigate("/panel");
+                navigate("/dashboard");
                 toast({ description: "Google Login successfully" });
             } catch (error) {
                 toast({ title: "Google Login failed", description: "Try to login with credentials" });

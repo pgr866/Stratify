@@ -45,7 +45,7 @@ export function RecoverPassword() {
         try {
             setIsLoading(true);
             await changePassword(email, password, code);
-            navigate("/panel");
+            navigate("/dashboard");
             toast({ description: "Password changed successfully" });
         } catch (error) {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };

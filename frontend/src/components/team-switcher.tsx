@@ -91,6 +91,7 @@ export default function TeamSwitcher({ className }: TeamSwitcherProps) {
             aria-expanded={open}
             aria-label="Select a team"
             className={cn("w-[200px] justify-between", className)}
+            style={{ marginTop: '0' }}
           >
             <Avatar className="mr-2 h-5 w-5">
               <AvatarImage

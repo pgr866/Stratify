@@ -1,8 +1,12 @@
 #!/bin/bash
 #sudo chmod +x ubuntu_server_deploy.sh && ./ubuntu_server_deploy.sh
+set -e
 sudo apt update -y
 sudo apt -o APT::Get::Always-Include-Phased-Updates=true upgrade -y
 set +o history
+unset HISTFILE
+history -c
+rm -f ~/.bash_history
 
 # Load .env
 sudo apt install -y dos2unix
@@ -20,7 +24,7 @@ else
     exit 1
 fi
 
-export $(grep -v '^#' .env | xargs)
+export $(grep -v '^#' .env | xargs) > /dev/null 2>&1
 
 sudo chmod 700 /etc/ssl/private/
 sudo chmod 755 /etc/ssl/certs/
@@ -32,13 +36,12 @@ if sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST}/fullchain.pem" || sudo 
     sudo apt install -y nginx certbot python3-certbot-nginx
     sudo certbot --nginx -d $ALLOWED_HOST --email $EMAIL_HOST_USER --agree-tos --no-eff-email
 fi
-sudo systemctl stop nginx
 
 # Generate CA Certificates
 if sudo test ! -f /etc/ssl/certs/ca.crt || sudo test ! -f /etc/ssl/private/ca.key; then
     sudo rm -rf /etc/ssl/private/ca.key /etc/ssl/certs/ca.crt
-    sudo openssl genpkey -algorithm RSA -aes256 -pass pass:$CA_SSL_PASSPHRASE -out /etc/ssl/private/ca.key
-    sudo openssl req -x509 -new -key /etc/ssl/private/ca.key -sha256 -days 3650 -out /etc/ssl/certs/ca.crt -subj "/C=ES/ST=Andalucia/L=Almeria/O=Stratify/CN=StratifyCA" -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign" -addext "subjectKeyIdentifier=hash" -addext "authorityKeyIdentifier=keyid:always,issuer" -passin pass:$CA_SSL_PASSPHRASE
+    sudo openssl genpkey -algorithm RSA -aes256 -pass stdin <<< "$CA_SSL_PASSPHRASE" -out /etc/ssl/private/ca.key
+    sudo openssl req -x509 -new -key /etc/ssl/private/ca.key -sha256 -days 3650 -out /etc/ssl/certs/ca.crt -subj "/C=ES/ST=Andalucia/L=Almeria/O=Stratify/CN=StratifyCA" -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign" -addext "subjectKeyIdentifier=hash" -addext "authorityKeyIdentifier=keyid:always,issuer" -passin stdin <<< "$CA_SSL_PASSPHRASE"
     sudo chmod 400 /etc/ssl/private/ca.key
     sudo chmod 644 /etc/ssl/certs/ca.crt
     sudo chown 999:999 /etc/ssl/private/ca.key
@@ -48,9 +51,9 @@ fi
 # Get postgresql SSL certificate
 if sudo test ! -f /etc/ssl/private/postgresdb.key || sudo test ! -f /etc/ssl/certs/postgresdb.crt; then
     sudo rm -rf /etc/ssl/private/postgresdb.key /etc/ssl/certs/postgresdb.crt
-    sudo openssl genpkey -algorithm RSA -aes256 -pass pass:$POSTGRES_SSL_PASSPHRASE -out /etc/ssl/private/postgresdb.key
-    sudo openssl req -new -key /etc/ssl/private/postgresdb.key -out /etc/ssl/certs/postgresdb.csr -subj "/C=ES/ST=Andalucia/L=Almeria/O=Stratify/CN=db" -passin pass:$POSTGRES_SSL_PASSPHRASE
-    sudo openssl x509 -req -in /etc/ssl/certs/postgresdb.csr -CA /etc/ssl/certs/ca.crt -CAkey /etc/ssl/private/ca.key -CAcreateserial -out /etc/ssl/certs/postgresdb.crt -days 365 -sha256 -passin pass:$CA_SSL_PASSPHRASE
+    sudo openssl genpkey -algorithm RSA -aes256 -pass stdin <<< "$POSTGRES_SSL_PASSPHRASE" -out /etc/ssl/private/postgresdb.key
+    sudo openssl req -new -key /etc/ssl/private/postgresdb.key -out /etc/ssl/certs/postgresdb.csr -subj "/C=ES/ST=Andalucia/L=Almeria/O=Stratify/CN=db" -passin stdin <<< "$POSTGRES_SSL_PASSPHRASE"
+    sudo openssl x509 -req -in /etc/ssl/certs/postgresdb.csr -CA /etc/ssl/certs/ca.crt -CAkey /etc/ssl/private/ca.key -CAcreateserial -out /etc/ssl/certs/postgresdb.crt -days 365 -sha256 -passin stdin <<< "$CA_SSL_PASSPHRASE"
     sudo rm -rf /etc/ssl/certs/postgresdb.csr
     sudo chmod 400 /etc/ssl/private/postgresdb.key
     sudo chmod 644 /etc/ssl/certs/postgresdb.crt
@@ -61,9 +64,9 @@ fi
 # Get redis SSL certificate
 if sudo test ! -f /etc/ssl/private/redis.key || sudo test ! -f /etc/ssl/certs/redis.crt; then
     sudo rm -rf /etc/ssl/private/redis.key /etc/ssl/certs/redis.crt
-    sudo openssl genpkey -algorithm RSA -aes256 -pass pass:$REDIS_SSL_PASSPHRASE -out /etc/ssl/private/redis.key
-    sudo openssl req -new -key /etc/ssl/private/redis.key -out /etc/ssl/certs/redis.csr -subj "/C=ES/ST=Andalucia/L=Almeria/O=Stratify/CN=redis" -passin pass:$REDIS_SSL_PASSPHRASE
-    sudo openssl x509 -req -in /etc/ssl/certs/redis.csr -CA /etc/ssl/certs/ca.crt -CAkey /etc/ssl/private/ca.key -CAcreateserial -out /etc/ssl/certs/redis.crt -days 365 -sha256 -passin pass:$CA_SSL_PASSPHRASE
+    sudo openssl genpkey -algorithm RSA -aes256 -pass stdin <<< "$REDIS_SSL_PASSPHRASE" -out /etc/ssl/private/redis.key
+    sudo openssl req -new -key /etc/ssl/private/redis.key -out /etc/ssl/certs/redis.csr -subj "/C=ES/ST=Andalucia/L=Almeria/O=Stratify/CN=redis" -passin stdin <<< "$REDIS_SSL_PASSPHRASE"
+    sudo openssl x509 -req -in /etc/ssl/certs/redis.csr -CA /etc/ssl/certs/ca.crt -CAkey /etc/ssl/private/ca.key -CAcreateserial -out /etc/ssl/certs/redis.crt -days 365 -sha256 -passin stdin <<< "$CA_SSL_PASSPHRASE"
     sudo rm -rf /etc/ssl/certs/redis.csr
     sudo chmod 400 /etc/ssl/private/redis.key
     sudo chmod 644 /etc/ssl/certs/redis.crt
@@ -84,6 +87,7 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin d
 sudo apt autoremove -y
 
 # Run Docker
+sudo systemctl stop nginx
 sudo sysctl vm.overcommit_memory=1
 sudo service docker start
 sudo docker compose down

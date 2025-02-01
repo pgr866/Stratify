@@ -42,7 +42,7 @@ export function GithubSignin() {
                         throw new Error("State mismatch. Security check failed.");
                     }
                     await githubLogin(code);
-                    navigate("/panel");
+                    navigate("/dashboard");
                     toast({ description: "GitHub Login successfully" });
                 } catch (error) {
                     navigate("/login");
