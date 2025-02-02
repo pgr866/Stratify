@@ -50,6 +50,7 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
     environment:
+      DEBUG: ${DEBUG}
       VITE_ENV_PATH: ${VITE_ENV_PATH}
       VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
       VITE_GITHUB_CLIENT_ID: ${VITE_GITHUB_CLIENT_ID}
