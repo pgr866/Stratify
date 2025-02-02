@@ -19,7 +19,7 @@ export function Portal() {
               <div className="border-b">
                 <div className="flex h-auto items-center space-y-2 sm:space-y-auto flex-wrap">
                   <SidebarTrigger className="-ml-1" />
-                  <Separator orientation="vertical" className="mr-2 h-4" style={{ marginTop: '0' }} />
+                  <Separator orientation="vertical" className="mr-3 ml-1 h-4" style={{ marginTop: '0' }} />
                   <TeamSwitcher />
                   <TabsList className="bg-transparent sm:ml-4" style={{ marginTop: '0' }}>
                     <TabsTrigger className="px-2 md:px-3" value="dashboard">Dashboard</TabsTrigger>
