@@ -48,7 +48,7 @@ export function Signup() {
         try {
             setIsLoading(true);
             await createUser({ email: email, username: username, password: password }, code);
-            navigate("/dashboard");
+            navigate("/portal");
             toast({ description: "Sign-up successful" });
         } catch (error) {
             const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };

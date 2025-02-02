@@ -30,7 +30,7 @@ export function Navbar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   return (
-    <header className="sticky top-0 z-40 w-screen -mx-[calc(50vw-50%+6px)] bg-background">
+    <header className="sticky top-0 z-40 w-screen -mx-[calc(50vw-50%+6px)] backdrop-blur-lg">
       <NavigationMenu className="mx-auto">
         <NavigationMenuList className="flex justify-between w-screen max-w-[90vw] h-14 gap-8">
           <NavigationMenuItem className="font-bold">
