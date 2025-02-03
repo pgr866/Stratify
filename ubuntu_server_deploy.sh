@@ -11,20 +11,20 @@ rm -f ~/.bash_history
 # Load .env
 sudo apt install -y dos2unix
 if sudo test -f ".env"; then
-    dos2unix .env
+    sudo dos2unix .env
     sudo chmod 400 .env
     read -sp "Enter your decryption password: " ENC_PASSWORD
-    sudo openssl enc -aes-256-cbc -salt -in .env -out .env.enc -pass stdin <<< "$ENC_PASSWORD"
+    sudo openssl enc -aes-256-cbc -salt -pbkdf2 -iter 100000 -in .env -out .env.enc -pass stdin <<< "$ENC_PASSWORD"
 elif sudo test -f ".env.enc"; then
     read -sp "Enter your decryption password: " ENC_PASSWORD
-    sudo openssl enc -d -aes-256-cbc -in .env.enc -out .env -pass stdin <<< "$ENC_PASSWORD"
+    sudo openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 -in .env.enc -out .env -pass stdin <<< "$ENC_PASSWORD"
     sudo chmod 400 .env
 else
     echo "Error: .env nor .env.enc file found"
     exit 1
 fi
 
-export $(grep -v '^#' .env | xargs) > /dev/null 2>&1
+export $(sudo grep -v '^#' .env | xargs) > /dev/null 2>&1
 
 sudo chmod 700 /etc/ssl/private/
 sudo chmod 755 /etc/ssl/certs/
