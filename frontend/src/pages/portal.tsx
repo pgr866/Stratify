@@ -17,8 +17,8 @@ export function Portal() {
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
             <div className="flex-col flex">
               <div className="border-b">
-                <div className="flex h-auto items-center space-y-2 sm:space-y-auto flex-wrap">
-                  <SidebarTrigger className="-ml-1" />
+                <div className="flex h-auto items-center mt-2 xl:mt-0 space-y-2 flex-wrap">
+                  <SidebarTrigger />
                   <Separator orientation="vertical" className="mr-3 ml-1 h-4" style={{ marginTop: '0' }} />
                   <TeamSwitcher />
                   <TabsList className="bg-transparent sm:ml-4" style={{ marginTop: '0' }}>
@@ -27,11 +27,11 @@ export function Portal() {
                     <TabsTrigger className="px-2 md:px-3" value="products">Products</TabsTrigger>
                     <TabsTrigger className="px-2 md:px-3" value="settings">Settings</TabsTrigger>
                   </TabsList>
-                  <div className="flex md:ml-auto items-center space-x-4 pb-2">
+                  <div className="flex lg:ml-auto items-center space-x-4 pb-2">
                     <Input
                       type="search"
                       placeholder="Search..."
-                      className="sm:w-[150px] lg:w-[300px]"
+                      className="w-[150px] lg:w-[250px] xl:w-[300px]"
                     />
                     <UserNav />
                   </div>
@@ -41,8 +41,10 @@ export function Portal() {
                 <Dashboard />
               </TabsContent>
               <TabsContent value="customers" className="space-y-4">
+                
               </TabsContent>
               <TabsContent value="products" className="space-y-4">
+
               </TabsContent>
               <TabsContent value="settings" className="space-y-4">
                 <Settings />

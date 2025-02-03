@@ -7,7 +7,7 @@ import { RecentSales } from "@/components/recent-sales"
 
 export function Dashboard() {
     return (
-        <div className="flex-1 space-y-4 pt-4">
+        <div className="flex-1 space-y-4 sm:p-2">
             <div className="flex items-center justify-between space-y-2 gap-x-2 flex-wrap">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
                 <div className="flex items-center space-x-2">
