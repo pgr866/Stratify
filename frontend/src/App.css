@@ -21,6 +21,7 @@
     background: hsl(var(--primary) / 20%);
     right: 460px;
   }
+
   to {
     background: hsl(var(--primary) / 80%);
     right: 160px;
@@ -45,6 +46,7 @@
       background: hsl(var(--primary) / 20%);
       right: 280px;
     }
+
     to {
       background: hsl(var(--primary) / 30%);
       right: 100px;

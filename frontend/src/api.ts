@@ -1,36 +1,36 @@
 import axios from "axios";
 
 const URL = process.env.NODE_ENV === "production"
-  ? `${import.meta.env.VITE_ENV_PATH}/api/`
-  : "http://localhost:8000/api/v1/"
+	? `${import.meta.env.VITE_ENV_PATH}/api/`
+	: "http://localhost:8000/api/v1/"
 
 const api = axios.create({
-  baseURL: URL,
-  withCredentials: true,
+	baseURL: URL,
+	withCredentials: true,
 });
 
 // Interceptor para manejar errores globalmente
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response) {
-      console.error("API Error:", error.response.data);
-      if (error.response.status === 401) {
-        window.location.href = "/login";
-      }
-    } else {
-      console.error("Network Error:", error.message);
-    }
-    return Promise.reject(error);
-  }
+	(response) => response,
+	(error) => {
+		if (error.response) {
+			console.error("API Error:", error.response.data);
+			if (error.response.status === 401) {
+				window.location.href = "/login";
+			}
+		} else {
+			console.error("Network Error:", error.message);
+		}
+		return Promise.reject(error);
+	}
 );
 
 // User definition
 export interface User {
-  id?: number;
-  username: string;
-  email: string;
-  password?: string;
+	id?: number;
+	username: string;
+	email: string;
+	password?: string;
 }
 
 // ** Check Authentication Call **

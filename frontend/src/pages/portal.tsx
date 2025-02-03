@@ -41,7 +41,7 @@ export function Portal() {
                 <Dashboard />
               </TabsContent>
               <TabsContent value="customers" className="space-y-4">
-                
+
               </TabsContent>
               <TabsContent value="products" className="space-y-4">
 

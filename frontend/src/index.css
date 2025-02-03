@@ -73,7 +73,7 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-  
+
   * {
     @apply border-border;
     scrollbar-width: thin;
@@ -133,7 +133,7 @@
   .table-head {
     @apply border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right;
   }
-  
+
   .table-item {
     @apply border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right;
   }
