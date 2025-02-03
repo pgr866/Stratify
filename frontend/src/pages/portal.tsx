@@ -22,7 +22,7 @@ export function Portal() {
 									<SidebarTrigger />
 									<Separator orientation="vertical" className="mr-3 ml-1 h-4" style={{ marginTop: '0' }} />
 									<TeamSwitcher />
-									<TabsList className="bg-transparent sm:ml-4" style={{ marginTop: '0' }}>
+									<TabsList className="bg-transparent xl:ml-4" style={{ marginTop: '0' }}>
 										<TabsTrigger className="px-2 md:px-3" value="dashboard">Dashboard</TabsTrigger>
 										<TabsTrigger className="px-2 md:px-3" value="customers">Customers</TabsTrigger>
 										<TabsTrigger className="px-2 md:px-3" value="products">Products</TabsTrigger>
@@ -32,7 +32,7 @@ export function Portal() {
 										<Input
 											type="search"
 											placeholder="Search..."
-											className="w-[150px] lg:w-[250px] xl:w-[300px]"
+											className="w-[150px] lg:w-[200px] xl:w-[300px]"
 										/>
 										<UserNav />
 										<ThemeToggle />
