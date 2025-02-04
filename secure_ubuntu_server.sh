@@ -29,8 +29,6 @@ sudo apt install -y ufw
 sudo ufw allow 717
 sudo ufw --force enable
 sudo ufw status
-sudo apt install -y apache2
-sudo systemctl start apache2
 sudo ss -tupln
 sudo ufw allow 80/tcp
 sudo sed -i '/# ok icmp codes for INPUT/a -A ufw-before-input -p icmp --icmp-type echo-request -j DROP' /etc/ufw/before.rules
