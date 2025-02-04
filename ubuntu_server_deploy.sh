@@ -1,8 +1,6 @@
 #!/bin/bash
 #sudo chmod +x ubuntu_server_deploy.sh && ./ubuntu_server_deploy.sh
 set -e
-sudo apt update -y
-sudo apt -o APT::Get::Always-Include-Phased-Updates=true upgrade -y
 set +o history
 unset HISTFILE
 history -c
