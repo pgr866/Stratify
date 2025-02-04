@@ -1,9 +1,9 @@
+import { Check, Linkedin, Lightbulb } from "lucide-react";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Check, Linkedin, Lightbulb } from "lucide-react";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
 
 export function HeroCards() {
 	return (

@@ -1,13 +1,15 @@
-import { AppSidebar } from "@/components/app-sidebar"
 import { Separator } from "@/components/ui/separator"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import TeamSwitcher from "@/components/team-switcher"
-import { UserNav } from "@/components/user-nav"
 import { Input } from "@/components/ui/input"
-import { Dashboard } from "@/components/dashboard"
-import { Settings } from "@/components/settings"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { AppSidebar } from "./components/app-sidebar/app-sidebar"
+import { Customers } from "./components/customers"
+import { Dashboard } from "./components/dashboard/dashboard"
+import { Products } from "./components/products/products"
+import { Settings } from "./components/settings/settings"
+import { TeamSwitcher } from "./components/team-switcher"
+import { UserNav } from "./components/user-nav"
 
 export function Portal() {
 	return (
@@ -43,10 +45,10 @@ export function Portal() {
 								<Dashboard />
 							</TabsContent>
 							<TabsContent value="customers" className="space-y-4">
-
+								<Customers />
 							</TabsContent>
 							<TabsContent value="products" className="space-y-4">
-
+								<Products />
 							</TabsContent>
 							<TabsContent value="settings" className="space-y-4">
 								<Settings />

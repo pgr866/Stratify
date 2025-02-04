@@ -63,7 +63,7 @@ const accountFormSchema = z.object({
 
 type AccountFormValues = z.infer<typeof accountFormSchema>
 
-export function AccountSettings() {
+export function Account() {
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(accountFormSchema)
   })

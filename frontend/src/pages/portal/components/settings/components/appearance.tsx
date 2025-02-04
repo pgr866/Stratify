@@ -29,7 +29,7 @@ const appearanceFormSchema = z.object({
 
 type AppearanceFormValues = z.infer<typeof appearanceFormSchema>
 
-export function AppearanceSettings() {
+export function Appearance() {
 	const form = useForm<AppearanceFormValues>({
 		resolver: zodResolver(appearanceFormSchema)
 	})

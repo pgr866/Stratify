@@ -16,11 +16,6 @@ import {
   SquareTerminal,
 } from "lucide-react"
 
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { SidebarTeamSwitcher } from "@/components/sidebar-team-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -28,6 +23,11 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { NavMain } from "./components/nav-main"
+import { NavProjects } from "./components/nav-projects"
+import { NavSecondary } from "./components/nav-secondary"
+import { NavUser } from "./components/nav-user"
+import { SidebarTeamSwitcher } from "./components/sidebar-team-switcher"
 
 // This is sample data.
 const data = {

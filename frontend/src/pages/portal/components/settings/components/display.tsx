@@ -55,7 +55,7 @@ const defaultValues: Partial<DisplayFormValues> = {
 	items: ["recents", "home"],
 }
 
-export function DisplaySettings() {
+export function Display() {
 	const form = useForm<DisplayFormValues>({
 		resolver: zodResolver(displayFormSchema),
 		defaultValues,

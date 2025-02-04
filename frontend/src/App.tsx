@@ -1,14 +1,13 @@
-import './App.css'
 import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { checkAuth } from "@/api";
-import { Portal } from "./pages/portal";
-import { Home } from "./pages/home";
-import { Login } from "./pages/login";
-import { RecoverPassword } from "./pages/recover-password";
-import { Signup } from "./pages/signup";
 import { Toaster } from "@/components/ui/toaster"
-import { Temp } from "./pages/temp";
+import { Portal } from "@/pages/portal/portal";
+import { Home } from "@/pages/home/home";
+import { Login } from "@/pages/login";
+import { RecoverPassword } from "@/pages/recover-password";
+import { Signup } from "@/pages/signup";
+import { checkAuth } from "@/api";
+import './App.css'
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -41,7 +40,6 @@ function App() {
         <Route path="/portal" element={isAuthenticated ? <Portal /> : <Navigate to="/login" />} />
         <Route path="/api/*" />
         <Route path="*" element={<Navigate to="/home" />} />
-        <Route path="/temp" element={<Temp />} />
       </Routes>
       <Toaster />
     </div>

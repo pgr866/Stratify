@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
-import { HeroCards } from "@/components/hero-cards";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useNavigate } from "react-router-dom";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import { Button } from "@/components/ui/button";
+import { HeroCards } from "./hero-cards";
 
 export function Hero() {
 	const navigate = useNavigate();

@@ -39,7 +39,7 @@ const defaultValues: Partial<NotificationsFormValues> = {
 	security_emails: true,
 }
 
-export function NotificationsSettings() {
+export function Notifications() {
 	const form = useForm<NotificationsFormValues>({
 		resolver: zodResolver(notificationsFormSchema),
 		defaultValues,

@@ -1,15 +1,15 @@
-import { useNavigate, Link } from "react-router-dom";
-import { ThemeToggle } from "@/components/theme-toggle"
-import { Loader2 } from "lucide-react"
 import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useToast } from "@/hooks/use-toast"
-import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { changePassword, recoverPassword } from "@/api";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
+import { Label } from "@/components/ui/label"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { useToast } from "@/hooks/use-toast"
+import { changePassword, recoverPassword } from "@/api";
 
 export function RecoverPassword() {
 	const { toast } = useToast()

@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { ProfileSettings } from "@/components/profile-settings";
-import { AccountSettings } from '@/components/account-settings';
-import { AppearanceSettings } from '@/components/appearance-settings';
-import { NotificationsSettings } from '@/components/notifications-settings';
-import { DisplaySettings } from '@/components/display-settings';
+import { Separator } from "@/components/ui/separator";
+import { Account } from './components/account';
+import { Appearance } from './components/appearance';
+import { Display } from './components/display';
+import { Notifications } from './components/notifications';
+import { Profile } from "./components/profile";
 
 export function Settings() {
 	const [selected, setSelected] = useState('profile');
@@ -53,11 +53,11 @@ export function Settings() {
 					</Button>
 				</div>
 				<div className="flex-1 w-full">
-					{selected === 'profile' && <ProfileSettings />}
-					{selected === 'account' && <AccountSettings />}
-					{selected === 'appearance' && <AppearanceSettings />}
-					{selected === 'notifications' && <NotificationsSettings />}
-					{selected === 'display' && <DisplaySettings />}
+					{selected === 'profile' && <Profile />}
+					{selected === 'account' && <Account />}
+					{selected === 'appearance' && <Appearance />}
+					{selected === 'notifications' && <Notifications />}
+					{selected === 'display' && <Display />}
 				</div>
 			</div>
 		</div>

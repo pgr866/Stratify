@@ -1,16 +1,7 @@
-import { ThemeToggle } from "@/components/theme-toggle"
-import { DateTimeRangePicker } from "@/components/date-time-range-picker"
-import { CandleChart } from "@/components/candle-chart"
-
-export function Temp() {
+export function Customers() {
 
 	return (
 		<div>
-			<div className="fixed top-4 right-4">
-				<ThemeToggle />
-			</div>
-			<DateTimeRangePicker></DateTimeRangePicker>
-			<CandleChart></CandleChart>
 			<h1>Taxing Laughter: The Joke Tax Chronicles</h1>
 			<h2>Taxing Laughter: The Joke Tax Chronicles</h2>
 			<h3>Taxing Laughter: The Joke Tax Chronicles</h3>

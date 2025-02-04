@@ -60,7 +60,7 @@ const defaultValues: Partial<ProfileFormValues> = {
 	],
 }
 
-export function ProfileSettings() {
+export function Profile() {
 	const form = useForm<ProfileFormValues>({
 		resolver: zodResolver(profileFormSchema),
 		defaultValues,
