@@ -36,3 +36,4 @@ sudo ufw allow 80/tcp
 sudo sed -i '/# ok icmp codes for INPUT/a -A ufw-before-input -p icmp --icmp-type echo-request -j DROP' /etc/ufw/before.rules
 sudo ufw reload
 sudo reboot
+
