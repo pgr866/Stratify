@@ -1,10 +1,13 @@
 #!/bin/bash
+
 #sudo chmod +x ubuntu_server_deploy.sh && ./ubuntu_server_deploy.sh
+
 set -e
 set +o history
 unset HISTFILE
 history -c
 rm -f ~/.bash_history
+sudo apt update -y
 
 # Load .env
 sudo apt install -y dos2unix
@@ -32,6 +35,7 @@ if sudo test ! -f "/etc/letsencrypt/live/${ALLOWED_HOST}/fullchain.pem" || sudo 
     sudo rm -rf "/etc/letsencrypt/live/${ALLOWED_HOST}"
     sudo apt purge -y nginx certbot python3-certbot-nginx
     sudo apt install -y nginx certbot python3-certbot-nginx
+    sudo systemctl start nginx
     sudo certbot --nginx -d $ALLOWED_HOST --email $EMAIL_HOST_USER --agree-tos --no-eff-email
 fi
 
