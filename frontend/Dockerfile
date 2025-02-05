@@ -1,4 +1,4 @@
-FROM node:22.13.0-slim
+FROM node:22.13.1-slim
 WORKDIR /app
 COPY frontend/ /app/
 RUN npm i -g npm@latest && npm ci
