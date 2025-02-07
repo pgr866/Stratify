@@ -53,3 +53,7 @@
     }
   }
 }
+
+#tv-attr-logo {
+  @apply hidden;
+}

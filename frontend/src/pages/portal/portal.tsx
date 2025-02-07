@@ -16,9 +16,9 @@ export function Portal() {
 		<SidebarProvider defaultOpen={false}>
 			<AppSidebar />
 			<SidebarInset style={{ margin: '0' }}>
-				<Tabs defaultValue="dashboard">
-					<div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-						<div className="flex-col flex">
+				<Tabs defaultValue="dashboard" className="h-full">
+					<div className="flex flex-1 flex-col gap-4 p-4 pt-0 h-full">
+						<div className="flex-col flex h-full">
 							<div className="border-b">
 								<div className="flex h-auto items-center mt-2 xl:mt-0 space-y-2 flex-wrap">
 									<SidebarTrigger />
@@ -47,7 +47,7 @@ export function Portal() {
 							<TabsContent value="customers" className="space-y-4">
 								<Customers />
 							</TabsContent>
-							<TabsContent value="products" className="space-y-4">
+							<TabsContent value="products" className="space-y-4 h-full">
 								<Products />
 							</TabsContent>
 							<TabsContent value="settings" className="space-y-4">
