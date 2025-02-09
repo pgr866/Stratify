@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { createChart, CandlestickSeries, HistogramSeries, LineSeries, CrosshairMode, createSeriesMarkers } from "lightweight-charts";
 
 let randomFactor = 25 + Math.random() * 25;
@@ -65,49 +66,50 @@ function calculateMovingAverageSeriesData(candleData, maLength) {
 	return maData;
 }
 
+function getChartOptions() {
+	const getCssColor = (name) => `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
+	return {
+		layout: {
+			width: '100%',
+			height: '100%',
+			textColor: getCssColor("--foreground"),
+			background: {
+				type: 'gradient',
+				topColor: document.documentElement.classList.contains("dark") ? '#1A1A1A' : '#E5E5E5',
+				bottomColor: getCssColor("--background")
+			},
+			fontFamily: getComputedStyle(document.body).fontFamily,
+		},
+		grid: {
+			vertLines: { color: getCssColor("--border") },
+			horzLines: { color: getCssColor("--border") },
+		},
+		timeScale: { borderColor: getCssColor("--border") },
+		rightPriceScale: { borderColor: getCssColor("--border"), autoScale: false },
+		crosshair: {
+			mode: CrosshairMode.Normal,
+			vertLine: {
+				color: getCssColor("--muted-foreground"),
+				labelBackgroundColor: getCssColor("--foreground"),
+			},
+			horzLine: {
+				color: getCssColor("--muted-foreground"),
+				labelBackgroundColor: getCssColor("--foreground"),
+			},
+		},
+		localization: { locale: 'en' },
+	};
+}
+
 export function CandleChart() {
 	useEffect(() => {
 		const chartContainer = document.getElementById('chart-container');
 		if (!chartContainer) return;
 
 		const barData = generateCandleData(500);
-
 		const maData = calculateMovingAverageSeriesData(barData, 20);
 
-		const getCssColor = (name) => `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
-
-		const chart = createChart(chartContainer, {
-			layout: {
-				width: '100%',
-				height: '100%',
-				textColor: getCssColor("--foreground"),
-				background: {
-					type: 'gradient',
-					topColor: document.documentElement.classList.contains("dark") ? '#1A1A1A' : '#E5E5E5',
-					bottomColor: getCssColor("--background")
-				},
-				fontFamily: getComputedStyle(document.body).fontFamily,
-			},
-			grid: {
-				vertLines: { color: getCssColor("--border") },
-				horzLines: { color: getCssColor("--border") },
-			},
-			timeScale: { borderColor: getCssColor("--border") },
-			rightPriceScale: { borderColor: getCssColor("--border"), autoScale: false },
-			crosshair: {
-				mode: CrosshairMode.Normal,
-				vertLine: {
-					color: getCssColor("--muted-foreground"),
-					labelBackgroundColor: getCssColor("--foreground"),
-				},
-				horzLine: {
-					color: getCssColor("--muted-foreground"),
-					labelBackgroundColor: getCssColor("--foreground"),
-				},
-			},
-			localization: { locale: 'en' },
-		});
-
+		const chart = createChart(chartContainer, getChartOptions());
 		const candlestickSeries = chart.addSeries(CandlestickSeries, {
 			upColor: '#2EBD85',
 			downColor: '#F6465D',
@@ -134,7 +136,7 @@ export function CandleChart() {
 		});
 		volumeSeries.setData(volumeData);
 
-		const maSeries = chart.addSeries(LineSeries, { color: '#2962FF', lineWidth: 1 });
+		const maSeries = chart.addSeries(LineSeries, { color: 'blue', lineWidth: 1 });
 		maSeries.setData(maData);
 
 		const markers = [
@@ -155,93 +157,133 @@ export function CandleChart() {
 		];
 		createSeriesMarkers(candlestickSeries, markers);
 
-		chartContainer.style.position = 'relative';
 		const legend = Object.assign(document.createElement('div'), {
-			style: 'position:absolute;left:15px;top:10px;z-index:10;font-size:13px;font-weight:400;color:var(--foreground);',
+			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;color:var(--foreground);',
 		});
 		chartContainer.appendChild(legend);
 		const firstRow = document.createElement('div');
 		legend.appendChild(firstRow);
-		chart.subscribeCrosshairMove(param => {
-			const candleData = param.seriesData.get(candlestickSeries);
-			const volumeData = param.seriesData.get(volumeSeries);
+		const updateChartLegend = (param) => {
+			const candleData = param.seriesData.get(candlestickSeries)
+				?? candlestickSeries.dataByIndex(candlestickSeries.data().length - 1);
+			const volumeData = param.seriesData.get(volumeSeries)
+				?? volumeSeries.dataByIndex(volumeSeries.data().length - 1);
 			if (candleData) {
 				const { open, high, low, close } = candleData;
-				const c = close ?? '—';
-				const o = open ?? '—';
-				const h = high ?? '—';
-				const l = low ?? '—';
-				const change = open ? ((c - open) / open * 100).toFixed(2) : '—';
-				const formattedChange = change !== '—' ? `${change > 0 ? '+' : ''}${change}` : '—';
+				const c = close;
+				const o = open;
+				const h = high;
+				const l = low;
+				const change = ((c - o) / o * 100).toFixed(2);
+				const formattedChange = `${change > 0 ? '+' : ''}${change}`;
 				const v = volumeData ? volumeData.value : '—';
 				const color = c >= o ? '#2EBD85' : '#F6465D';
 				firstRow.innerHTML = `
-							O <span>${o}</span> 
-							H <span>${h}</span> 
-							L <span>${l}</span> 
-							C <span>${c} (${formattedChange}%)</span> 
-							V <span>${v}</span>
-					`;
+						O <span>${o}</span> 
+						H <span>${h}</span> 
+						L <span>${l}</span> 
+						C <span>${c} (${formattedChange}%)</span> 
+						V <span>${v}</span>
+				`;
 				firstRow.querySelectorAll('span').forEach(el => el.style.color = color);
-			} else {
-				firstRow.innerHTML = 'O — H — L — C — (—%) V —';
 			}
-		});
-
+		}
+		chart.subscribeCrosshairMove(updateChartLegend);
 		chart.timeScale().fitContent();
 
+		const subChartContainer = document.getElementById('subchart-container');
+		if (!subChartContainer) return;
+		const subChartData = generateLineData(500)
+		const subChart = createChart(subChartContainer, getChartOptions());
+		const subChartSeries = subChart.addSeries(LineSeries, { color: 'blue', lineWidth: 1 });
+		subChartSeries.setData(subChartData);
+		chart.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
+			subChart.timeScale().setVisibleLogicalRange(timeRange);
+		});
+		subChart.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
+			chart.timeScale().setVisibleLogicalRange(timeRange);
+		});
+		function getCrosshairDataPoint(series, param) {
+			if (!param.time) {
+				return null;
+			}
+			const dataPoint = param.seriesData.get(series);
+			return dataPoint || null;
+		}
+		function syncCrosshair(chart, series, dataPoint) {
+			if (dataPoint) {
+				chart.setCrosshairPosition(dataPoint.value, dataPoint.time, series);
+				return;
+			}
+			chart.clearCrosshairPosition();
+		}
+		chart.subscribeCrosshairMove(param => {
+			const dataPoint = getCrosshairDataPoint(candlestickSeries, param);
+			syncCrosshair(subChart, subChartSeries, dataPoint);
+		});
+		subChart.subscribeCrosshairMove(param => {
+			const dataPoint = getCrosshairDataPoint(subChartSeries, param);
+			syncCrosshair(chart, candlestickSeries, dataPoint);
+		});
+
+		const subChartLegend = Object.assign(document.createElement('div'), {
+			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;color:var(--foreground);',
+		});
+		subChartContainer.appendChild(subChartLegend);
+		const subChartRow = document.createElement('div');
+		subChartLegend.appendChild(subChartRow);
+		const updateSubChartLegend = (param) => {
+			const subChartData = param.seriesData.get(subChartSeries)
+				?? subChartSeries.dataByIndex(subChartSeries.data().length - 1);
+			if (subChartData) {
+				const subChartValue = subChartData.value.toFixed(2);
+				subChartRow.innerHTML = `SubChart <span>${subChartValue}</span>`;
+				subChartRow.querySelector('span').style.color = 'blue';
+			}
+		}
+		subChart.subscribeCrosshairMove(updateSubChartLegend);
+
+		chart.timeScale().applyOptions({ visible: false });
+
 		const resizeChart = () => {
-			const { width, height } = chartContainer.getBoundingClientRect();
+			let { width, height } = chartContainer.getBoundingClientRect();
 			chart.resize(width, height);
-			document.querySelector('.tv-lightweight-charts').style.width = '100%';
-			document.querySelector('.tv-lightweight-charts').style.height = '100%';
-			document.querySelector('table').style.width = '100%';
-			document.querySelector('table').style.height = '100%';
+			let { width: subWidth, height: subHeight } = subChartContainer.getBoundingClientRect();
+			subChart.resize(subWidth, subHeight);
+			chartContainer.querySelector('.tv-lightweight-charts').style.width = '100%';
+			chartContainer.querySelector('.tv-lightweight-charts').style.height = '100%';
+			chartContainer.querySelector('table').style.width = '100%';
+			chartContainer.querySelector('table').style.height = '100%';
+			subChartContainer.querySelector('.tv-lightweight-charts').style.width = '100%';
+			subChartContainer.querySelector('.tv-lightweight-charts').style.height = '100%';
+			subChartContainer.querySelector('table').style.width = '100%';
+			subChartContainer.querySelector('table').style.height = '100%';
 		};
 		const resizeObserver = new ResizeObserver(resizeChart);
 		resizeObserver.observe(chartContainer);
-
+		resizeObserver.observe(subChartContainer);
 		const themeObserver = new MutationObserver(() => {
-			chart.applyOptions({
-				layout: {
-					width: '100%',
-					height: '100%',
-					textColor: getCssColor("--foreground"),
-					background: {
-						type: 'gradient',
-						topColor: document.documentElement.classList.contains("dark") ? '#1A1A1A' : '#E5E5E5',
-						bottomColor: getCssColor("--background")
-					},
-					fontFamily: getComputedStyle(document.body).fontFamily,
-				},
-				grid: {
-					vertLines: { color: getCssColor("--border") },
-					horzLines: { color: getCssColor("--border") },
-				},
-				timeScale: { borderColor: getCssColor("--border") },
-				rightPriceScale: { borderColor: getCssColor("--border"), autoScale: false },
-				crosshair: {
-					mode: CrosshairMode.Normal,
-					vertLine: {
-						color: getCssColor("--muted-foreground"),
-						labelBackgroundColor: getCssColor("--foreground"),
-					},
-					horzLine: {
-						color: getCssColor("--muted-foreground"),
-						labelBackgroundColor: getCssColor("--foreground"),
-					},
-				},
-				localization: { locale: 'en' },
-			});
+			chart.applyOptions(getChartOptions());
+			subChart.applyOptions(getChartOptions());
 		});
 		themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
-
 		return () => {
 			resizeObserver.disconnect();
 			themeObserver.disconnect();
 			chart.remove();
+			subChart.remove();
 		};
 	}, []);
 
-	return <div id="chart-container" className="size-full"></div>;
+	return (
+		<ResizablePanelGroup direction="vertical" className="size-full">
+			<ResizablePanel defaultSize={70} className="relative">
+				<div id="chart-container" className="size-full"></div>
+			</ResizablePanel>
+			<ResizableHandle />
+			<ResizablePanel defaultSize={30} className="relative">
+				<div id="subchart-container" className="size-full"></div>
+			</ResizablePanel>
+		</ResizablePanelGroup>
+	)
 }

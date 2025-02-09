@@ -4,22 +4,14 @@ import { DateTimeRangePicker } from "./components/date-time-range-picker"
 
 export function Products() {
   return (
-    <div className="size-full">
-      <ResizablePanelGroup
-        direction="vertical"
-        className="size-full rounded-lg border"
-      >
-        <ResizablePanel defaultSize={50}>
-          <CandleChart></CandleChart>
-        </ResizablePanel>
-        <ResizableHandle />
-        <ResizablePanel defaultSize={50}>
-          <div className="flex h-full items-center justify-center p-6">
-            <DateTimeRangePicker></DateTimeRangePicker>
-          </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
-    </div>
-
+    <ResizablePanelGroup direction="vertical" className="size-full rounded-lg border">
+      <ResizablePanel defaultSize={50}>
+        <CandleChart></CandleChart>
+      </ResizablePanel>
+      <ResizableHandle />
+      <ResizablePanel defaultSize={50} className="flex justify-center items-center">
+        <DateTimeRangePicker />
+      </ResizablePanel>
+    </ResizablePanelGroup>
   )
 }
