@@ -197,6 +197,24 @@ export function CandleChart() {
 		const subChart = createChart(subChartContainer, getChartOptions());
 		const subChartSeries = subChart.addSeries(LineSeries, { color: 'blue', lineWidth: 1 });
 		subChartSeries.setData(subChartData);
+		const subChartLegend = Object.assign(document.createElement('div'), {
+			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;color:var(--foreground);',
+		});
+		subChartContainer.appendChild(subChartLegend);
+		const subChartRow = document.createElement('div');
+		subChartLegend.appendChild(subChartRow);
+		const updateSubChartLegend = (param) => {
+			const subChartData = param.seriesData.get(subChartSeries)
+				?? subChartSeries.dataByIndex(subChartSeries.data().length - 1);
+			if (subChartData) {
+				const subChartValue = subChartData.value.toFixed(2);
+				subChartRow.innerHTML = `SubChart <span>${subChartValue}</span>`;
+				subChartRow.querySelector('span').style.color = 'blue';
+			}
+		}
+		subChart.subscribeCrosshairMove(updateSubChartLegend);
+		chart.timeScale().applyOptions({ visible: false });
+
 		chart.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
 			subChart.timeScale().setVisibleLogicalRange(timeRange);
 		});
@@ -225,25 +243,6 @@ export function CandleChart() {
 			const dataPoint = getCrosshairDataPoint(subChartSeries, param);
 			syncCrosshair(chart, candlestickSeries, dataPoint);
 		});
-
-		const subChartLegend = Object.assign(document.createElement('div'), {
-			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;color:var(--foreground);',
-		});
-		subChartContainer.appendChild(subChartLegend);
-		const subChartRow = document.createElement('div');
-		subChartLegend.appendChild(subChartRow);
-		const updateSubChartLegend = (param) => {
-			const subChartData = param.seriesData.get(subChartSeries)
-				?? subChartSeries.dataByIndex(subChartSeries.data().length - 1);
-			if (subChartData) {
-				const subChartValue = subChartData.value.toFixed(2);
-				subChartRow.innerHTML = `SubChart <span>${subChartValue}</span>`;
-				subChartRow.querySelector('span').style.color = 'blue';
-			}
-		}
-		subChart.subscribeCrosshairMove(updateSubChartLegend);
-
-		chart.timeScale().applyOptions({ visible: false });
 
 		const resizeChart = () => {
 			let { width, height } = chartContainer.getBoundingClientRect();
