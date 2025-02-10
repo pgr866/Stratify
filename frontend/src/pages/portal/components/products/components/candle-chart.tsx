@@ -87,7 +87,7 @@ function getChartOptions() {
 		timeScale: { borderColor: getCssColor("--border") },
 		rightPriceScale: { borderColor: getCssColor("--border"), autoScale: false },
 		crosshair: {
-			mode: CrosshairMode.Normal,
+			mode: CrosshairMode.Magnet,
 			vertLine: {
 				color: getCssColor("--muted-foreground"),
 				labelBackgroundColor: getCssColor("--foreground"),
@@ -110,6 +110,7 @@ export function CandleChart() {
 		const maData = calculateMovingAverageSeriesData(barData, 20);
 
 		const chart = createChart(chartContainer, getChartOptions());
+		chart.timeScale().fitContent();
 		const candlestickSeries = chart.addSeries(CandlestickSeries, {
 			upColor: '#2EBD85',
 			downColor: '#F6465D',
@@ -157,63 +158,49 @@ export function CandleChart() {
 		];
 		createSeriesMarkers(candlestickSeries, markers);
 
-		const legend = Object.assign(document.createElement('div'), {
+		const chartLegend = Object.assign(document.createElement('div'), {
 			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;color:var(--foreground);',
 		});
-		chartContainer.appendChild(legend);
-		const firstRow = document.createElement('div');
-		legend.appendChild(firstRow);
+		chartContainer.appendChild(chartLegend);
 		const updateChartLegend = (param) => {
 			const candleData = param.seriesData.get(candlestickSeries)
-				?? candlestickSeries.dataByIndex(candlestickSeries.data().length - 1);
+				?? candlestickSeries.dataByIndex(candlestickSeries.data().length - 1)
+				?? '—';
 			const volumeData = param.seriesData.get(volumeSeries)
-				?? volumeSeries.dataByIndex(volumeSeries.data().length - 1);
-			if (candleData) {
-				const { open, high, low, close } = candleData;
-				const c = close;
-				const o = open;
-				const h = high;
-				const l = low;
-				const change = ((c - o) / o * 100).toFixed(2);
-				const formattedChange = `${change > 0 ? '+' : ''}${change}`;
-				const v = volumeData ? volumeData.value : '—';
-				const color = c >= o ? '#2EBD85' : '#F6465D';
-				firstRow.innerHTML = `
+				?? volumeSeries.dataByIndex(volumeSeries.data().length - 1)
+				?? '—';
+			const { open: o, high: h, low: l, close: c } = candleData;
+			const change = ((c - o) / o * 100).toFixed(2);
+			chartLegend.innerHTML = `
 						O <span>${o}</span> 
 						H <span>${h}</span> 
 						L <span>${l}</span> 
-						C <span>${c} (${formattedChange}%)</span> 
-						V <span>${v}</span>
+						C <span>${c} (${change > 0 ? '+' : ''}${change}%)</span> 
+						V <span>${volumeData.value}</span>
 				`;
-				firstRow.querySelectorAll('span').forEach(el => el.style.color = color);
-			}
+			chartLegend.querySelectorAll('span').forEach(el => el.style.color = c >= o ? '#2EBD85' : '#F6465D');
 		}
-		chart.subscribeCrosshairMove(updateChartLegend);
-		chart.timeScale().fitContent();
 
 		const subChartContainer = document.getElementById('subchart-container');
 		if (!subChartContainer) return;
 		const subChartData = generateLineData(500)
 		const subChart = createChart(subChartContainer, getChartOptions());
+		subChart.timeScale().fitContent();
+		chart.timeScale().applyOptions({ visible: false });
 		const subChartSeries = subChart.addSeries(LineSeries, { color: 'blue', lineWidth: 1 });
 		subChartSeries.setData(subChartData);
+
 		const subChartLegend = Object.assign(document.createElement('div'), {
 			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;color:var(--foreground);',
 		});
 		subChartContainer.appendChild(subChartLegend);
-		const subChartRow = document.createElement('div');
-		subChartLegend.appendChild(subChartRow);
 		const updateSubChartLegend = (param) => {
 			const subChartData = param.seriesData.get(subChartSeries)
-				?? subChartSeries.dataByIndex(subChartSeries.data().length - 1);
-			if (subChartData) {
-				const subChartValue = subChartData.value.toFixed(2);
-				subChartRow.innerHTML = `SubChart <span>${subChartValue}</span>`;
-				subChartRow.querySelector('span').style.color = 'blue';
-			}
+				?? subChartSeries.dataByIndex(subChartSeries.data().length - 1)
+				?? '—';
+			subChartLegend.innerHTML = `SubChart <span>${subChartData.value.toFixed(2)}</span>`;
+			subChartLegend.querySelector('span').style.color = 'blue';
 		}
-		subChart.subscribeCrosshairMove(updateSubChartLegend);
-		chart.timeScale().applyOptions({ visible: false });
 
 		chart.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
 			subChart.timeScale().setVisibleLogicalRange(timeRange);
@@ -221,27 +208,26 @@ export function CandleChart() {
 		subChart.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
 			chart.timeScale().setVisibleLogicalRange(timeRange);
 		});
-		function getCrosshairDataPoint(series, param) {
-			if (!param.time) {
-				return null;
-			}
-			const dataPoint = param.seriesData.get(series);
-			return dataPoint || null;
-		}
-		function syncCrosshair(chart, series, dataPoint) {
-			if (dataPoint) {
-				chart.setCrosshairPosition(dataPoint.value, dataPoint.time, series);
-				return;
-			}
-			chart.clearCrosshairPosition();
-		}
+		
 		chart.subscribeCrosshairMove(param => {
-			const dataPoint = getCrosshairDataPoint(candlestickSeries, param);
-			syncCrosshair(subChart, subChartSeries, dataPoint);
+			const dataPoint = param.seriesData.get(candlestickSeries) || null;
+			if (param.time) {
+				subChart.setCrosshairPosition(dataPoint.value, dataPoint.time, subChartSeries);
+			} else {
+				subChart.clearCrosshairPosition();
+			}
+			updateChartLegend(param);
+			updateSubChartLegend(param);
 		});
 		subChart.subscribeCrosshairMove(param => {
-			const dataPoint = getCrosshairDataPoint(subChartSeries, param);
-			syncCrosshair(chart, candlestickSeries, dataPoint);
+			const dataPoint = param.seriesData.get(subChartSeries) || null;
+			if (param.time) {
+				chart.setCrosshairPosition(dataPoint.value, dataPoint.time, candlestickSeries);
+			} else {
+				chart.clearCrosshairPosition();
+			}
+			updateChartLegend(param);
+			updateSubChartLegend(param);
 		});
 
 		const resizeChart = () => {
