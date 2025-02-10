@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
 import { createChart, CandlestickSeries, HistogramSeries, LineSeries, CrosshairMode, createSeriesMarkers } from "lightweight-charts";
 
 let randomFactor = 25 + Math.random() * 25;
@@ -66,8 +65,9 @@ function calculateMovingAverageSeriesData(candleData, maLength) {
 	return maData;
 }
 
+const getCssColor = (name) => `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
+
 function getChartOptions() {
-	const getCssColor = (name) => `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
 	return {
 		layout: {
 			width: '100%',
@@ -97,6 +97,11 @@ function getChartOptions() {
 				labelBackgroundColor: getCssColor("--foreground"),
 			},
 		},
+		panes: {
+			separatorColor: getCssColor("--border"),
+			separatorHoverColor: getCssColor("--border"),
+			enableResize: true,
+		},
 		localization: { locale: 'en' },
 	};
 }
@@ -111,6 +116,7 @@ export function CandleChart() {
 
 		const chart = createChart(chartContainer, getChartOptions());
 		chart.timeScale().fitContent();
+		chartContainer.style.position = 'relative';
 		const candlestickSeries = chart.addSeries(CandlestickSeries, {
 			upColor: '#2EBD85',
 			downColor: '#F6465D',
@@ -157,9 +163,9 @@ export function CandleChart() {
 			}
 		];
 		createSeriesMarkers(candlestickSeries, markers);
-
+		document.documentElement.style.setProperty('--background-alpha', `rgba(${document.documentElement.classList.contains("dark") ? '26,26,26' : '229,229,229'},0.7)`);
 		const chartLegend = Object.assign(document.createElement('div'), {
-			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;color:var(--foreground);',
+			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;background:var(--background-alpha);padding: 0 5px;border-radius:5px;',
 		});
 		chartContainer.appendChild(chartLegend);
 		const updateChartLegend = (param) => {
@@ -180,95 +186,33 @@ export function CandleChart() {
 				`;
 			chartLegend.querySelectorAll('span').forEach(el => el.style.color = c >= o ? '#2EBD85' : '#F6465D');
 		}
-
-		const subChartContainer = document.getElementById('subchart-container');
-		if (!subChartContainer) return;
-		const subChartData = generateLineData(500)
-		const subChart = createChart(subChartContainer, getChartOptions());
-		subChart.timeScale().fitContent();
-		chart.timeScale().applyOptions({ visible: false });
-		const subChartSeries = subChart.addSeries(LineSeries, { color: 'blue', lineWidth: 1 });
-		subChartSeries.setData(subChartData);
-
-		const subChartLegend = Object.assign(document.createElement('div'), {
-			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;color:var(--foreground);',
-		});
-		subChartContainer.appendChild(subChartLegend);
-		const updateSubChartLegend = (param) => {
-			const subChartData = param.seriesData.get(subChartSeries)
-				?? subChartSeries.dataByIndex(subChartSeries.data().length - 1)
-				?? '—';
-			subChartLegend.innerHTML = `SubChart <span>${subChartData.value.toFixed(2)}</span>`;
-			subChartLegend.querySelector('span').style.color = 'blue';
-		}
-
-		chart.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
-			subChart.timeScale().setVisibleLogicalRange(timeRange);
-		});
-		subChart.timeScale().subscribeVisibleLogicalRangeChange(timeRange => {
-			chart.timeScale().setVisibleLogicalRange(timeRange);
-		});
-		
-		chart.subscribeCrosshairMove(param => {
-			const dataPoint = param.seriesData.get(candlestickSeries) || null;
-			if (param.time) {
-				subChart.setCrosshairPosition(dataPoint.value, dataPoint.time, subChartSeries);
-			} else {
-				subChart.clearCrosshairPosition();
-			}
-			updateChartLegend(param);
-			updateSubChartLegend(param);
-		});
-		subChart.subscribeCrosshairMove(param => {
-			const dataPoint = param.seriesData.get(subChartSeries) || null;
-			if (param.time) {
-				chart.setCrosshairPosition(dataPoint.value, dataPoint.time, candlestickSeries);
-			} else {
-				chart.clearCrosshairPosition();
-			}
-			updateChartLegend(param);
-			updateSubChartLegend(param);
-		});
+		chart.subscribeCrosshairMove(updateChartLegend);
+		const subChartSeries = chart.addSeries(LineSeries, { color: 'blue', lineWidth: 1 }, 1);
+		subChartSeries.setData(generateLineData(500));
 
 		const resizeChart = () => {
 			let { width, height } = chartContainer.getBoundingClientRect();
 			chart.resize(width, height);
-			let { width: subWidth, height: subHeight } = subChartContainer.getBoundingClientRect();
-			subChart.resize(subWidth, subHeight);
 			chartContainer.querySelector('.tv-lightweight-charts').style.width = '100%';
 			chartContainer.querySelector('.tv-lightweight-charts').style.height = '100%';
 			chartContainer.querySelector('table').style.width = '100%';
 			chartContainer.querySelector('table').style.height = '100%';
-			subChartContainer.querySelector('.tv-lightweight-charts').style.width = '100%';
-			subChartContainer.querySelector('.tv-lightweight-charts').style.height = '100%';
-			subChartContainer.querySelector('table').style.width = '100%';
-			subChartContainer.querySelector('table').style.height = '100%';
 		};
 		const resizeObserver = new ResizeObserver(resizeChart);
 		resizeObserver.observe(chartContainer);
-		resizeObserver.observe(subChartContainer);
 		const themeObserver = new MutationObserver(() => {
+			document.documentElement.style.setProperty('--background-alpha', `rgba(${document.documentElement.classList.contains("dark") ? '26,26,26' : '229,229,229'},0.7)`);
 			chart.applyOptions(getChartOptions());
-			subChart.applyOptions(getChartOptions());
 		});
 		themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
 		return () => {
 			resizeObserver.disconnect();
 			themeObserver.disconnect();
 			chart.remove();
-			subChart.remove();
 		};
 	}, []);
 
 	return (
-		<ResizablePanelGroup direction="vertical" className="size-full">
-			<ResizablePanel defaultSize={70} className="relative">
-				<div id="chart-container" className="size-full"></div>
-			</ResizablePanel>
-			<ResizableHandle />
-			<ResizablePanel defaultSize={30} className="relative">
-				<div id="subchart-container" className="size-full"></div>
-			</ResizablePanel>
-		</ResizablePanelGroup>
+		<div id="chart-container" className="size-full"></div>
 	)
 }
