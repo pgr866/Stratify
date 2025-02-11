@@ -79,6 +79,11 @@ function getChartOptions() {
 				bottomColor: getCssColor("--background")
 			},
 			fontFamily: getComputedStyle(document.body).fontFamily,
+			panes: {
+				separatorColor: getCssColor("--border"),
+				separatorHoverColor: getCssColor("--border"),
+				enableResize: true,
+			},
 		},
 		grid: {
 			vertLines: { color: getCssColor("--border") },
@@ -96,11 +101,6 @@ function getChartOptions() {
 				color: getCssColor("--muted-foreground"),
 				labelBackgroundColor: getCssColor("--foreground"),
 			},
-		},
-		panes: {
-			separatorColor: getCssColor("--border"),
-			separatorHoverColor: getCssColor("--border"),
-			enableResize: true,
 		},
 		localization: { locale: 'en' },
 	};
@@ -137,7 +137,7 @@ export function CandleChart() {
 		});
 		volumeSeries.priceScale().applyOptions({
 			scaleMargins: {
-				top: 0.7,
+				top: 0.8,
 				bottom: 0,
 			},
 		});
@@ -163,6 +163,7 @@ export function CandleChart() {
 			}
 		];
 		createSeriesMarkers(candlestickSeries, markers);
+
 		document.documentElement.style.setProperty('--background-alpha', `rgba(${document.documentElement.classList.contains("dark") ? '26,26,26' : '229,229,229'},0.7)`);
 		const chartLegend = Object.assign(document.createElement('div'), {
 			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;background:var(--background-alpha);padding: 0 5px;border-radius:5px;',
@@ -177,18 +178,46 @@ export function CandleChart() {
 				?? '—';
 			const { open: o, high: h, low: l, close: c } = candleData;
 			const change = ((c - o) / o * 100).toFixed(2);
+			const formattedVolume = volumeData.value >= 1000000
+				? (volumeData.value / 1000000).toFixed(2) + ' M'
+				: volumeData.value >= 1000
+					? (volumeData.value / 1000).toFixed(2) + ' K'
+					: volumeData.value;
 			chartLegend.innerHTML = `
 						O <span>${o}</span> 
 						H <span>${h}</span> 
 						L <span>${l}</span> 
 						C <span>${c} (${change > 0 ? '+' : ''}${change}%)</span> 
-						V <span>${volumeData.value}</span>
+						V <span>${formattedVolume}</span>
 				`;
 			chartLegend.querySelectorAll('span').forEach(el => el.style.color = c >= o ? '#2EBD85' : '#F6465D');
 		}
 		chart.subscribeCrosshairMove(updateChartLegend);
+
 		const subChartSeries = chart.addSeries(LineSeries, { color: 'blue', lineWidth: 1 }, 1);
 		subChartSeries.setData(generateLineData(500));
+		const subChartLegend = Object.assign(document.createElement('div'), {
+			style: 'position:absolute;left:15px;top:7px;z-index:10;font-size:13px;font-weight:400;background:var(--background-alpha);padding: 0 5px;border-radius:5px;',
+		});
+
+		requestAnimationFrame(function checkTable() {
+			const table = chartContainer.querySelector('table');
+			if (!table || table.children.length < 4) {
+				requestAnimationFrame(checkTable);
+				return;
+			}
+			const divsWithCanvas = Array.from(table.children);
+			divsWithCanvas.at(-2).style.position = 'relative';
+			divsWithCanvas.at(-2).appendChild(subChartLegend);
+		});
+		const updateSubChartLegend = (param) => {
+			const subChartData = param.seriesData.get(subChartSeries)
+				?? subChartSeries.dataByIndex(subChartSeries.data().length - 1)
+				?? '—';
+			subChartLegend.innerHTML = `SubChart <span>${subChartData.value.toFixed(2)}</span>`;
+			subChartLegend.querySelector('span').style.color = 'blue';
+		}
+		chart.subscribeCrosshairMove(updateSubChartLegend);
 
 		const resizeChart = () => {
 			let { width, height } = chartContainer.getBoundingClientRect();
