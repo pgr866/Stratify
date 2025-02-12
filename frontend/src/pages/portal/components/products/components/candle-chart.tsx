@@ -253,8 +253,10 @@ export function CandleChart() {
 		const chart = createCandleChart(candleData, markers);
 		addLine(chart, maData, 0, 'blue');
 		addLine(chart, maData, 0, 'red');
+		addLine(chart, maData, 0, 'green');
 		addLine(chart, subChartData, 1, 'purple');
-		//addLine(chart, subChartData, 2, 'orange');
+		addLine(chart, subChartData, 2, 'orange');
+		addLine(chart, subChartData, 3, 'yellow');
 		return updateChart(chart);
 	}, []);
 
