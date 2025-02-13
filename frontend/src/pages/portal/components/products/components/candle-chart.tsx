@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { createChart, CandlestickSeries, HistogramSeries, LineSeries, CrosshairMode, createSeriesMarkers } from "lightweight-charts";
+import { createChart, CandlestickSeries, HistogramSeries, LineSeries, BarSeries, CrosshairMode, createSeriesMarkers } from "lightweight-charts";
 
 function generateLineData(numberOfPoints = 500, endDate) {
 	const randomFactor = 25 + Math.random() * 25;
@@ -8,7 +8,9 @@ function generateLineData(numberOfPoints = 500, endDate) {
 	date.setUTCDate(date.getUTCDate() - numberOfPoints - 1);
 	for (let i = 0; i < numberOfPoints; ++i) {
 		const time = date.getTime() / 1000;
-		const value = i * (0.5 + Math.sin(i / 10) * 0.2 + Math.sin(i / 20) * 0.4 + Math.sin(i / randomFactor) * 0.8 + Math.sin(i / 500) * 0.5) + 200;
+		const value = (i * (0.5 + Math.sin(i / 10) * 0.2 + Math.sin(i / 20) * 0.4
+			+ Math.sin(i / randomFactor) * 0.8 + Math.sin(i / 500) * 0.5)
+			- 200) * (Math.random() > 0.5 ? 1 : -1);
 		res.push({ time, value });
 		date.setUTCDate(date.getUTCDate() + 1);
 	}
@@ -49,8 +51,18 @@ function calculateMovingAverageSeriesData(candleData, maLength) {
 
 let legend;
 
+const getCssColor = (name) => `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
+
+const setOpacity = (color: string, alpha: number): string => {
+	const tempDiv = document.createElement("div");
+	tempDiv.style.color = color;
+	document.body.appendChild(tempDiv);
+	const computedColor = getComputedStyle(tempDiv).color;
+	document.body.removeChild(tempDiv);
+	return computedColor.replace("rgb", "rgba").replace(")", `, ${alpha})`);
+};
+
 function getChartOptions() {
-	const getCssColor = (name) => `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
 	return {
 		layout: {
 			width: '100%',
@@ -89,25 +101,28 @@ function getChartOptions() {
 	};
 }
 
-function createCandleChart(candleData, markers) {
+function createCandleChart(candleData, upColor = '#2EBD85', downColor = '#F6465D', markers = []) {
 	const chartContainer = document.getElementById('chart-container');
 	if (!chartContainer) return;
 	const chart = createChart(chartContainer, getChartOptions());
 	chart.timeScale().fitContent();
 	chartContainer.style.position = 'relative';
 	const candlestickSeries = chart.addSeries(CandlestickSeries, {
-		upColor: '#2EBD85',
-		downColor: '#F6465D',
+		upColor: upColor,
+		downColor: downColor,
 		borderVisible: false,
-		wickUpColor: '#2EBD85',
-		wickDownColor: '#F6465D',
+		wickUpColor: upColor,
+		wickDownColor: downColor,
 	});
 	candlestickSeries.setData(candleData);
+
+	const upColorOpacity = setOpacity(upColor, 0.5);
+	const downColorOpacity = setOpacity(downColor, 0.5);
 
 	const volumeData = candleData.map(bar => ({
 		time: bar.time,
 		value: bar.volume,
-		color: bar.close > bar.open ? 'rgba(46, 189, 133, 0.5)' : 'rgba(246, 70, 93, 0.5)'
+		color: bar.close > bar.open ? upColorOpacity : downColorOpacity
 	}));
 	const volumeSeries = chart.addSeries(HistogramSeries, {
 		priceFormat: { type: 'volume' },
@@ -123,7 +138,7 @@ function createCandleChart(candleData, markers) {
 
 	createSeriesMarkers(candlestickSeries, markers);
 
-	document.documentElement.style.setProperty('--background-alpha', `rgba(${document.documentElement.classList.contains("dark") ? '26,26,26' : '229,229,229'},0.7)`);
+	document.documentElement.style.setProperty('--background-alpha', setOpacity(getCssColor('--background'), 0.7));
 	legend = Object.assign(document.createElement('div'), {
 		style: 'position:absolute;left:8px;top:7px;z-index:10;font-size:13px;font-weight:400;',
 	});
@@ -160,10 +175,10 @@ function createCandleChart(candleData, markers) {
 	return chart;
 }
 
-function addLine(chart, lineData, pane, color) {
-	const chartContainer = document.getElementById('chart-container');
-	const lineSeries = chart.addSeries(LineSeries, { color: color, lineWidth: 1 }, pane);
+function addLineSeries(chart, lineData, pane, color = 'blue', lineWidth = 1, lineStyle = 0) {
+	const lineSeries = chart.addSeries(LineSeries, { color: color, lineWidth: lineWidth, lineStyle: lineStyle }, pane);
 	lineSeries.setData(lineData);
+	const chartContainer = document.getElementById('chart-container');
 	if (pane > 0) {
 		const newLegend = Object.assign(document.createElement('div'), {
 			style: 'position:absolute;left:8px;top:7px;z-index:10;font-size:13px;font-weight:400;',
@@ -202,6 +217,115 @@ function addLine(chart, lineData, pane, color) {
 			});
 		});
 	}
+	return lineSeries;
+}
+
+function addHistogramSeries(chart, histogramData, pane, getColor = () => 'green') {
+	const histogramSeries = chart.addSeries(HistogramSeries, {}, pane);
+	histogramSeries.setData(
+		histogramData.map((dataPoint, index, array) => ({
+			...dataPoint,
+			color: getColor(dataPoint, index, array)
+		}))
+	);
+	const chartContainer = document.getElementById('chart-container');
+	if (pane > 0) {
+		const newLegend = Object.assign(document.createElement('div'), {
+			style: 'position:absolute;left:8px;top:7px;z-index:10;font-size:13px;font-weight:400;',
+		});
+		requestAnimationFrame(function checkTable() {
+			const table = chartContainer.querySelector('table');
+			if (!table || table.children.length < 4) {
+				requestAnimationFrame(checkTable);
+				return;
+			}
+			const divsWithCanvas = Array.from(table.children);
+			divsWithCanvas.at(2 * pane).style.position = 'relative';
+			divsWithCanvas.at(2 * pane).appendChild(newLegend);
+		});
+		chart.subscribeCrosshairMove((param) => {
+			const histogramData = param.seriesData.get(histogramSeries)
+				?? histogramSeries.data().at(-1)
+				?? '—';
+			newLegend.innerHTML = `<text>Histogram <span style="color:${histogramData.color}">${histogramData.value.toFixed(2)}</span>`;
+			newLegend.querySelectorAll('text').forEach(el => {
+				el.style.backgroundColor = 'var(--background-alpha)';
+				el.style.padding = '0 5px';
+				el.style.borderRadius = '5px';
+			});
+		});
+	} else {
+		chart.subscribeCrosshairMove((param) => {
+			const histogramData = param.seriesData.get(histogramSeries)
+				?? histogramSeries.data().at(-1)
+				?? '—';
+			legend.innerHTML += `<br><text>Histogram <span style="color:${histogramData.color}">${histogramData.value.toFixed(2)}</span>`;
+			legend.querySelectorAll('text').forEach(el => {
+				el.style.backgroundColor = 'var(--background-alpha)';
+				el.style.padding = '0 5px';
+				el.style.borderRadius = '5px';
+			});
+		});
+	}
+	return histogramSeries;
+}
+
+function addBarSeries(chart, barData, pane, getColor = () => 'green') {
+	const barSeries = chart.addSeries(BarSeries, { openVisible: true, thinBars: true }, pane);
+	barSeries.setData(
+		barData.map((dataPoint, index, array) => ({
+			time: dataPoint.time,
+			open: 0,
+			close: index === array.length - 1 ? dataPoint.value : 0,
+			high: dataPoint.value > 0 ? dataPoint.value : 0,
+			low: dataPoint.value < 0 ? dataPoint.value : 0,
+			color: getColor(dataPoint, index, array),
+		}))
+	);
+	const chartContainer = document.getElementById('chart-container');
+	if (pane > 0) {
+		const newLegend = Object.assign(document.createElement('div'), {
+			style: 'position:absolute;left:8px;top:7px;z-index:10;font-size:13px;font-weight:400;',
+		});
+		requestAnimationFrame(function checkTable() {
+			const table = chartContainer.querySelector('table');
+			if (!table || table.children.length < 4) {
+				requestAnimationFrame(checkTable);
+				return;
+			}
+			const divsWithCanvas = Array.from(table.children);
+			divsWithCanvas.at(2 * pane).style.position = 'relative';
+			divsWithCanvas.at(2 * pane).appendChild(newLegend);
+		});
+		chart.subscribeCrosshairMove((param) => {
+			const barData = param.seriesData.get(barSeries)
+				?? barSeries.data().at(-1)
+				?? '—';
+			newLegend.innerHTML = `<text>Bar <span style="color:${barData.color}">${(barData.low == 0 ? barData.high : barData.low).toFixed(2)}</span>`;
+			newLegend.querySelectorAll('text').forEach(el => {
+				el.style.backgroundColor = 'var(--background-alpha)';
+				el.style.padding = '0 5px';
+				el.style.borderRadius = '5px';
+			});
+		});
+	} else {
+		chart.subscribeCrosshairMove((param) => {
+			const barData = param.seriesData.get(barSeries)
+				?? barSeries.data().at(-1)
+				?? '—';
+			legend.innerHTML += `<br><text>Bar <span style="color:${barData.color}">${barData.value.toFixed(2)}</span>`;
+			legend.querySelectorAll('text').forEach(el => {
+				el.style.backgroundColor = 'var(--background-alpha)';
+				el.style.padding = '0 5px';
+				el.style.borderRadius = '5px';
+			});
+		});
+	}
+	return barSeries;
+}
+
+function addHorizontalLine(series, value, color = 'blue', label = '', lineWidth = 1, lineStyle = 3) {
+	series.createPriceLine({ price: value, color: color, lineWidth: lineWidth, lineStyle: lineStyle, axisLabelVisible: true, title: label });
 }
 
 function updateChart(chart) {
@@ -217,10 +341,10 @@ function updateChart(chart) {
 	const resizeObserver = new ResizeObserver(resizeChart);
 	resizeObserver.observe(chartContainer);
 	const themeObserver = new MutationObserver(() => {
-		document.documentElement.style.setProperty('--background-alpha', `rgba(${document.documentElement.classList.contains("dark") ? '26,26,26' : '229,229,229'},0.7)`);
-		chart.applyOptions(getChartOptions());
+		document.documentElement.style.setProperty('--background-alpha', setOpacity(getCssColor('--background'), 0.7));
+		chart.applyOptions(getChartOptions())
 	});
-	themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 	return () => {
 		resizeObserver.disconnect();
 		themeObserver.disconnect();
@@ -247,16 +371,22 @@ export function CandleChart() {
 		}
 	];
 	const maData = calculateMovingAverageSeriesData(candleData, 20);
-	const subChartData = generateLineData(500);
+	const lineData = generateLineData(500);
 
 	useEffect(() => {
-		const chart = createCandleChart(candleData, markers);
-		addLine(chart, maData, 0, 'blue');
-		addLine(chart, maData, 0, 'red');
-		addLine(chart, maData, 0, 'green');
-		addLine(chart, subChartData, 1, 'purple');
-		addLine(chart, subChartData, 2, 'orange');
-		addLine(chart, subChartData, 3, 'yellow');
+		const chart = createCandleChart(candleData, '#2EBD85', '#F6465D', markers);
+		addLineSeries(chart, maData, 0, 'blue');
+		addLineSeries(chart, maData, 0, 'red');
+		addLineSeries(chart, maData, 0, 'green');
+		addLineSeries(chart, lineData, 1, 'purple');
+		addLineSeries(chart, lineData, 2, 'orange');
+		const lineSeries = addLineSeries(chart, lineData, 3, 'yellow');
+		addHorizontalLine(lineSeries, 500, 'gray', 'label');
+		addHistogramSeries(chart, lineData, 4, (dataPoint) => dataPoint.value > 0 ? 'green' : 'red');
+		addBarSeries(chart, lineData, 5, (dataPoint, index, array) => (index === 0 || dataPoint.value >= array[index - 1].value) ? 'green' : 'red');
+
+
+
 		return updateChart(chart);
 	}, []);
 
