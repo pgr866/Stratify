@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Loader2 } from "lucide-react"
+import { Loader2, Eye, EyeClosed } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -19,7 +19,9 @@ export function Signup() {
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 	const [repeatPassword, setRepeatPassword] = useState("");
+	const [showRepeatPassword, setShowRepeatPassword] = useState(false);
 	const [code, setCode] = useState("");
 	const [emailSent, setEmailSent] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -122,25 +124,43 @@ export function Signup() {
 								<div className="flex items-center">
 									<Label htmlFor="password">Password</Label>
 								</div>
-								<Input
-									id="password"
-									type="password"
-									value={password}
-									onChange={(e) => setPassword(e.target.value)}
-									required
-								/>
+								<div className="relative w-full">
+									<Input
+										id="password"
+										type={showPassword ? "text" : "password"}
+										value={password}
+										onChange={(e) => setPassword(e.target.value)}
+										required
+									/>
+									<button
+										type="button"
+										onClick={() => setShowPassword(!showPassword)}
+										className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+									>
+										{showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
+									</button>
+								</div>
 							</div>
 							<div className="grid gap-2">
 								<div className="flex items-center">
 									<Label htmlFor="repeat_password">Repeat Password</Label>
 								</div>
-								<Input
-									id="repeat_password"
-									type="password"
-									value={repeatPassword}
-									onChange={(e) => setRepeatPassword(e.target.value)}
-									required
-								/>
+								<div className="relative w-full">
+									<Input
+										id="repeat_password"
+										type={showRepeatPassword ? "text" : "password"}
+										value={repeatPassword}
+										onChange={(e) => setRepeatPassword(e.target.value)}
+										required
+									/>
+									<button
+										type="button"
+										onClick={() => setShowRepeatPassword(!showRepeatPassword)}
+										className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+									>
+										{showRepeatPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
+									</button>
+								</div>
 							</div>
 							<Button onClick={handleSendEmail} disabled={isLoading} className="w-full">
 								{isLoading ? (

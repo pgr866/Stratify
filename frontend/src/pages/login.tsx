@@ -1,6 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
-import { Loader2 } from "lucide-react"
+import { Loader2, Eye, EyeClosed } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,7 @@ export function Login() {
 	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
 	const handleLogin = async () => {
@@ -85,12 +86,22 @@ export function Login() {
 									Forgot your password?
 								</Link>
 							</div>
-							<Input
-								id="password"
-								type="password"
-								value={password}
-								onChange={(e) => setPassword(e.target.value)}
-								required />
+							<div className="relative w-full">
+								<Input
+									id="password"
+									type={showPassword ? "text" : "password"}
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									required
+								/>
+								<button
+									type="button"
+									onClick={() => setShowPassword(!showPassword)}
+									className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+								>
+									{showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
+								</button>
+							</div>
 						</div>
 						<Button onClick={handleLogin} disabled={isLoading} className="w-full">
 							{isLoading ? (
