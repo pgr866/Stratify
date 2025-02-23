@@ -101,7 +101,84 @@ function getChartOptions() {
 
 let chart: any;
 
-function createLegend(paneIndex) {
+function moveUpPane(paneIndex) {
+	if (paneIndex === 0) return;
+	const oldPaneContainer = chart.panes()[paneIndex].getHTMLElement().children[1].firstElementChild;
+	const newPaneContainer = chart.panes()[paneIndex - 1].getHTMLElement().children[1].firstElementChild;
+	oldPaneContainer.appendChild(newPaneContainer.querySelector('#legend'));
+	newPaneContainer.appendChild(oldPaneContainer.querySelector('#legend'));
+	chart.panes()[paneIndex].moveTo(paneIndex - 1);
+	chart.panes().forEach((pane, paneIndex) => {
+		updateArrowMenu(paneIndex);
+	});
+}
+
+function moveDownPane(paneIndex) {
+	if (paneIndex >= chart.panes().length - 1) return;
+	const oldPaneContainer = chart.panes()[paneIndex].getHTMLElement().children[1].firstElementChild;
+	const newPaneContainer = chart.panes()[paneIndex + 1].getHTMLElement().children[1].firstElementChild;
+	oldPaneContainer.appendChild(newPaneContainer.querySelector('#legend'));
+	newPaneContainer.appendChild(oldPaneContainer.querySelector('#legend'));
+	chart.panes()[paneIndex].moveTo(paneIndex + 1);
+	chart.panes().forEach((pane, paneIndex) => {
+		updateArrowMenu(paneIndex);
+	});
+}
+
+function updateArrowMenu(paneIndex) {
+	const arrowMenuContainer = Object.assign(document.createElement('div'), {
+		id: 'arrowMenu',
+		style: `position:absolute;right:8px;top:7px;z-index:10;color:var(--foreground);display:flex;justify-content:flex-end;gap:6px;background-color:var(--muted-opacity);padding:0 3px;border-radius:5px;opacity:0.3;`,
+	});
+	arrowMenuContainer.addEventListener('mouseenter', () => arrowMenuContainer.style.opacity = '1');
+	arrowMenuContainer.addEventListener('mouseleave', () => arrowMenuContainer.style.opacity = '0.3');
+	const arrowUp = Object.assign(document.createElement('svg'), {
+		style: `position:relative;z-index:10;width:15px;height:15px;color:var(--foreground);cursor:pointer;`,
+	});
+	arrowUp.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15"><path fill="currentColor" d="m11.8 6.1-.6.8L8 4v8H7V4.1L3.8 6.9 3.2 6l4.3-3.8L11.8 6z"/></svg>';
+	arrowUp.addEventListener('click', () => moveUpPane(paneIndex));
+	const arrowDown = Object.assign(document.createElement('svg'), {
+		style: `position:relative;z-index:10;width:15px;height:15px;color:var(--foreground);cursor:pointer;`,
+	});
+	arrowDown.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15"><path fill="currentColor" d="m11.8 8.9-.6-.8L8 11V3H7v7.9L3.8 8.1l-.6.8 4.3 3.8 4.3-3.8z"/></svg>';
+	arrowDown.addEventListener('click', () => moveDownPane(paneIndex));
+	setTimeout(() => {
+		const pane = chart.panes()[paneIndex];
+		if (!pane) return;
+		const paneContainer = pane.getHTMLElement().children[1].firstElementChild;
+		paneContainer.querySelector('#arrowMenu')?.remove();
+		paneContainer.appendChild(arrowMenuContainer);
+		if (paneIndex !== 0) arrowMenuContainer.appendChild(arrowUp);
+		if (paneIndex < chart.panes().length - 1) arrowMenuContainer.appendChild(arrowDown);
+	}, 0);
+}
+
+function hideShowIndicator(series) {
+	series.applyOptions({ visible: false });
+}
+
+function removeIndicator(series) {
+	while (paneIndex < chart.panes().length - 1) {
+		moveDownPane(paneIndex);
+		paneIndex++;
+	}
+	chart.panes()[paneIndex].getSeries().forEach(series => {
+		chart.removeSeries(series);
+	});
+	chart.panes().forEach((pane, paneIndex) => {
+		updateArrowMenu(paneIndex);
+	});
+}
+
+let indicators = [];
+
+//indicators.push({ id: Math.random().toString(36).slice(2, 9), label, series });
+//indicators = indicators.filter(indicator => indicator.id !== id);
+//indicators = indicators.map(indicator => 
+//	indicator.id === id ? { ...indicator, label: newLabel, series: newSeries } : indicator
+//);
+
+function createLegend(paneIndex, newIndicator = true, removeIcon = true) {
 	const paneContainer = chart.panes()[paneIndex].getHTMLElement().children[1].firstElementChild;
 	let legend = paneContainer.querySelector('#legend');
 	if (!legend) {
@@ -112,59 +189,52 @@ function createLegend(paneIndex) {
 		});
 		paneContainer.appendChild(legend);
 	}
-	return legend
-}
-
-function updatePaneMenu(paneIndex) {
-	const menuContainer = Object.assign(document.createElement('div'), {
-		id: 'menu',
-		style: `position:absolute;right:8px;top:7px;z-index:10;color:${getCssColor('--foreground')};display:flex;justify-content:flex-end;gap:6px;background-color:var(--muted-opacity);padding:0 3px;border-radius:5px;opacity:0.5;`,
-	});
-	menuContainer.addEventListener('mouseenter', () => {
-		menuContainer.style.opacity = '1';
-	});
-	menuContainer.addEventListener('mouseleave', () => {
-		menuContainer.style.opacity = '0.5';
-	});
-	const arrowUp = Object.assign(document.createElement('svg'), {
-		style: `position:relative;z-index:10;width:15px;height:15px;color:${getCssColor('--foreground')};`,
-	});
-	arrowUp.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15"><path fill="currentColor" d="m11.8 6.1-.6.8L8 4v8H7V4.1L3.8 6.9 3.2 6l4.3-3.8L11.8 6z"/></svg>';
-	arrowUp.addEventListener('click', () => moveUpPane(paneIndex));
-	const arrowDown = Object.assign(document.createElement('svg'), {
-		style: `position:relative;z-index:10;width:15px;height:15px;color:${getCssColor('--foreground')};`,
-	});
-	arrowDown.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 15 15"><path fill="currentColor" d="m11.8 8.9-.6-.8L8 11V3H7v7.9L3.8 8.1l-.6.8 4.3 3.8 4.3-3.8z"/></svg>';
-	arrowDown.addEventListener('click', () => moveDownPane(paneIndex));
-	const remove = Object.assign(document.createElement('svg'), {
-		style: `position:relative;z-index:10;width:15px;height:15px;color:${getCssColor('--foreground')};`,
-	});
-	remove.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-trash" viewBox="0 0 24 24"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>';
-	remove.addEventListener('click', () => removePane(paneIndex));
-	setTimeout(() => {
-		const pane = chart.panes()[paneIndex];
-		if (!pane) return;
-		const paneContainer = pane.getHTMLElement().children[1].firstElementChild;
-		paneContainer.style.position = 'relative';
-		paneContainer.querySelector('#menu')?.remove();
-		paneContainer.appendChild(menuContainer);
-		if (paneIndex !== 0) menuContainer.appendChild(arrowUp);
-		if (paneIndex < chart.panes().length - 1) menuContainer.appendChild(arrowDown);
-		if (!pane.getSeries().some(series => series._internal__series._private__seriesType === "Candlestick")) menuContainer.appendChild(remove);
-	}, 0);
+	let subLegend;
+	let legendContent;
+	if (newIndicator) {
+		subLegend = Object.assign(document.createElement('div'), { id: 'subLegend', style: 'display: flex;' });
+		legend.appendChild(subLegend);
+		legendContent = Object.assign(document.createElement('div'), { id: 'legendContent' });
+		subLegend.appendChild(legendContent);
+		const legendMenu = Object.assign(document.createElement('div'), { id: 'legendMenu', style: 'display:flex;gap:7px;padding-top:2px;padding-left:2px;opacity:0.3;' });
+		legendMenu.addEventListener('mouseenter', () => legendMenu.style.opacity = '1');
+		legendMenu.addEventListener('mouseleave', () => legendMenu.style.opacity = '0.3');
+		legendMenu.innerHTML = `
+			<svg id="hideIcon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round"
+				stroke-linejoin="round" stroke-width="2" class="lucide lucide-eye-closed" viewBox="0 0 24 24"
+				style="position:relative;z-index:10;width:13px;height:13px;color:var(--foreground);cursor:pointer;">
+				<path d="m15 18-1-3M2 8a11 11 0 0 0 20 0m-2 7-2-2M4 15l2-2m3 5 1-3"/>
+			</svg>
+			${removeIcon ? `
+			<svg id="removeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round"
+				stroke-linejoin="round" stroke-width="2" class="lucide lucide-trash" viewBox="0 0 24 24"
+				style="position:relative;z-index:10;width:13px;height:13px;color:var(--foreground);cursor:pointer;">
+				<path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+			</svg>
+			` : ''}
+		`;
+		legendMenu.querySelector('#hideIcon')?.addEventListener('click', () => hideShowIndicator(paneIndex));
+		legendMenu.querySelector('#removeIcon')?.addEventListener('click', () => removeIndicator(paneIndex));
+		subLegend.appendChild(legendMenu);
+	} else {
+		let subLegends = legend.querySelectorAll('#subLegend');
+		subLegend = subLegends[subLegends.length - 1];
+		legendContent = subLegend.querySelector('#legendContent');
+	}
+	return legendContent;
 }
 
 function createCandleChart(candleData, paneIndex, upColor = '#2EBD85', downColor = '#F6465D', markers = []) {
 	if (!document.getElementById('chart-container')) return;
 	chart.timeScale().fitContent();
-	const candlestickSeries = chart.addSeries(CandlestickSeries, {
+	const candleSeries = chart.addSeries(CandlestickSeries, {
 		upColor: upColor,
 		downColor: downColor,
 		borderVisible: false,
 		wickUpColor: upColor,
 		wickDownColor: downColor,
 	});
-	candlestickSeries.setData(candleData);
+	candleSeries.setData(candleData);
 
 	const upColorOpacity = setOpacity(upColor, 0.5);
 	const downColorOpacity = setOpacity(downColor, 0.5);
@@ -186,18 +256,18 @@ function createCandleChart(candleData, paneIndex, upColor = '#2EBD85', downColor
 	});
 	volumeSeries.setData(volumeData);
 
-	createSeriesMarkers(candlestickSeries, markers);
+	const markerSeries = createSeriesMarkers(candleSeries, markers);
 
-	updatePaneMenu(paneIndex);
+	updateArrowMenu(paneIndex);
 
 	let legend;
 	setTimeout(() => {
-		legend = createLegend(paneIndex);
+		legend = createLegend(paneIndex, true, false);
 	}, 0);
 
 	chart.subscribeCrosshairMove((param) => {
-		const candleData = param.seriesData.get(candlestickSeries)
-			?? candlestickSeries.data().at(-1)
+		const candleData = param.seriesData.get(candleSeries)
+			?? candleSeries.data().at(-1)
 			?? '—';
 		const volumeData = param.seriesData.get(volumeSeries)
 			?? volumeSeries.data().at(-1)
@@ -210,17 +280,18 @@ function createCandleChart(candleData, paneIndex, upColor = '#2EBD85', downColor
 				? (volumeData.value / 1000).toFixed(2) + ' K'
 				: volumeData.value;
 		legend.innerHTML = `
-		<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">
-		O <span style="color:${c >= o ? upColor : downColor}">${o}</span> 
-		H <span style="color:${c >= o ? upColor : downColor}">${h}</span> 
-		L <span style="color:${c >= o ? upColor : downColor}">${l}</span> 
-		C <span style="color:${c >= o ? upColor : downColor}">${c} (${change > 0 ? '+' : ''}${change}%)</span> 
-		V <span style="color:${c >= o ? upColor : downColor}">${formattedVolume}</span>
+			<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px; display: inline-flex; align-items: center; gap: 5px;">
+				O <span style="color:${c >= o ? upColor : downColor}">${o}</span> 
+				H <span style="color:${c >= o ? upColor : downColor}">${h}</span> 
+				L <span style="color:${c >= o ? upColor : downColor}">${l}</span> 
+				C <span style="color:${c >= o ? upColor : downColor}">${c} (${change > 0 ? '+' : ''}${change}%)</span> 
+				V <span style="color:${c >= o ? upColor : downColor}">${formattedVolume}</span>
+			</span>
 		`;
 	});
 }
 
-function addLineSeries(lineData, paneIndex, getColor = () => 'blue', lineWidth = 1, lineStyle = 0, newLegend = true, legendLabel = '') {
+function addLineSeries(lineData, paneIndex, getColor = () => 'blue', lineWidth = 1, lineStyle = 0, newIndicator = true, legendLabel = '') {
 	if (!document.getElementById('chart-container')) return;
 	const lineSeries = chart.addSeries(LineSeries, { lineWidth: lineWidth, lineStyle: lineStyle }, paneIndex);
 	lineSeries.setData(
@@ -230,11 +301,11 @@ function addLineSeries(lineData, paneIndex, getColor = () => 'blue', lineWidth =
 		}))
 	);
 
-	updatePaneMenu(paneIndex);
+	updateArrowMenu(paneIndex);
 
 	let legend;
 	setTimeout(() => {
-		legend = createLegend(paneIndex);
+		legend = createLegend(paneIndex, newIndicator, true);
 	}, 0);
 
 	const crosshairMoveHandler = (param: any) => {
@@ -245,21 +316,13 @@ function addLineSeries(lineData, paneIndex, getColor = () => 'blue', lineWidth =
 		const lineData = param.seriesData.get(lineSeries)
 			?? lineSeries.data().at(-1)
 			?? '—';
-		if (newLegend) {
-			if (paneIndex > 0) {
-				legend.innerHTML = `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${legendLabel} <span style="color:${lineData.color}">${lineData.value.toFixed(2)}</span>`;
-			} else {
-				legend.innerHTML += `<br><span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${legendLabel} <span style="color:${lineData.color}">${lineData.value.toFixed(2)}</span>`;
-			}
-		} else {
-			legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;"><span style="color:${lineData.color}">${lineData.value.toFixed(2)}</span>`;
-		}
+		if (newIndicator) legend.innerHTML = '';
+		legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${newIndicator ? legendLabel + ' ' : ''}<span style="color:${lineData.color}">${lineData.value.toFixed(2)}</span>`;
 	};
 	chart.subscribeCrosshairMove(crosshairMoveHandler);
-	return lineSeries;
 }
 
-function addHistogramSeries(histogramData, paneIndex, getColor = () => 'green', newLegend = true, legendLabel = '') {
+function addHistogramSeries(histogramData, paneIndex, getColor = () => 'green', newIndicator = true, legendLabel = '') {
 	if (!document.getElementById('chart-container')) return;
 	const histogramSeries = chart.addSeries(HistogramSeries, {}, paneIndex);
 	histogramSeries.setData(
@@ -269,11 +332,11 @@ function addHistogramSeries(histogramData, paneIndex, getColor = () => 'green', 
 		}))
 	);
 
-	updatePaneMenu(paneIndex);
+	updateArrowMenu(paneIndex);
 
 	let legend;
 	setTimeout(() => {
-		legend = createLegend(paneIndex);
+		legend = createLegend(paneIndex, newIndicator, true);
 	}, 0);
 
 	const crosshairMoveHandler = (param: any) => {
@@ -284,21 +347,13 @@ function addHistogramSeries(histogramData, paneIndex, getColor = () => 'green', 
 		const histogramData = param.seriesData.get(histogramSeries)
 			?? histogramSeries.data().at(-1)
 			?? '—';
-		if (newLegend) {
-			if (paneIndex > 0) {
-				legend.innerHTML = `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${legendLabel} <span style="color:${histogramData.color}">${histogramData.value.toFixed(2)}</span>`;
-			} else {
-				legend.innerHTML += `<br><span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${legendLabel} <span style="color:${histogramData.color}">${histogramData.value.toFixed(2)}</span>`;
-			}
-		} else {
-			legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;"><span style="color:${histogramData.color}">${histogramData.value.toFixed(2)}</span>`;
-		}
+		if (newIndicator) legend.innerHTML = '';
+		legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${newIndicator ? legendLabel + ' ' : ''}<span style="color:${histogramData.color}">${histogramData.value.toFixed(2)}</span>`;
 	};
 	chart.subscribeCrosshairMove(crosshairMoveHandler);
-	return histogramSeries;
 }
 
-function addBarSeries(barData, paneIndex, getColor = () => 'green', newLegend = true, legendLabel = '') {
+function addBarSeries(barData, paneIndex, getColor = () => 'green', newIndicator = true, legendLabel = '') {
 	if (!document.getElementById('chart-container')) return;
 	const barSeries = chart.addSeries(BarSeries, { openVisible: true, thinBars: true }, paneIndex);
 	barSeries.setData(
@@ -312,11 +367,11 @@ function addBarSeries(barData, paneIndex, getColor = () => 'green', newLegend = 
 		}))
 	);
 
-	updatePaneMenu(paneIndex);
+	updateArrowMenu(paneIndex);
 
 	let legend;
 	setTimeout(() => {
-		legend = createLegend(paneIndex);
+		legend = createLegend(paneIndex, newIndicator, true);
 	}, 0);
 
 	const crosshairMoveHandler = (param: any) => {
@@ -327,21 +382,15 @@ function addBarSeries(barData, paneIndex, getColor = () => 'green', newLegend = 
 		const barData = param.seriesData.get(barSeries)
 			?? barSeries.data().at(-1)
 			?? '—';
-		if (newLegend) {
-			if (paneIndex > 0) {
-				legend.innerHTML = `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${legendLabel} <span style="color:${barData.color}">${(barData.low == 0 ? barData.high : barData.low).toFixed(2)}</span>`;
-			} else {
-				legend.innerHTML += `<br><span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${legendLabel} <span style="color:${barData.color}">${(barData.low == 0 ? barData.high : barData.low).toFixed(2)}</span>`;
-			}
-		} else {
-			legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;"><span style="color:${barData.color}">${(barData.low == 0 ? barData.high : barData.low).toFixed(2)}</span>`;
-		}
+		if (newIndicator) legend.innerHTML = '';
+		legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${newIndicator ? legendLabel + ' ' : ''}<span style="color:${barData.color}">${(barData.low == 0 ? barData.high : barData.low).toFixed(2)}</span>`;
 	};
 	chart.subscribeCrosshairMove(crosshairMoveHandler);
-	return barSeries;
 }
 
-function addHorizontalLine(series, value, color = 'blue', label = '', lineWidth = 1, lineStyle = 3) {
+function addHorizontalLine(paneIndex, value, color = 'blue', label = '', lineWidth = 1, lineStyle = 3) {
+	const pane = chart.panes()[paneIndex];
+	const series = pane.getSeries()[0];
 	series.createPriceLine({ price: value, color: color, lineWidth: lineWidth, lineStyle: lineStyle, axisLabelVisible: true, title: label });
 }
 
@@ -361,9 +410,6 @@ function updateChart() {
 	const themeObserver = new MutationObserver(() => {
 		document.documentElement.style.setProperty('--muted-opacity', setOpacity(getCssColor('--muted'), 0.7));
 		chart.applyOptions(getChartOptions())
-		chart.panes().forEach((pane, paneIndex) => {
-			updatePaneMenu(paneIndex);
-		});
 	});
 	themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
 	return () => {
@@ -371,43 +417,6 @@ function updateChart() {
 		themeObserver.disconnect();
 		chart.remove();
 	};
-}
-
-function moveUpPane(paneIndex) {
-	if (paneIndex === 0) return;
-	const oldPaneContainer = chart.panes()[paneIndex].getHTMLElement().children[1].firstElementChild;
-	const newPaneContainer = chart.panes()[paneIndex - 1].getHTMLElement().children[1].firstElementChild;
-	oldPaneContainer.appendChild(newPaneContainer.querySelector('#legend'));
-	newPaneContainer.appendChild(oldPaneContainer.querySelector('#legend'));
-	chart.panes()[paneIndex].moveTo(paneIndex - 1);
-	chart.panes().forEach((pane, paneIndex) => {
-		updatePaneMenu(paneIndex);
-	});
-}
-
-function moveDownPane(paneIndex) {
-	if (paneIndex >= chart.panes().length - 1) return;
-	const oldPaneContainer = chart.panes()[paneIndex].getHTMLElement().children[1].firstElementChild;
-	const newPaneContainer = chart.panes()[paneIndex + 1].getHTMLElement().children[1].firstElementChild;
-	oldPaneContainer.appendChild(newPaneContainer.querySelector('#legend'));
-	newPaneContainer.appendChild(oldPaneContainer.querySelector('#legend'));
-	chart.panes()[paneIndex].moveTo(paneIndex + 1);
-	chart.panes().forEach((pane, paneIndex) => {
-		updatePaneMenu(paneIndex);
-	});
-}
-
-function removePane(paneIndex) {
-	while (paneIndex < chart.panes().length - 1) {
-		moveDownPane(paneIndex);
-		paneIndex++;
-	}
-	chart.panes()[paneIndex].getSeries().forEach(series => {
-		chart.removeSeries(series);
-	});
-	chart.panes().forEach((pane, paneIndex) => {
-		updatePaneMenu(paneIndex);
-	});
 }
 
 export function CandleChart() {
@@ -432,24 +441,28 @@ export function CandleChart() {
 	const lineData = generateLineData(500);
 
 	useEffect(() => {
-		document.documentElement.style.setProperty('--muted-opacity', setOpacity(getCssColor('--muted'), 0.7));
-		chart = createChart(document.getElementById('chart-container'), getChartOptions());
-		createCandleChart(candleData, 0, '#2EBD85', '#F6465D', markers);
+		const timeout = setTimeout(() => {
+			document.documentElement.style.setProperty('--muted-opacity', setOpacity(getCssColor('--muted'), 0.7));
+			chart = createChart(document.getElementById('chart-container'), getChartOptions());
 
-		addLineSeries(maData, 0, () => 'blue', 1, 0, true, 'RSI 14');
-		addLineSeries(maData, 0, () => 'red', 1, 0, true, 'MA 20');
-		addLineSeries(lineData, 0, () => 'green', 1, 0, false);
-		addLineSeries(lineData, 1, () => 'purple', 1, 0, true, 'EMA 20');
-		const lineSeries = addLineSeries(maData, 1, () => 'green', 1, 0, false);
-		addHorizontalLine(lineSeries, 500, 'gray', 'label');
-		addHistogramSeries(lineData, 1, (dataPoint) => dataPoint.value > 0 ? 'green' : 'red', false);
-		addBarSeries(lineData, 1, (dataPoint, index, array) => (index === 0 || dataPoint.value >= array[index - 1].value) ? 'green' : 'red', false);
-		addBarSeries(lineData, 2, (dataPoint, index, array) => (index === 0 || dataPoint.value >= array[index - 1].value) ? 'green' : 'red', true, 'MACD 5');
+			createCandleChart(candleData, 0, '#2EBD85', '#F6465D', markers);
 
-		return updateChart();
+			addLineSeries(maData, 0, () => 'blue', 1, 0, true, 'RSI 14');
+			addLineSeries(maData, 0, () => 'red', 1, 0, true, 'MA 20');
+			addLineSeries(lineData, 0, () => 'green', 1, 0, false);
+
+			addLineSeries(lineData, 1, () => 'purple', 1, 0, true, 'EMA 20');
+			addLineSeries(maData, 1, () => 'green', 1, 0, false);
+			addHistogramSeries(lineData, 1, (dataPoint) => dataPoint.value > 0 ? 'green' : 'red', false);
+			addBarSeries(lineData, 1, (dataPoint, index, array) => (index === 0 || dataPoint.value >= array[index - 1].value) ? 'green' : 'red', false);
+
+			addBarSeries(lineData, 2, (dataPoint, index, array) => (index === 0 || dataPoint.value >= array[index - 1].value) ? 'green' : 'red', true, 'MACD 5');
+			addHorizontalLine(2, 500, 'orange', '');
+
+			return updateChart();
+		}, 0);
+		return () => clearTimeout(timeout);
 	}, []);
 
-	return (
-		<div id="chart-container" className="size-full"></div>
-	)
+	return <div id="chart-container" className="size-full"></div>
 }
