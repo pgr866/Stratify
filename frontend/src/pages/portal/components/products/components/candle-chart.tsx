@@ -153,11 +153,27 @@ function updateArrowMenu(paneIndex) {
 	}, 0);
 }
 
-function hideShowIndicator(series) {
-	series.applyOptions({ visible: false });
+const indicators = {};
+
+function hideShowIndicator(indicatorId) {
+	indicators[indicatorId].visible = !indicators[indicatorId].visible;
+	indicators[indicatorId].series.forEach(series =>
+		series.applyOptions({ visible: indicators[indicatorId].visible })
+	);
+	indicators[indicatorId].subLegend.querySelector('#legendMenu').querySelector('#hideIcon').innerHTML = indicators[indicatorId].visible
+		? `<svg id="hideIcon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+			stroke-width="2" class="lucide lucide-eye" viewBox="0 0 24 24"
+			style="position:relative;z-index:10;width:13px;height:13px;color:var(--foreground);cursor:pointer;">
+			<path d="M2 12a1 1 0 0 1 0 0 11 11 0 0 1 20 0 1 1 0 0 1 0 0 11 11 0 0 1-20 0"/><circle cx="12" cy="12" r="3"/>
+		</svg>`
+		: `<svg id="hideIcon" id="hideIcon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round"
+			stroke-linejoin="round" stroke-width="2" class="lucide lucide-eye-closed" viewBox="0 0 24 24"
+			style="position:relative;z-index:10;width:13px;height:13px;color:var(--foreground);cursor:pointer;">
+			<path d="m15 18-1-3M2 8a11 11 0 0 0 20 0m-2 7-2-2M4 15l2-2m3 5 1-3"/>
+		</svg>`;
 }
 
-function removeIndicator(series) {
+function removeIndicator(indicatorId) {
 	while (paneIndex < chart.panes().length - 1) {
 		moveDownPane(paneIndex);
 		paneIndex++;
@@ -170,15 +186,7 @@ function removeIndicator(series) {
 	});
 }
 
-let indicators = [];
-
-//indicators.push({ id: Math.random().toString(36).slice(2, 9), label, series });
-//indicators = indicators.filter(indicator => indicator.id !== id);
-//indicators = indicators.map(indicator => 
-//	indicator.id === id ? { ...indicator, label: newLabel, series: newSeries } : indicator
-//);
-
-function createLegend(paneIndex, newIndicator = true, removeIcon = true) {
+function createLegend(paneIndex, series, newIndicator = true, removeIcon = true) {
 	const paneContainer = chart.panes()[paneIndex].getHTMLElement().children[1].firstElementChild;
 	let legend = paneContainer.querySelector('#legend');
 	if (!legend) {
@@ -200,10 +208,10 @@ function createLegend(paneIndex, newIndicator = true, removeIcon = true) {
 		legendMenu.addEventListener('mouseenter', () => legendMenu.style.opacity = '1');
 		legendMenu.addEventListener('mouseleave', () => legendMenu.style.opacity = '0.3');
 		legendMenu.innerHTML = `
-			<svg id="hideIcon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round"
-				stroke-linejoin="round" stroke-width="2" class="lucide lucide-eye-closed" viewBox="0 0 24 24"
+			<svg id="hideIcon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+				stroke-width="2" class="lucide lucide-eye" viewBox="0 0 24 24"
 				style="position:relative;z-index:10;width:13px;height:13px;color:var(--foreground);cursor:pointer;">
-				<path d="m15 18-1-3M2 8a11 11 0 0 0 20 0m-2 7-2-2M4 15l2-2m3 5 1-3"/>
+				<path d="M2 12a1 1 0 0 1 0 0 11 11 0 0 1 20 0 1 1 0 0 1 0 0 11 11 0 0 1-20 0"/><circle cx="12" cy="12" r="3"/>
 			</svg>
 			${removeIcon ? `
 			<svg id="removeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round"
@@ -213,13 +221,16 @@ function createLegend(paneIndex, newIndicator = true, removeIcon = true) {
 			</svg>
 			` : ''}
 		`;
-		legendMenu.querySelector('#hideIcon')?.addEventListener('click', () => hideShowIndicator(paneIndex));
-		legendMenu.querySelector('#removeIcon')?.addEventListener('click', () => removeIndicator(paneIndex));
 		subLegend.appendChild(legendMenu);
+		const id = Math.random().toString(36).slice(2, 9);
+		indicators[id] = { series, visible: true, subLegend };
+		legendMenu.querySelector('#hideIcon')?.addEventListener('click', () => hideShowIndicator(id));
+		if (removeIcon) legendMenu.querySelector('#removeIcon')?.addEventListener('click', () => removeIndicator(id));
 	} else {
 		let subLegends = legend.querySelectorAll('#subLegend');
 		subLegend = subLegends[subLegends.length - 1];
 		legendContent = subLegend.querySelector('#legendContent');
+		indicators[Object.keys(indicators).at(-1)]?.series.push(...series);
 	}
 	return legendContent;
 }
@@ -262,7 +273,7 @@ function createCandleChart(candleData, paneIndex, upColor = '#2EBD85', downColor
 
 	let legend;
 	setTimeout(() => {
-		legend = createLegend(paneIndex, true, false);
+		legend = createLegend(paneIndex, [candleSeries, volumeSeries, markerSeries], true, false);
 	}, 0);
 
 	chart.subscribeCrosshairMove((param) => {
@@ -305,7 +316,7 @@ function addLineSeries(lineData, paneIndex, getColor = () => 'blue', lineWidth =
 
 	let legend;
 	setTimeout(() => {
-		legend = createLegend(paneIndex, newIndicator, true);
+		legend = createLegend(paneIndex, [lineSeries], newIndicator, true);
 	}, 0);
 
 	const crosshairMoveHandler = (param: any) => {
@@ -336,7 +347,7 @@ function addHistogramSeries(histogramData, paneIndex, getColor = () => 'green', 
 
 	let legend;
 	setTimeout(() => {
-		legend = createLegend(paneIndex, newIndicator, true);
+		legend = createLegend(paneIndex, [histogramSeries], newIndicator, true);
 	}, 0);
 
 	const crosshairMoveHandler = (param: any) => {
@@ -371,7 +382,7 @@ function addBarSeries(barData, paneIndex, getColor = () => 'green', newIndicator
 
 	let legend;
 	setTimeout(() => {
-		legend = createLegend(paneIndex, newIndicator, true);
+		legend = createLegend(paneIndex, [barSeries], newIndicator, true);
 	}, 0);
 
 	const crosshairMoveHandler = (param: any) => {

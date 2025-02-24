@@ -137,7 +137,7 @@ export function Signup() {
 										onClick={() => setShowPassword(!showPassword)}
 										className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
 									>
-										{showPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
+										{showPassword ? <Eye size={20} /> : <EyeClosed size={20} />}
 									</button>
 								</div>
 							</div>
@@ -158,7 +158,7 @@ export function Signup() {
 										onClick={() => setShowRepeatPassword(!showRepeatPassword)}
 										className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
 									>
-										{showRepeatPassword ? <EyeClosed size={20} /> : <Eye size={20} />}
+										{showRepeatPassword ? <Eye size={20} /> : <EyeClosed size={20} />}
 									</button>
 								</div>
 							</div>
