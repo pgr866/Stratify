@@ -174,13 +174,21 @@ function hideShowIndicator(indicatorId) {
 }
 
 function removeIndicator(indicatorId) {
-	while (paneIndex < chart.panes().length - 1) {
-		moveDownPane(paneIndex);
-		paneIndex++;
+	const pane = indicators[indicatorId].series[0].getPane();
+	if (pane.getSeries().some(series => series._internal__series._private__seriesType === "Candlestick")) {
+		indicators[indicatorId].subLegend.remove();
+	} else {
+		let paneIndex = pane.paneIndex();
+		while (paneIndex < chart.panes().length - 1) {
+			moveDownPane(paneIndex);
+			paneIndex++;
+		}
 	}
-	chart.panes()[paneIndex].getSeries().forEach(series => {
+	
+	indicators[indicatorId].series.forEach(series => {
 		chart.removeSeries(series);
 	});
+	
 	chart.panes().forEach((pane, paneIndex) => {
 		updateArrowMenu(paneIndex);
 	});
