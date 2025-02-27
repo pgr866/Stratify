@@ -8,7 +8,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-export function DateTimeRangePicker() {
+type ButtonProps = {
+	variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+	size?: "default" | "sm" | "lg" | "logo";
+	width?: string;
+};
+
+export function DateTimeRangePicker({ variant = "default", size = "default", width = "200px" }: Readonly<ButtonProps>) {
 	const [dateRange, setDateRange] = React.useState<DateRange>({
 		from: undefined,
 		to: undefined,
@@ -77,20 +83,15 @@ export function DateTimeRangePicker() {
 		<Popover open={isOpen} onOpenChange={setIsOpen}>
 			<PopoverTrigger asChild>
 				<Button
-					variant="outline"
+					variant={variant}
+					size={size}
+					style={{ width }}
 					className={cn(
-						"w-full justify-start text-left font-normal",
-						!dateRange.from && "text-muted-foreground"
-					)}
-				>
-					<CalendarIcon className="mr-2 h-4 w-4" />
-					{dateRange.from && dateRange.to ? (
-						<>
-							{formatDateTime(dateRange.from)} - {formatDateTime(dateRange.to)}
-						</>
-					) : (
-						<span>Pick date and time range</span>
-					)}
+						"justify-start text-left font-normal overflow-hidden"
+					)}>
+					<CalendarIcon /> {dateRange.from && dateRange.to
+						? `${formatDateTime(dateRange.from)} - ${formatDateTime(dateRange.to)}`
+						: "Pick date and time range"}
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent className="w-auto p-4 border-[1px] border-border">

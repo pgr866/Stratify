@@ -21,7 +21,7 @@
 # Enlaces
 https://pandas.pydata.org/docs/
 
-https://ta-lib.org/
+https://ta-lib.github.io/ta-lib-python/funcs.html
 
 https://docs.ccxt.com/
 
