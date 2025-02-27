@@ -6,14 +6,25 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 type ButtonProps = {
+  defaultValue?: string;
+  values?: string[];
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "logo";
   width?: string;
+  placeholder?: string;
+  onChange?: (value: string) => void;
 };
 
-export function Combobox({values = ["item1", "item2"], variant = "default", size = "default", width = "200px", placeholder = "Items" }: Readonly<ButtonProps>) {
+export function Combobox({defaultValue = "", values = ["item1", "item2"], variant = "default", size = "default", width = "200px", placeholder = "Items", onChange, }: Readonly<ButtonProps>) {
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
+  const [value, setValue] = React.useState(defaultValue)
+
+  const handleSelect = (item: string) => {
+    const newValue = item === value ? "" : item;
+    setValue(newValue);
+    setOpen(false);
+    onChange?.(newValue);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -39,10 +50,7 @@ export function Combobox({values = ["item1", "item2"], variant = "default", size
                 <CommandItem
                   key={item}
                   value={item}
-                  onSelect={() => {
-                    setValue(item === value ? "" : item);
-                    setOpen(false);
-                  }}
+                  onSelect={() => handleSelect(item)}
                 >
                   {item}
                   <Check
