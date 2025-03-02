@@ -42,7 +42,7 @@ export function Login() {
 			<div className="fixed top-4 right-4">
 				<ThemeToggle />
 			</div>
-			{/* <img src="logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
+			{/* <img src="/logo.svg" alt="Logo" className="logo size-[25rem]"/> */}
 			<Card className="mx-auto w-full max-w-sm">
 				<CardHeader className="text-center">
 					<CardTitle className="text-2xl">Login</CardTitle>
@@ -99,7 +99,7 @@ export function Login() {
 									onClick={() => setShowPassword(!showPassword)}
 									className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
 								>
-									{showPassword ? <Eye size={20} /> : <EyeClosed size={20} />}
+									{showPassword ? <Eye size={16} /> : <EyeClosed size={16} />}
 								</button>
 							</div>
 						</div>

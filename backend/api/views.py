@@ -29,13 +29,18 @@ class UserView(viewsets.ModelViewSet):
     def get_permissions(self):
         if self.action in ['create']:
             self.permission_classes = [IsNotAuthenticated]
-        elif self.action in ['retrieve']:
-            self.permission_classes = [IsAuthenticated]
-        elif self.action in ['update', 'partial_update', 'destroy']:
+        elif self.action in ['update', 'partial_update', 'destroy', 'retrieve']:
             self.permission_classes = [IsOwner]
         elif self.action in ['list']:
             self.permission_classes = [NoBody]
         return super().get_permissions()
+    
+    def retrieve(self, request, *args, **kwargs):
+        if 'pk' not in kwargs or kwargs['pk'] == 'me':
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
+        
+        return super().retrieve(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         verification_code = request.data.get('code')
@@ -62,12 +67,8 @@ class UserView(viewsets.ModelViewSet):
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
-            response_data = login_serializer.data
-            response_data['id'] = user.id
-            response_data['email'] = user.email
-            response_data['username'] = user.username
 
-            response = Response(response_data, status=status.HTTP_201_CREATED)
+            response = Response({}, status=status.HTTP_201_CREATED)
             response.set_cookie(
                 key='access_token',
                 value=access_token,
@@ -148,14 +149,8 @@ class ChangePasswordView(APIView):
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
         refresh_token = str(refresh)
-        response_data = {
-            "id": user.id,
-            "email": user.email,
-            "username": user.username,
-            "access_token": access_token
-        }
         
-        response = Response(response_data, status=status.HTTP_200_OK)
+        response = Response({}, status=status.HTTP_200_OK)
         response.set_cookie(
             key='access_token',
             value=access_token,
@@ -184,11 +179,7 @@ class LoginView(APIView):
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
-            response_data = serializer.data
-            response_data['id'] = user.id
-            response_data['email'] = user.email
-            response_data['username'] = user.username
-            response = Response(response_data, status=status.HTTP_200_OK)
+            response = Response({}, status=status.HTTP_200_OK)
             response.set_cookie(
                 key='access_token',
                 value=access_token,
@@ -242,12 +233,7 @@ class GoogleLoginView(APIView):
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
-            response_data = {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-            }
-            response = Response(response_data, status=status.HTTP_200_OK)
+            response = Response({}, status=status.HTTP_200_OK)
             response.set_cookie(
                 key='access_token',
                 value=access_token,
@@ -306,12 +292,7 @@ class GithubLoginView(APIView):
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
-            response_data = {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username,
-            }
-            response = Response(response_data, status=status.HTTP_200_OK)
+            response = Response({}, status=status.HTTP_200_OK)
             response.set_cookie(
                 key='access_token',
                 value=access_token,

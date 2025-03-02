@@ -10,6 +10,7 @@ const Login = lazy(() => import("@/pages/login").then(module => ({ default: modu
 const RecoverPassword = lazy(() => import("@/pages/recover-password").then(module => ({ default: module.RecoverPassword })));
 const Signup = lazy(() => import("@/pages/signup").then(module => ({ default: module.Signup })));
 const Portal = lazy(() => import("@/pages/portal/portal").then(module => ({ default: module.Portal })));
+const Strategy = lazy(() => import("@/pages/strategy/strategy").then(module => ({ default: module.Strategy })));
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -38,6 +39,7 @@ function App() {
           <Route path="/recover-password" element={isAuthenticated ? <Navigate to="/portal" /> : <RecoverPassword />} />
           <Route path="/signup" element={isAuthenticated ? <Navigate to="/portal" /> : <Signup />} />
           <Route path="/portal" element={isAuthenticated ? <Portal /> : <Navigate to="/login" />} />
+          <Route path="/strategy/:id" element={<Strategy />} />
           <Route path="/api/*" />
           <Route path="*" element={<Navigate to="/home" />} />
         </Routes>

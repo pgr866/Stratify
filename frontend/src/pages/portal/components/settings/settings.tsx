@@ -11,7 +11,7 @@ export function Settings() {
 	const [selected, setSelected] = useState('profile');
 
 	return (
-		<div className="space-y-6 p-4">
+		<div className="space-y-6 px-4">
 			<div className="space-y-0.5">
 				<h1 className="text-xl lg:text-2xl font-bold tracking-tight">Settings</h1>
 				<p className="text-md text-muted-foreground">

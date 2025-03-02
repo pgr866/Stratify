@@ -13,9 +13,19 @@ type ButtonProps = {
   width?: string;
   placeholder?: string;
   onChange?: (value: string) => void;
+  icon?: React.ReactNode;
 };
 
-export function Combobox({defaultValue = "", values = ["item1", "item2"], variant = "default", size = "default", width = "200px", placeholder = "Items", onChange, }: Readonly<ButtonProps>) {
+export function Combobox({
+  defaultValue = "",
+  values = ["item1", "item2"],
+  variant = "default",
+  size = "default",
+  width = "200px",
+  placeholder = "Items",
+  onChange,
+  icon
+}: Readonly<ButtonProps>) {
   const [open, setOpen] = React.useState(false)
   const [value, setValue] = React.useState(defaultValue)
 
@@ -36,7 +46,10 @@ export function Combobox({defaultValue = "", values = ["item1", "item2"], varian
           aria-expanded={open}
           style={{ width }}
           className="justify-between overflow-hidden font-normal">
-          {value || placeholder}
+          <span className="flex items-center gap-2">
+            {icon && icon}
+            {value || placeholder}
+          </span>
           <ChevronDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -50,8 +63,7 @@ export function Combobox({defaultValue = "", values = ["item1", "item2"], varian
                 <CommandItem
                   key={item}
                   value={item}
-                  onSelect={() => handleSelect(item)}
-                >
+                  onSelect={() => handleSelect(item)}>
                   {item}
                   <Check
                     className={cn(

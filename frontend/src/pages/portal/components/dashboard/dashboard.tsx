@@ -7,21 +7,20 @@ import { RecentSales } from "./components/recent-sales"
 
 export function Dashboard() {
 	return (
-		<div className="flex-1 space-y-4 sm:p-2">
-			<div className="flex items-center justify-between space-y-2 gap-x-2 flex-wrap">
-				<h1 className="text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
-				<div className="flex items-center space-x-2">
-					<DatePickerWithRange className="[&>#date]:w-fit" />
-					<Button>Download</Button>
-				</div>
-			</div>
+		<div className="flex-1 space-y-4">
 			<Tabs defaultValue="overview" className="space-y-4">
-				<TabsList>
-					<TabsTrigger className="px-2 md:px-3" value="overview">Overview</TabsTrigger>
-					<TabsTrigger className="px-2 md:px-3" value="analytics">Analytics</TabsTrigger>
-					<TabsTrigger className="px-2 md:px-3" value="reports">Reports</TabsTrigger>
-					<TabsTrigger className="px-2 md:px-3" value="notifications">Notifications</TabsTrigger>
-				</TabsList>
+				<div className="flex items-center justify-between space-y-2 gap-x-2 flex-wrap">
+					<TabsList>
+						<TabsTrigger className="px-2 md:px-3" value="overview">Overview</TabsTrigger>
+						<TabsTrigger className="px-2 md:px-3" value="analytics">Analytics</TabsTrigger>
+						<TabsTrigger className="px-2 md:px-3" value="reports">Reports</TabsTrigger>
+						<TabsTrigger className="px-2 md:px-3" value="notifications">Notifications</TabsTrigger>
+					</TabsList>
+					<div className="flex items-center space-x-2">
+						<DatePickerWithRange className="[&>#date]:w-fit" />
+						<Button>Download</Button>
+					</div>
+				</div>
 				<TabsContent value="overview" className="space-y-4">
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 						<Card>

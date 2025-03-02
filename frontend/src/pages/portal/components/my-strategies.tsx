@@ -1,4 +1,4 @@
-export function Customers() {
+export function MyStrategies() {
 
 	return (
 		<div>
