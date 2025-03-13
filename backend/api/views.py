@@ -21,10 +21,44 @@ from .models import User
 from .permissions import IsNotAuthenticated, IsOwner, NoBody
 from .serializers import LoginSerializer, UserSerializer, UserValidationSerializer, RecoverPasswordSerializer
 
+def set_auth_cookies(user):
+    refresh = RefreshToken.for_user(user)
+    access_token = str(refresh.access_token)
+    refresh_token = str(refresh)
+    
+    response = Response({}, status=status.HTTP_201_CREATED)
+    response.set_cookie(
+        key='access_token',
+        value=access_token,
+        httponly=True,
+        secure=not settings.DEBUG,
+        samesite='Strict',
+        max_age=settings.ACCESS_TOKEN_MAX_AGE,
+    )
+    response.set_cookie(
+        key='refresh_token',
+        value=refresh_token,
+        httponly=True,
+        secure=not settings.DEBUG,
+        samesite='Strict',
+        max_age=settings.REFRESH_TOKEN_MAX_AGE,
+    )
+    return response
+
+def send_verification_code(email):
+    verification_code = f"{secrets.randbelow(10**6):06}"
+    cache.set(email, verification_code, timeout=600)
+    subject = "Verification code"
+    message = f"Your verification code is: {verification_code}. This code expires in 10 minutes"
+    from_email = settings.DEFAULT_FROM_EMAIL
+    send_mail(subject, message, from_email, [email])
+    return Response({'detail': 'Verification code sent to your email'}, status=status.HTTP_200_OK)
+
 @method_decorator(cache_page(60*15), name='dispatch')
 class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
+    lookup_field = "id"
 
     def get_permissions(self):
         if self.action in ['create']:
@@ -64,28 +98,7 @@ class UserView(viewsets.ModelViewSet):
 
         if login_serializer.is_valid():
             user = login_serializer.validated_data['user']
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
-
-            response = Response({}, status=status.HTTP_201_CREATED)
-            response.set_cookie(
-                key='access_token',
-                value=access_token,
-                httponly=True,
-                secure=not settings.DEBUG,
-                samesite='Strict',
-                max_age=settings.ACCESS_TOKEN_MAX_AGE,
-            )
-            response.set_cookie(
-                key='refresh_token',
-                value=refresh_token,
-                httponly=True,
-                secure=not settings.DEBUG,
-                samesite='Strict',
-                max_age=settings.REFRESH_TOKEN_MAX_AGE,
-            )
-            return response
+            return set_auth_cookies(user)
 
         return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -96,13 +109,8 @@ class ValidateEmailView(APIView):
         serializer = UserValidationSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
-            verification_code = ''.join([secrets.choice('0123456789') for _ in range(6)])
-            cache.set(email, verification_code, timeout=600)
-            subject = "Verification code"
-            message = f"Your verification code is: {verification_code}. This code expires in 10 minutes"
-            from_email = settings.DEFAULT_FROM_EMAIL
-            send_mail(subject, message, from_email, [email])
-            return Response({'detail': 'Verification code sent to yout email'}, status=status.HTTP_200_OK)
+            return send_verification_code(email)
+            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RecoverPasswordView(APIView):
@@ -112,13 +120,8 @@ class RecoverPasswordView(APIView):
         serializer = RecoverPasswordSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
-            verification_code = ''.join([secrets.choice('0123456789') for _ in range(6)])
-            cache.set(email, verification_code, timeout=600)
-            subject = "Verification code"
-            message = f"Your verification code is: {verification_code}. This code expires in 10 minutes"
-            from_email = settings.DEFAULT_FROM_EMAIL
-            send_mail(subject, message, from_email, [email])
-            return Response({'detail': 'Verification code sent to yout email'}, status=status.HTTP_200_OK)
+            return send_verification_code(email)
+        
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class ChangePasswordView(APIView):
@@ -145,29 +148,7 @@ class ChangePasswordView(APIView):
         user = User.objects.filter(email=email).first()
         user.set_password(new_password)
         user.save()
-
-        refresh = RefreshToken.for_user(user)
-        access_token = str(refresh.access_token)
-        refresh_token = str(refresh)
-        
-        response = Response({}, status=status.HTTP_200_OK)
-        response.set_cookie(
-            key='access_token',
-            value=access_token,
-            httponly=True,
-            secure=not settings.DEBUG,
-            samesite='Strict',
-            max_age=settings.ACCESS_TOKEN_MAX_AGE,
-        )
-        response.set_cookie(
-            key='refresh_token',
-            value=refresh_token,
-            httponly=True,
-            secure=not settings.DEBUG,
-            samesite='Strict',
-            max_age=settings.REFRESH_TOKEN_MAX_AGE,
-        )
-        return response
+        return set_auth_cookies(user)
 
 class LoginView(APIView):
     permission_classes = [IsNotAuthenticated]
@@ -176,27 +157,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
-            response = Response({}, status=status.HTTP_200_OK)
-            response.set_cookie(
-                key='access_token',
-                value=access_token,
-                httponly=True,
-                secure=not settings.DEBUG,
-                samesite='Strict',
-                max_age=settings.ACCESS_TOKEN_MAX_AGE,
-            )
-            response.set_cookie(
-                key='refresh_token',
-                value=refresh_token,
-                httponly=True,
-                secure=not settings.DEBUG,
-                samesite='Strict',
-                max_age=settings.REFRESH_TOKEN_MAX_AGE,
-            )
-            return response
+            return set_auth_cookies(user)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class GoogleLoginView(APIView):
@@ -229,30 +190,9 @@ class GoogleLoginView(APIView):
                     username=google_username,
                     google_id=google_id
                 )
-            
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
-            response = Response({}, status=status.HTTP_200_OK)
-            response.set_cookie(
-                key='access_token',
-                value=access_token,
-                httponly=True,
-                secure=not settings.DEBUG,
-                samesite='Strict',
-                max_age=settings.ACCESS_TOKEN_MAX_AGE,
-            )
-            response.set_cookie(
-                key='refresh_token',
-                value=refresh_token,
-                httponly=True,
-                secure=not settings.DEBUG,
-                samesite='Strict',
-                max_age=settings.REFRESH_TOKEN_MAX_AGE,
-            )
-            return response
+            return set_auth_cookies(user)
         except Exception as e:
-            return Response({"message": f"Google Login failed. {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Google Login failed. Please try again."}, status=status.HTTP_400_BAD_REQUEST)
 
 class GithubLoginView(APIView):
     permission_classes = [IsNotAuthenticated]
@@ -288,31 +228,10 @@ class GithubLoginView(APIView):
                     username=github_username,
                     github_id=github_id
                 )
-            
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
-            response = Response({}, status=status.HTTP_200_OK)
-            response.set_cookie(
-                key='access_token',
-                value=access_token,
-                httponly=True,
-                secure=not settings.DEBUG,
-                samesite='Strict',
-                max_age=settings.ACCESS_TOKEN_MAX_AGE,
-            )
-            response.set_cookie(
-                key='refresh_token',
-                value=refresh_token,
-                httponly=True,
-                secure=not settings.DEBUG,
-                samesite='Strict',
-                max_age=settings.REFRESH_TOKEN_MAX_AGE,
-            )
-            return response
+            return set_auth_cookies(user)
 
         except Exception as e:
-            return Response({"message": f"Github Login failed. {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"message": "Github Login failed. Please try again."}, status=status.HTTP_400_BAD_REQUEST)
 
 class CheckAuthView(APIView):
     permission_classes = []
@@ -343,6 +262,6 @@ class LogoutView(APIView):
 
     def post(self, request):
         response = Response(status=status.HTTP_200_OK)
-        response.delete_cookie('access_token', path='/', samesite='Strict')
-        response.delete_cookie('refresh_token', path='/', samesite='Strict')
+        response.delete_cookie('access_token', path='/', samesite='Strict', secure=not settings.DEBUG)
+        response.delete_cookie('refresh_token', path='/', samesite='Strict', secure=not settings.DEBUG)
         return response
