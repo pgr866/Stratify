@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -17,28 +16,19 @@ import { ApiKeys } from "./components/api-keys"
 import { Dashboard } from "./components/dashboard/dashboard"
 import { Settings } from "./components/settings/settings"
 import { FileChartPie, ChartNoAxesCombined, Globe, Key, UserRound, LogOut, Settings as SettingsIcon } from "lucide-react";
-import { logout, getCurrentUser } from "@/api";
+import { logout } from "@/api";
+import { useSession } from "@/App";
+
 
 export function Portal() {
 	const navigate = useNavigate();
-	const [user, setUser] = useState<{ username: string; email: string } | null>(null);
-
-	useEffect(() => {
-		const fetchUser = async () => {
-			try {
-				const userData = await getCurrentUser();
-				setUser(userData.data);
-			} catch (error) {
-				console.error("Error fetching user:", error);
-			}
-		};
-		fetchUser();
-	}, []);
+	const { user } = useSession();
 
 	const handleLogout = async () => {
 		await logout();
 		navigate("/home");
 	};
+
 	return (
 		<Tabs defaultValue="dashboard" className="h-auto">
 			<div className="flex flex-wrap items-center h-auto px-4 py-1 border-b">
@@ -62,8 +52,8 @@ export function Portal() {
 						<DropdownMenuContent className="w-56" align="end" forceMount>
 							<DropdownMenuLabel className="font-normal">
 								<div className="flex flex-col space-y-1">
-									<p className="text-sm font-medium leading-none">{user?.username || "Cargando..."}</p>
-									<p className="text-xs leading-none text-muted-foreground">{user?.email || "Cargando..."}</p>
+									<p className="text-sm font-medium leading-none">{user?.username || "Loading..."}</p>
+									<p className="text-xs leading-none text-muted-foreground">{user?.email || "Loading..."}</p>
 								</div>
 							</DropdownMenuLabel>
 							<DropdownMenuSeparator />

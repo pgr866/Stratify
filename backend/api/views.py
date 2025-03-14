@@ -26,7 +26,7 @@ def set_auth_cookies(user):
     access_token = str(refresh.access_token)
     refresh_token = str(refresh)
     
-    response = Response({}, status=status.HTTP_201_CREATED)
+    response = Response(status=status.HTTP_201_CREATED)
     response.set_cookie(
         key='access_token',
         value=access_token,
@@ -58,7 +58,7 @@ def send_verification_code(email):
 class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
-    lookup_field = "id"
+    lookup_field = "uuid"
 
     def get_permissions(self):
         if self.action in ['create']:
@@ -68,13 +68,6 @@ class UserView(viewsets.ModelViewSet):
         elif self.action in ['list']:
             self.permission_classes = [NoBody]
         return super().get_permissions()
-    
-    def retrieve(self, request, *args, **kwargs):
-        if 'pk' not in kwargs or kwargs['pk'] == 'me':
-            serializer = self.get_serializer(request.user)
-            return Response(serializer.data)
-        
-        return super().retrieve(request, *args, **kwargs)
 
     def create(self, request, *args, **kwargs):
         verification_code = request.data.get('code')
@@ -238,13 +231,16 @@ class CheckAuthView(APIView):
 
     def get(self, request):
         if request.user.is_authenticated:
-            return Response({'authenticated': True}, status=status.HTTP_200_OK)
+            user_data = UserSerializer(request.user).data
+            return Response(user_data, status=status.HTTP_200_OK)
         refresh_token = request.COOKIES.get('refresh_token')
         if refresh_token:
             try:
                 refresh = RefreshToken(refresh_token)
                 new_access_token = str(refresh.access_token)
-                response = Response({'authenticated': True}, status=status.HTTP_200_OK)
+                user = User.objects.get(id=refresh["user_id"])
+                user_data = UserSerializer(user).data
+                response = Response(user_data, status=status.HTTP_200_OK)
                 response.set_cookie(
                     key='access_token',
                     value=new_access_token,
@@ -255,13 +251,13 @@ class CheckAuthView(APIView):
                 )
                 return response
             except Exception: pass
-        return Response({'authenticated': False}, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         response = Response(status=status.HTTP_200_OK)
-        response.delete_cookie('access_token', path='/', samesite='Strict', secure=not settings.DEBUG)
-        response.delete_cookie('refresh_token', path='/', samesite='Strict', secure=not settings.DEBUG)
+        response.delete_cookie('access_token', path='/', samesite='Strict')
+        response.delete_cookie('refresh_token', path='/', samesite='Strict')
         return response

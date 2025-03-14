@@ -56,9 +56,6 @@ export const getAllUsers = () => api.get<User[]>("user/");
 // Fetch a specific user by ID
 export const getUser = (id: number) => api.get<User>(`user/${id}/`);
 
-// Get current user
-export const getCurrentUser = () => api.get<User>("user/me/");
-
 // Create a new user
 export const createUser = (user: User, code: string) => api.post<User>("user/", { ...user, code });
 

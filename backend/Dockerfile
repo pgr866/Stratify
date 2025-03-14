@@ -27,7 +27,7 @@ CMD ["sh", "-c", "\
         chown 999:999 /etc/ssl/private_decrypted/redis.key; \
     fi && \
     wait-for-it db:5432 --timeout=30 --strict && \
-    python manage.py makemigrations --noinput && \
+    python manage.py makemigrations api --noinput && \
     python manage.py migrate --noinput && \
     python manage.py createsuperuser --noinput --email=$EMAIL_HOST_USER > /dev/null 2>&1 || true && \
     if [ \"${DEBUG}\" = \"True\" ]; then \
