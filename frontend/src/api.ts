@@ -56,20 +56,20 @@ export const getAllUsers = () => api.get<User[]>("user/");
 // Fetch a specific user by ID
 export const getUser = (id: number) => api.get<User>(`user/${id}/`);
 
-// Create a new user
-export const createUser = (user: User, code: string) => api.post<User>("user/", { ...user, code });
-
 // Update an existing user by ID
 export const updateUser = (id: number, user: Partial<User>) => api.put<User>(`user/${id}/`, user);
 
 // Delete a specific user by ID
 export const deleteUser = (id: number) => api.delete(`user/${id}/`);
 
-// Send email verification
-export const validateEmail = (email: string, username: string, password: string) => api.post("validate-email/", { email, username, password });
+// Send sing-up verification to email
+export const sendEmailSignup = (email: string, username: string, password: string) => api.post("send-email-signup/", { email, username, password });
+
+// Create a new user
+export const signup = (user: User, code: string) => api.post<User>("user/", { ...user, code });
 
 // Send recover password verification to email
-export const recoverPassword = (email: string, new_password: string) => api.post("recover-password/", { email, new_password });
+export const sendEmailRecoverPassword = (email: string, new_password: string) => api.post("send-email-recover-password/", { email, new_password });
 
-// Change password
-export const changePassword = (email: string, new_password: string, code: string) => api.post("change-password/", { email, new_password, code });
+// Recover password
+export const recoverPassword = (email: string, new_password: string, code: string) => api.post("recover-password/", { email, new_password, code });

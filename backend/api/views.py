@@ -10,7 +10,6 @@ from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 
 from rest_framework import status, viewsets
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -18,15 +17,15 @@ from github import Github, Requester
 from github.ApplicationOAuth import ApplicationOAuth
 
 from .models import User
-from .permissions import IsNotAuthenticated, IsOwner, NoBody
-from .serializers import LoginSerializer, UserSerializer, UserValidationSerializer, RecoverPasswordSerializer
+from .permissions import IsAuthenticated, IsNotAuthenticated, IsOwner, NoBody, IsAdmin
+from .serializers import UserSerializer, LoginSerializer, RecoverPasswordSerializer
 
-def set_auth_cookies(user):
+def set_auth_cookies(user, signup=False):
     refresh = RefreshToken.for_user(user)
     access_token = str(refresh.access_token)
     refresh_token = str(refresh)
     
-    response = Response(status=status.HTTP_201_CREATED)
+    response = Response(status=status.HTTP_201_CREATED if signup else status.HTTP_200_OK)
     response.set_cookie(
         key='access_token',
         value=access_token,
@@ -46,15 +45,16 @@ def set_auth_cookies(user):
     return response
 
 def send_verification_code(email):
-    verification_code = f"{secrets.randbelow(10**6):06}"
-    cache.set(email, verification_code, timeout=600)
-    subject = "Verification code"
-    message = f"Your verification code is: {verification_code}. This code expires in 10 minutes"
-    from_email = settings.DEFAULT_FROM_EMAIL
-    send_mail(subject, message, from_email, [email])
+    if not cache.get(email):
+        verification_code = f"{secrets.randbelow(10**6):06}"
+        cache.set(email, verification_code, timeout=600)
+        subject = "Verification code"
+        message = f"Your verification code is: {verification_code}. This code expires in 10 minutes"
+        from_email = settings.DEFAULT_FROM_EMAIL
+        send_mail(subject, message, from_email, [email])
     return Response({'detail': 'Verification code sent to your email'}, status=status.HTTP_200_OK)
 
-@method_decorator(cache_page(60*15), name='dispatch')
+#@method_decorator(cache_page(60*15), name='dispatch')
 class UserView(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     queryset = User.objects.all()
@@ -66,7 +66,7 @@ class UserView(viewsets.ModelViewSet):
         elif self.action in ['update', 'partial_update', 'destroy', 'retrieve']:
             self.permission_classes = [IsOwner]
         elif self.action in ['list']:
-            self.permission_classes = [NoBody]
+            self.permission_classes = [IsAdmin]
         return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
@@ -77,36 +77,33 @@ class UserView(viewsets.ModelViewSet):
             return Response({'detail': 'Verification code not found or expired'}, status=status.HTTP_400_BAD_REQUEST)
         if verification_code != cached_code:
             return Response({'detail': 'Incorrect verification code'}, status=status.HTTP_400_BAD_REQUEST)
+        cache.delete(email)
         
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        
-        cache.delete(email)
-
-        login_serializer = LoginSerializer(data={
-            'username': user.username,
-            'password': request.data['password']
-        })
-
-        if login_serializer.is_valid():
-            user = login_serializer.validated_data['user']
-            return set_auth_cookies(user)
+        if serializer.is_valid():
+            user = serializer.save()
+            login_serializer = LoginSerializer(data={
+                'username': user.username,
+                'password': request.data['password']
+            })
+            if login_serializer.is_valid():
+                user = login_serializer.validated_data['user']
+                return set_auth_cookies(user, True)
 
         return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class ValidateEmailView(APIView):
+class SendEmailSignupView(APIView):
     permission_classes = [IsNotAuthenticated]
 
     def post(self, request):
-        serializer = UserValidationSerializer(data=request.data)
+        serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             email = serializer.validated_data['email']
             return send_verification_code(email)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class RecoverPasswordView(APIView):
+class SendEmailRecoverPasswordView(APIView):
     permission_classes = [IsNotAuthenticated]
     
     def post(self, request):
@@ -117,26 +114,21 @@ class RecoverPasswordView(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class ChangePasswordView(APIView):
+class RecoverPasswordView(APIView):
     permission_classes = [IsNotAuthenticated]
     
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')
         new_password = request.data.get('new_password')
         verification_code = request.data.get('code')
-        
         cached_code = cache.get(email)
         if not cached_code:
             return Response({'detail': 'Verification code not found or expired'}, status=status.HTTP_400_BAD_REQUEST)
         if verification_code != cached_code:
             return Response({'detail': 'Incorrect verification code'}, status=status.HTTP_400_BAD_REQUEST)
-        
         cache.delete(email)
         
-        serializer = RecoverPasswordSerializer(data={
-                'email': email,
-                'new_password': new_password,
-        })
+        serializer = RecoverPasswordSerializer(data={ 'email': email, 'new_password': new_password })
         serializer.is_valid(raise_exception=True)
         user = User.objects.filter(email=email).first()
         user.set_password(new_password)
@@ -160,16 +152,16 @@ class GoogleLoginView(APIView):
         try:
             auth_header = request.headers.get('Authorization')
             if not auth_header or not auth_header.startswith('Bearer '):
-                raise Exception("Missing or invalid Authorization header")
+                raise ValueError("Missing or invalid Authorization header")
             token = auth_header.split(' ')[1]
             
             response = requests.get(f"https://oauth2.googleapis.com/tokeninfo?access_token={token}")
             response.raise_for_status()
             user_data = response.json()
             if user_data['aud'] != settings.VITE_GOOGLE_CLIENT_ID:
-                raise Exception("Invalid client ID")
+                raise ValueError("Invalid client ID")
             if not user_data.get('email_verified', False):
-                raise Exception("Email not verified")
+                raise ValueError("Email not verified")
             google_email = user_data.get("email")
             google_username = google_email.split('@')[0]
             google_id = user_data.get("sub")
@@ -184,7 +176,7 @@ class GoogleLoginView(APIView):
                     google_id=google_id
                 )
             return set_auth_cookies(user)
-        except Exception as e:
+        except Exception:
             return Response({"message": "Google Login failed. Please try again."}, status=status.HTTP_400_BAD_REQUEST)
 
 class GithubLoginView(APIView):
@@ -223,14 +215,14 @@ class GithubLoginView(APIView):
                 )
             return set_auth_cookies(user)
 
-        except Exception as e:
+        except Exception:
             return Response({"message": "Github Login failed. Please try again."}, status=status.HTTP_400_BAD_REQUEST)
 
 class CheckAuthView(APIView):
     permission_classes = []
 
     def get(self, request):
-        if request.user.is_authenticated:
+        if request.user.is_authenticated and request.user.is_active:
             user_data = UserSerializer(request.user).data
             return Response(user_data, status=status.HTTP_200_OK)
         refresh_token = request.COOKIES.get('refresh_token')

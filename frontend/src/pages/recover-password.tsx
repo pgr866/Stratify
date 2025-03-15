@@ -9,7 +9,7 @@ import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/comp
 import { Label } from "@/components/ui/label"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useToast } from "@/hooks/use-toast"
-import { changePassword, recoverPassword } from "@/api";
+import { recoverPassword, sendEmailRecoverPassword } from "@/api";
 
 export function RecoverPassword() {
 	const { toast } = useToast()
@@ -23,13 +23,13 @@ export function RecoverPassword() {
 	const [emailSent, setEmailSent] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
-	const handleRecoverPassword = async () => {
+	const handleSendEmail = async () => {
 		try {
 			setIsLoading(true);
 			if (password !== repeatPassword) {
 				throw new Error("Passwords do not match");
 			}
-			await recoverPassword(email, password);
+			await sendEmailRecoverPassword(email, password);
 			setEmailSent(true);
 		} catch (error) {
 			const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
@@ -43,10 +43,10 @@ export function RecoverPassword() {
 		}
 	};
 
-	const handleChangePassword = async () => {
+	const handleRecoverPassword = async () => {
 		try {
 			setIsLoading(true);
-			await changePassword(email, password, code);
+			await recoverPassword(email, password, code);
 			navigate("/portal");
 			toast({ description: "Password changed successfully" });
 		} catch (error) {
@@ -132,7 +132,7 @@ export function RecoverPassword() {
 									</button>
 								</div>
 							</div>
-							<Button onClick={handleRecoverPassword} disabled={isLoading} className="w-full">
+							<Button onClick={handleSendEmail} disabled={isLoading} className="w-full">
 								{isLoading ? (
 									<><Loader2 className="animate-spin mr-2" />Loading...</>
 								) : (
@@ -154,7 +154,7 @@ export function RecoverPassword() {
 					<DialogHeader>
 						<DialogTitle className="text-2xl">Verify your email</DialogTitle>
 						<DialogDescription>
-							Enter the 6-digit code sent to your email address to verify your account.
+							Enter the 6-digit code sent to your email address to verify your account. This code expires in 10 minutes.
 						</DialogDescription>
 					</DialogHeader>
 					<InputOTP containerClassName="flex justify-center mb-2" maxLength={6} value={code} onChange={(newCode) => setCode(newCode)}>
@@ -174,7 +174,7 @@ export function RecoverPassword() {
 						</InputOTPGroup>
 					</InputOTP>
 					<DialogFooter>
-						<Button onClick={handleChangePassword} disabled={isLoading} className="w-full">
+						<Button onClick={handleRecoverPassword} disabled={isLoading} className="w-full">
 							{isLoading ? (
 								<><Loader2 className="animate-spin mr-2" />Loading...</>
 							) : (

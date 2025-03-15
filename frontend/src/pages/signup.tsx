@@ -11,7 +11,7 @@ import { GoogleSignin } from "@/components/google-signin"
 import { GithubSignin } from "@/components/github-signin"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useToast } from "@/hooks/use-toast"
-import { createUser, validateEmail } from "@/api";
+import { signup, sendEmailSignup } from "@/api";
 
 export function Signup() {
 	const { toast } = useToast()
@@ -32,7 +32,7 @@ export function Signup() {
 			if (password !== repeatPassword) {
 				throw new Error("Passwords do not match");
 			}
-			await validateEmail(email, username, password);
+			await sendEmailSignup(email, username, password);
 			setEmailSent(true);
 		} catch (error) {
 			const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
@@ -49,7 +49,7 @@ export function Signup() {
 	const handleSignup = async () => {
 		try {
 			setIsLoading(true);
-			await createUser({ email: email, username: username, password: password }, code);
+			await signup({ email: email, username: username, password: password }, code);
 			navigate("/portal");
 			toast({ description: "Sign-up successful" });
 		} catch (error) {
@@ -184,7 +184,7 @@ export function Signup() {
 					<DialogHeader>
 						<DialogTitle className="text-2xl">Verify your email</DialogTitle>
 						<DialogDescription>
-							Enter the 6-digit code sent to your email address to verify your account.
+							Enter the 6-digit code sent to your email address to verify your account. This code expires in 10 minutes.
 						</DialogDescription>
 					</DialogHeader>
 					<InputOTP containerClassName="flex justify-center mb-2" maxLength={6} value={code} onChange={(newCode) => setCode(newCode)}>
