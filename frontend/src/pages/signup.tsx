@@ -3,10 +3,9 @@ import { useNavigate, Link } from "react-router-dom";
 import { Loader2, Eye, EyeClosed } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
 import { Label } from "@/components/ui/label"
+import { EmailVerificationDialog } from "@/components/email-verification-dialog"
 import { GoogleSignin } from "@/components/google-signin"
 import { GithubSignin } from "@/components/github-signin"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -179,41 +178,14 @@ export function Signup() {
 					</CardContent>
 				</Card>
 			</div>
-			<Dialog open={emailSent} onOpenChange={(open) => setEmailSent(open)}>
-				<DialogContent className="sm:max-w-[425px]" onInteractOutside={(e) => { e.preventDefault(); }}>
-					<DialogHeader>
-						<DialogTitle className="text-2xl">Verify your email</DialogTitle>
-						<DialogDescription>
-							Enter the 6-digit code sent to your email address to verify your account. This code expires in 10 minutes.
-						</DialogDescription>
-					</DialogHeader>
-					<InputOTP containerClassName="flex justify-center mb-2" maxLength={6} value={code} onChange={(newCode) => setCode(newCode)}>
-						<InputOTPGroup>
-							<InputOTPSlot index={0} />
-							<InputOTPSlot index={1} />
-						</InputOTPGroup>
-						<InputOTPSeparator />
-						<InputOTPGroup>
-							<InputOTPSlot index={2} />
-							<InputOTPSlot index={3} />
-						</InputOTPGroup>
-						<InputOTPSeparator />
-						<InputOTPGroup>
-							<InputOTPSlot index={4} />
-							<InputOTPSlot index={5} />
-						</InputOTPGroup>
-					</InputOTP>
-					<DialogFooter>
-						<Button onClick={handleSignup} disabled={isLoading} className="w-full">
-							{isLoading ? (
-								<><Loader2 className="animate-spin mr-2" />Loading...</>
-							) : (
-								"Verify"
-							)}
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
+			<EmailVerificationDialog
+				open={emailSent}
+				onOpenChange={setEmailSent}
+				onVerify={handleSignup}
+				isLoading={isLoading}
+				code={code}
+				setCode={setCode}
+			/>
 		</div>
 	)
 }
