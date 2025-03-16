@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const URL = process.env.NODE_ENV === "production"
-	? `${import.meta.env.VITE_ENV_PATH}/api/`
+	? `${import.meta.env.VITE_ENV_PATH}/api/v1/`
 	: "http://localhost:8000/api/v1/"
 
 const api = axios.create({
