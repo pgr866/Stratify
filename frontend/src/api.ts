@@ -73,3 +73,17 @@ export const sendEmailRecoverPassword = (email: string, new_password: string) =>
 
 // Recover password
 export const recoverPassword = (email: string, new_password: string, code: string) => api.post("recover-password/", { email, new_password, code });
+
+// Get API Keys Exchanges
+export const getApiKeysExchanges = () => api.get<string[]>("apiKey/");
+
+// Create or Update API Keys
+export const createUpdateApiKeys = (
+	data: { exchange: string; api_key?: string; secret?: string; password?: string; uid?: string; }
+) => api.post("apiKey/", data);
+
+// Delete API Keys
+export const deleteApiKeys = (exchange: string) => api.delete(`apiKey/${exchange}/`);
+
+// Get all ccxt exchanges
+export const getAllExchanges = () => api.get("exchanges/");

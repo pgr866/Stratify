@@ -103,7 +103,6 @@ export function Signup() {
 									placeholder="Username"
 									value={username}
 									onChange={(e) => setUsername(e.target.value)}
-									required
 								/>
 							</div>
 							<div className="grid gap-2">
@@ -116,7 +115,6 @@ export function Signup() {
 									placeholder="m@example.com"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
-									required
 								/>
 							</div>
 							<div className="grid gap-2">
@@ -129,7 +127,7 @@ export function Signup() {
 										type={showPassword ? "text" : "password"}
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
-										required
+										className="pr-10"
 									/>
 									<button
 										type="button"
@@ -150,7 +148,7 @@ export function Signup() {
 										type={showRepeatPassword ? "text" : "password"}
 										value={repeatPassword}
 										onChange={(e) => setRepeatPassword(e.target.value)}
-										required
+										className="pr-10"
 									/>
 									<button
 										type="button"

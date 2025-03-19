@@ -86,7 +86,6 @@ export function RecoverPassword() {
 									placeholder="m@example.com"
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
-									required
 								/>
 							</div>
 							<div className="grid gap-2">
@@ -99,7 +98,7 @@ export function RecoverPassword() {
 										type={showPassword ? "text" : "password"}
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
-										required
+										className="pr-10"
 									/>
 									<button
 										type="button"
@@ -120,7 +119,7 @@ export function RecoverPassword() {
 										type={showRepeatPassword ? "text" : "password"}
 										value={repeatPassword}
 										onChange={(e) => setRepeatPassword(e.target.value)}
-										required
+										className="pr-10"
 									/>
 									<button
 										type="button"

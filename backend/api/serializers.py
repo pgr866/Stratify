@@ -3,7 +3,7 @@ import re
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 
-from .models import User
+from .models import User, ApiKey
 
 def validate_password_strength(password):
     if len(password) < 8:
@@ -20,7 +20,7 @@ def validate_password_strength(password):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['uuid', 'email', 'username', 'timezone_offset', 'password']
+        fields = ['id', 'email', 'username', 'timezone_offset', 'password']
         extra_kwargs = {
             'password': {'write_only': True, 'required': False}
         }
@@ -94,3 +94,14 @@ class RecoverPasswordSerializer(serializers.Serializer):
         validate_password_strength(password)
         
         return attrs
+
+class ApiKeySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ApiKey
+        fields = ['exchange', 'api_key', 'secret', 'password', 'uid']
+        extra_kwargs = {
+            'api_key': {'write_only': True, 'required': False},
+            'secret': {'write_only': True, 'required': False},
+            'password': {'write_only': True, 'required': False},
+            'uid': {'write_only': True, 'required': False},
+        }

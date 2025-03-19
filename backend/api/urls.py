@@ -31,4 +31,7 @@ urlpatterns = [
     path('v1/send-email-signup/', views.SendEmailSignupView.as_view(), name='send-email-signup'),
     path('v1/send-email-recover-password/', views.SendEmailRecoverPasswordView.as_view(), name='send-email-recover-password'),
     path('v1/recover-password/', views.RecoverPasswordView.as_view(), name='recover-password'),
+    path("v1/apiKey/", views.ApiKeyView.as_view({"get": "list", "post": "create"}), name="apiKey-list"),
+    path("v1/apiKey/<str:exchange>/", views.ApiKeyView.as_view({"delete": "destroy"}), name="apiKey-detail"),
+    path('v1/exchanges/', views.ExchangesView.as_view(), name='exchanges'),
 ]

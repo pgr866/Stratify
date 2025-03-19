@@ -13,7 +13,7 @@ const Portal = lazy(() => import("@/pages/portal/portal").then(module => ({ defa
 const Strategy = lazy(() => import("@/pages/strategy/strategy").then(module => ({ default: module.Strategy })));
 
 interface User {
-  uuid: string;
+  id: string;
   email: string;
   username: string;
   timezone_offset: string;

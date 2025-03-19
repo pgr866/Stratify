@@ -1,6 +1,7 @@
 import requests
 import secrets
 from types import SimpleNamespace
+import ccxt
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -16,9 +17,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from github import Github, Requester
 from github.ApplicationOAuth import ApplicationOAuth
 
-from .models import User
-from .permissions import IsAuthenticated, IsNotAuthenticated, IsOwner, NoBody, IsAdmin
-from .serializers import UserSerializer, LoginSerializer, RecoverPasswordSerializer
+from .models import User, ApiKey
+from .permissions import IsAuthenticated, IsNotAuthenticated, IsOwner, NoBody
+from .serializers import UserSerializer, LoginSerializer, RecoverPasswordSerializer, ApiKeySerializer
 
 def set_auth_cookies(user, signup=False):
     refresh = RefreshToken.for_user(user)
@@ -56,9 +57,8 @@ def send_verification_code(email):
 
 #@method_decorator(cache_page(60*15), name='dispatch')
 class UserView(viewsets.ModelViewSet):
-    serializer_class = UserSerializer
     queryset = User.objects.all()
-    lookup_field = "uuid"
+    serializer_class = UserSerializer
 
     def get_permissions(self):
         if self.action in ['create']:
@@ -66,7 +66,7 @@ class UserView(viewsets.ModelViewSet):
         elif self.action in ['update', 'partial_update', 'destroy', 'retrieve']:
             self.permission_classes = [IsOwner]
         elif self.action in ['list']:
-            self.permission_classes = [IsAdmin]
+            self.permission_classes = [NoBody]
         return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
@@ -253,3 +253,35 @@ class LogoutView(APIView):
         response.delete_cookie('access_token', path='/', samesite='Strict')
         response.delete_cookie('refresh_token', path='/', samesite='Strict')
         return response
+
+class ApiKeyView(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ApiKeySerializer
+
+    def list(self, request, *args, **kwargs):
+        return Response(ApiKey.objects.filter(user=request.user).values_list("exchange", flat=True).distinct())
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+        exchange = serializer.validated_data["exchange"]
+        api_key_instance, created = ApiKey.objects.update_or_create(
+            user=user, exchange=exchange,
+            defaults=serializer.validated_data
+        )
+        return Response(self.get_serializer(api_key_instance).data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+    
+    def destroy(self, request, *args, **kwargs):
+        exchange = kwargs.get("exchange")
+        api_key_instance = ApiKey.objects.filter(user=request.user, exchange=exchange).first()
+        if api_key_instance:
+            api_key_instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({"error": "API Key not found"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ExchangesView(APIView):
+    permission_classes = []
+    def get(self, request):
+        return Response(ccxt.exchanges)
