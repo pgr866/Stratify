@@ -13,7 +13,6 @@ const Portal = lazy(() => import("@/pages/portal/portal").then(module => ({ defa
 const Strategy = lazy(() => import("@/pages/strategy/strategy").then(module => ({ default: module.Strategy })));
 
 const SessionContext = createContext<{ user: User | null }>({ user: null });
-
 export const useSession = () => useContext(SessionContext);
 
 function App() {
@@ -23,7 +22,7 @@ function App() {
   useEffect(() => {
     if (location.pathname.startsWith("/home") || location.pathname.startsWith("/api")) return;
     getAuthUser()
-      .then(res => setUser(res.data))
+      .then((response: { data: User }) => setUser(response.data))
       .catch(() => setUser(null));
   }, [location]);
 
@@ -31,13 +30,13 @@ function App() {
     <SessionContext.Provider value={{ user }}>
       <Suspense fallback={<div></div>}>
         <Routes>
+          <Route path="/api/*" />
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={user ? <Navigate to="/portal" /> : <Login />} />
           <Route path="/recover-password" element={user ? <Navigate to="/portal" /> : <RecoverPassword />} />
           <Route path="/signup" element={user ? <Navigate to="/portal" /> : <Signup />} />
           <Route path="/portal" element={user ? <Portal /> : <Navigate to="/login" />} />
           <Route path="/strategy/:id" element={<Strategy />} />
-          <Route path="/api/*" />
           <Route path="*" element={<Navigate to="/home" />} />
         </Routes>
       </Suspense>
