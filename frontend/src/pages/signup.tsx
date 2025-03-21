@@ -10,7 +10,7 @@ import { GoogleSignin } from "@/components/google-signin"
 import { GithubSignin } from "@/components/github-signin"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useToast } from "@/hooks/use-toast"
-import { signup, sendEmailSignup } from "@/api";
+import { signup, sendEmailSignup, User } from "@/api";
 
 export function Signup() {
 	const { toast } = useToast()
@@ -48,7 +48,13 @@ export function Signup() {
 	const handleSignup = async () => {
 		try {
 			setIsLoading(true);
-			await signup({ email: email, username: username, password: password }, code);
+			const user: User = {
+				email,
+				username,
+				password,
+				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+			};
+			await signup(user, code);
 			navigate("/portal");
 			toast({ description: "Sign-up successful" });
 		} catch (error) {

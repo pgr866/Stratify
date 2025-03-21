@@ -5,7 +5,9 @@ import uuid
 class User(AbstractUser):
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     email = models.EmailField(unique=True)
-    timezone_offset = models.DecimalField(max_digits=4, decimal_places=2, null=False, default=0.0)
+    username = models.CharField(max_length=150, unique=True) # Explicitly declared
+    password = models.CharField(max_length=128) # Explicitly declared
+    timezone = models.CharField(max_length=255, default="UTC")
     google_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     github_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
 

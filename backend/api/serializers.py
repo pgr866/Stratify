@@ -20,7 +20,7 @@ def validate_password_strength(password):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'timezone_offset', 'password']
+        fields = ['email', 'username', 'timezone', 'password']
         extra_kwargs = {
             'password': {'write_only': True, 'required': False}
         }
@@ -32,7 +32,9 @@ class UserSerializer(serializers.ModelSerializer):
         if User.objects.exclude(id=self.instance.id if self.instance else None).filter(email=attrs['email']).exists():
             raise serializers.ValidationError("Email already in use")
         
-        if 'password' in attrs or not self.instance:
+        if self.instance:
+            attrs.pop('password', None)
+        else:
             validate_password_strength(attrs['password'])
         
         return attrs
@@ -41,22 +43,27 @@ class UserSerializer(serializers.ModelSerializer):
         password = validated_data.get('password')
         if not password:
             raise serializers.ValidationError({"password": ["This field may not be blank."]})
-        
+
         validated_data.pop('password')
         user = User(**validated_data)
         user.set_password(password)
         user.save()
         return user
 
-    def update(self, instance, validated_data):
-        password = validated_data.pop('password', None)
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+class RecoverPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    new_password = serializers.CharField(write_only=True, required=True)
+
+    def validate(self, attrs):
+        email = attrs.get("email")
+        password = attrs.get("new_password")
         
-        if password:
-            instance.set_password(password)
-        instance.save()
-        return instance
+        if not User.objects.filter(email=email).exists():
+            raise serializers.ValidationError({"email": "Email is not registered"})
+        
+        validate_password_strength(password)
+        
+        return attrs
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
@@ -77,21 +84,6 @@ class LoginSerializer(serializers.Serializer):
         if not user:
             raise serializers.ValidationError("Invalid credentials")
         attrs['user'] = user
-        
-        return attrs
-
-class RecoverPasswordSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-    new_password = serializers.CharField(write_only=True, required=True)
-
-    def validate(self, attrs):
-        email = attrs.get("email")
-        password = attrs.get("new_password")
-        
-        if not User.objects.filter(email=email).exists():
-            raise serializers.ValidationError({"email": "Email is not registered"})
-        
-        validate_password_strength(password)
         
         return attrs
 

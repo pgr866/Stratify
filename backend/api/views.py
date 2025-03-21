@@ -68,7 +68,31 @@ class UserView(viewsets.ModelViewSet):
         elif self.action in ['list']:
             self.permission_classes = [NoBody]
         return super().get_permissions()
-
+    
+    def retrieve(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.is_active:
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        refresh_token = request.COOKIES.get('refresh_token')
+        if refresh_token:
+            try:
+                refresh = RefreshToken(refresh_token)
+                new_access_token = str(refresh.access_token)
+                user = User.objects.get(id=refresh["user_id"])
+                serializer = self.get_serializer(user)
+                response = Response(serializer.data, status=status.HTTP_200_OK)
+                response.set_cookie(
+                    key='access_token',
+                    value=new_access_token,
+                    httponly=True,
+                    secure=not settings.DEBUG,
+                    samesite='Strict',
+                    max_age=settings.ACCESS_TOKEN_MAX_AGE,
+                )
+                return response
+            except Exception: pass
+        return Response(status=status.HTTP_200_OK)
+        
     def create(self, request, *args, **kwargs):
         verification_code = request.data.get('code')
         email = request.data.get('email')
@@ -91,6 +115,16 @@ class UserView(viewsets.ModelViewSet):
                 return set_auth_cookies(user, True)
 
         return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def update(self, request, *args, **kwargs):
+        serializer = self.get_serializer(request.user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        request.user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class SendEmailSignupView(APIView):
     permission_classes = [IsNotAuthenticated]
@@ -144,6 +178,15 @@ class LoginView(APIView):
             user = serializer.validated_data['user']
             return set_auth_cookies(user)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        response = Response(status=status.HTTP_200_OK)
+        response.delete_cookie('access_token', path='/', samesite='Strict')
+        response.delete_cookie('refresh_token', path='/', samesite='Strict')
+        return response
 
 class GoogleLoginView(APIView):
     permission_classes = [IsNotAuthenticated]
@@ -218,44 +261,8 @@ class GithubLoginView(APIView):
         except Exception:
             return Response({"message": "Github Login failed. Please try again."}, status=status.HTTP_400_BAD_REQUEST)
 
-class CheckAuthView(APIView):
-    permission_classes = []
-
-    def get(self, request):
-        if request.user.is_authenticated and request.user.is_active:
-            user_data = UserSerializer(request.user).data
-            return Response(user_data, status=status.HTTP_200_OK)
-        refresh_token = request.COOKIES.get('refresh_token')
-        if refresh_token:
-            try:
-                refresh = RefreshToken(refresh_token)
-                new_access_token = str(refresh.access_token)
-                user = User.objects.get(id=refresh["user_id"])
-                user_data = UserSerializer(user).data
-                response = Response(user_data, status=status.HTTP_200_OK)
-                response.set_cookie(
-                    key='access_token',
-                    value=new_access_token,
-                    httponly=True,
-                    secure=not settings.DEBUG,
-                    samesite='Strict',
-                    max_age=settings.ACCESS_TOKEN_MAX_AGE,
-                )
-                return response
-            except Exception: pass
-        return Response(status=status.HTTP_200_OK)
-
-class LogoutView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        response = Response(status=status.HTTP_200_OK)
-        response.delete_cookie('access_token', path='/', samesite='Strict')
-        response.delete_cookie('refresh_token', path='/', samesite='Strict')
-        return response
-
 class ApiKeyView(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsOwner]
     serializer_class = ApiKeySerializer
 
     def list(self, request, *args, **kwargs):

@@ -8,11 +8,11 @@ import { Combobox } from "@/pages/strategy/components/combobox"
 import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { useToast } from "@/hooks/use-toast"
 
 export function Strategy() {
   const navigate = useNavigate();
-  const { id } = useParams();
   const { toast } = useToast()
   const strategies = ["MACD", "RSI", "Bollinger Bands", "Moving Average"];
   const exchanges = ["Binance", "Coinbase", "Kraken", "Bitfinex"];
@@ -49,8 +49,8 @@ export function Strategy() {
 
   return (
     <ResizablePanelGroup direction="vertical" style={{ width: "100vw", height: "100vh" }} className="border">
-      <ResizablePanel defaultSize={50}>
-        <div className="flex flex-wrap items-center p-1">
+      <ResizablePanel defaultSize={50} className="flex flex-col">
+        <div className="flex flex-wrap items-center">
           <Button variant={"ghost"} size={"sm"} onClick={() => navigate("/portal")}>
             <img src="/logo.svg" alt="Logo" className="logo size-6"/>
           </Button>
@@ -90,6 +90,8 @@ export function Strategy() {
             </svg>
             Order conditions
           </Button>
+          <Separator orientation="vertical" className="h-5 mx-1" />
+          <ThemeToggle />
           <Separator orientation="vertical" className="h-5 mx-1" />
           <Button size={"sm"} onClick={handlePublish} disabled={isLoading}>
 							{isLoading ? (

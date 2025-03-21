@@ -6,8 +6,6 @@ from api import views
 from .permissions import IsAdmin
 from .authentication import JWTCookieAuthentication
 
-router = routers.DefaultRouter()
-router.register(r"user", views.UserView, "user")
 schema_view = get_schema_view(
     openapi.Info(
         title="API Documentation",
@@ -20,18 +18,27 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path("v1/", include(router.urls)),
+    # API Documentation Endpoints
     path('v1/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('v1/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='redoc-schema'),
-    path('v1/check-auth/', views.CheckAuthView.as_view(), name='check-auth'),
+    
+    # User Management
+    path("v1/user/me/", views.UserView.as_view({"get": "retrieve", "put": "update", "delete": "destroy"}), name="user-me"),
+    path('v1/send-email-signup/', views.SendEmailSignupView.as_view(), name='send-email-signup'),
+    path("v1/signup/", views.UserView.as_view({"post": "create"}), name="signup"),
+    path('v1/send-email-recover-password/', views.SendEmailRecoverPasswordView.as_view(), name='send-email-recover-password'),
+    path('v1/recover-password/', views.RecoverPasswordView.as_view(), name='recover-password'),
+
+    # Authentication
     path('v1/login/', views.LoginView.as_view(), name='login'),
     path('v1/logout/', views.LogoutView.as_view(), name='logout'),
     path('v1/google-login/', views.GoogleLoginView.as_view(), name='google-login'),
     path('v1/github-login/', views.GithubLoginView.as_view(), name='github-login'),
-    path('v1/send-email-signup/', views.SendEmailSignupView.as_view(), name='send-email-signup'),
-    path('v1/send-email-recover-password/', views.SendEmailRecoverPasswordView.as_view(), name='send-email-recover-password'),
-    path('v1/recover-password/', views.RecoverPasswordView.as_view(), name='recover-password'),
+
+    # API Keys Management
     path("v1/apiKey/", views.ApiKeyView.as_view({"get": "list", "post": "create"}), name="apiKey-list"),
     path("v1/apiKey/<str:exchange>/", views.ApiKeyView.as_view({"delete": "destroy"}), name="apiKey-detail"),
+
+    # Exchange Data
     path('v1/exchanges/', views.ExchangesView.as_view(), name='exchanges'),
 ]

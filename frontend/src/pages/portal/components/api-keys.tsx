@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Search, Trash, Pencil, CirclePlus, Loader2, EyeClosed } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getAllExchanges, getApiKeysExchanges, createUpdateApiKeys, deleteApiKeys } from "@/api";
+import { getAllExchanges, getApiKeysExchanges, createUpdateApiKeys, deleteApiKeys, ApiKey } from "@/api";
 
 export function ApiKeys() {
   const { toast } = useToast();
@@ -62,13 +62,14 @@ export function ApiKeys() {
         toast({ title: "Error", description: "At least one field must be filled" });
         return;
       }
-      await createUpdateApiKeys({
+      const apiKeyData: ApiKey = {
         exchange: selectedExchange,
         api_key: apiKey,
         secret: secret,
         password: password,
         uid: uid,
-      });
+      };
+      await createUpdateApiKeys(apiKeyData);
       setApiKeysExchanges((prev) => prev.includes(selectedExchange) ? prev : [...prev, selectedExchange]);
 			setOpenCreateUpdateDialog(false);
       setSelectedExchange(null);

@@ -1,5 +1,6 @@
 import axios from "axios";
 
+// Define the base API URL based on the environment (production or development)
 const URL = process.env.NODE_ENV === "production"
 	? `${import.meta.env.VITE_ENV_PATH}/api/v1/`
 	: "http://localhost:8000/api/v1/"
@@ -9,7 +10,7 @@ const api = axios.create({
 	withCredentials: true,
 });
 
-// Interceptor para manejar errores globalmente
+// Interceptor to handle errors globally
 api.interceptors.response.use(
 	(response) => response,
 	(error) => {
@@ -25,48 +26,39 @@ api.interceptors.response.use(
 	}
 );
 
-// User definition
+// User Interface
 export interface User {
-	id?: number;
-	username: string;
-	email: string;
+  username: string;
+  email: string;
+  timezone: string;
 	password?: string;
 }
 
-// ** Check Authentication Call **
-export const checkAuth = () => api.get("check-auth/");
+// API Keys Interface
+export interface ApiKey {
+  exchange: string;
+  api_key?: string;
+  secret?: string;
+	password?: string;
+	uid?: string;
+}
 
-// ** Login API Call **
-export const login = (username: string, password: string) => api.post("login/", { username, password });
+// ** User Management API Calls **
 
-// ** Logout API Call **
-export const logout = () => api.post("logout/");
+// Get Authenticated User
+export const getAuthUser = () => api.get<User>("user/me/");
 
-// ** Google Login API Call **
-export const googleLogin = (token: string) => api.post("google-login/", {}, { headers: { Authorization: `Bearer ${token}` } });
+// Update Authenticated User
+export const updateUser = (user: Partial<User>) => api.put<User>("user/me/", user);
 
-// ** GitHub Login API Call **
-export const githubLogin = (code: string) => api.post("github-login/", { code });
-
-// ** User API Calls **
-
-// Fetch all users
-export const getAllUsers = () => api.get<User[]>("user/");
-
-// Fetch a specific user by ID
-export const getUser = (id: number) => api.get<User>(`user/${id}/`);
-
-// Update an existing user by ID
-export const updateUser = (id: number, user: Partial<User>) => api.put<User>(`user/${id}/`, user);
-
-// Delete a specific user by ID
-export const deleteUser = (id: number) => api.delete(`user/${id}/`);
+// Delete Authenticated User
+export const deleteUser = () => api.delete("user/me/");
 
 // Send sing-up verification to email
 export const sendEmailSignup = (email: string, username: string, password: string) => api.post("send-email-signup/", { email, username, password });
 
 // Create a new user
-export const signup = (user: User, code: string) => api.post<User>("user/", { ...user, code });
+export const signup = (user: User, code: string) => api.post<User>("signup/", { ...user, code });
 
 // Send recover password verification to email
 export const sendEmailRecoverPassword = (email: string, new_password: string) => api.post("send-email-recover-password/", { email, new_password });
@@ -74,16 +66,35 @@ export const sendEmailRecoverPassword = (email: string, new_password: string) =>
 // Recover password
 export const recoverPassword = (email: string, new_password: string, code: string) => api.post("recover-password/", { email, new_password, code });
 
+
+// ** Authentication API Calls **
+
+// Login
+export const login = (username: string, password: string) => api.post("login/", { username, password });
+
+// Logout
+export const logout = () => api.post("logout/");
+
+// Google Login
+export const googleLogin = (token: string) => api.post("google-login/", {}, { headers: { Authorization: `Bearer ${token}` } });
+
+// GitHub Login
+export const githubLogin = (code: string) => api.post("github-login/", { code });
+
+
+// ** API Keys Management **
+
 // Get API Keys Exchanges
 export const getApiKeysExchanges = () => api.get<string[]>("apiKey/");
 
 // Create or Update API Keys
-export const createUpdateApiKeys = (
-	data: { exchange: string; api_key?: string; secret?: string; password?: string; uid?: string; }
-) => api.post("apiKey/", data);
+export const createUpdateApiKeys = (api_key: ApiKey) => api.post("apiKey/", api_key);
 
 // Delete API Keys
 export const deleteApiKeys = (exchange: string) => api.delete(`apiKey/${exchange}/`);
+
+
+// ** Exchange Data **
 
 // Get all ccxt exchanges
 export const getAllExchanges = () => api.get("exchanges/");

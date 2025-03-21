@@ -1,25 +1,30 @@
 import { useEffect } from "react";
 import { createChart, CandlestickSeries, HistogramSeries, LineSeries, BarSeries, CrosshairMode, createSeriesMarkers } from "lightweight-charts";
+import { toZonedTime, getTimezoneOffset } from 'date-fns-tz';
+import { useSession } from "@/App";
 
-function generateLineData(numberOfPoints = 500, endDate) {
+function generateLineData(numberOfPoints = 500) {
 	const randomFactor = 25 + Math.random() * 25;
 	const res = [];
-	const date = endDate || new Date(Date.UTC(2018, 0, 1, 12, 0, 0, 0));
-	date.setUTCDate(date.getUTCDate() - numberOfPoints - 1);
+	const currentDate = new Date();
+	const endDate = new Date(currentDate.getTime());
+	endDate.setUTCSeconds(0, 0);
+	const date = new Date(endDate.getTime());
+	date.setUTCMinutes(date.getUTCMinutes() - numberOfPoints);
 	for (let i = 0; i < numberOfPoints; ++i) {
 		const time = date.getTime() / 1000;
 		const value = (i * (0.5 + Math.sin(i / 10) * 0.2 + Math.sin(i / 20) * 0.4
-			+ Math.sin(i / randomFactor) * 0.8 + Math.sin(i / 500) * 0.5)
-			- 200) * (Math.random() > 0.5 ? 1 : -1);
+				+ Math.sin(i / randomFactor) * 0.8 + Math.sin(i / 500) * 0.5)
+				- 200) * (Math.random() > 0.5 ? 1 : -1);
 		res.push({ time, value });
-		date.setUTCDate(date.getUTCDate() + 1);
+		date.setUTCMinutes(date.getUTCMinutes() + 1);
 	}
 	return res;
 }
 
-function generateCandleData(numberOfPoints = 250, endDate) {
+function generateCandleData(numberOfPoints = 250) {
 	const randomNumber = (min, max) => Math.random() * (max - min) + min;
-	const lineData = generateLineData(numberOfPoints, endDate);
+	const lineData = generateLineData(numberOfPoints);
 	let lastClose = lineData[0].value;
 	return lineData.map((d) => {
 		const open = +(randomNumber(lastClose * 0.95, lastClose * 1.05)).toFixed(2);
@@ -47,6 +52,15 @@ function calculateMovingAverageSeriesData(candleData, maLength) {
 		}
 	}
 	return maData;
+}
+
+function convertDataToTimezone(data, timezone) {
+  return data.map(item => {
+    const dateUTC = new Date(item.time * 1000);
+    const offsetMs = getTimezoneOffset(timezone, dateUTC);
+    const adjustedTimestamp = (dateUTC.getTime() + offsetMs) / 1000;
+    return { ...item, time: adjustedTimestamp };
+  });
 }
 
 const getCssColor = (name) => `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
@@ -82,7 +96,7 @@ function getChartOptions() {
 			vertLines: { color: getCssColor("--border") },
 			horzLines: { color: getCssColor("--border") },
 		},
-		timeScale: { borderColor: getCssColor("--border") },
+		timeScale: { borderColor: getCssColor("--border"), timeVisible: true, secondsVisible: false },
 		rightPriceScale: { borderColor: getCssColor("--border"), autoScale: false },
 		crosshair: {
 			mode: CrosshairMode.Normal,
@@ -439,7 +453,8 @@ function updateChart() {
 }
 
 export function CandleChart() {
-	const candleData = generateCandleData(500);
+	const { user } = useSession();
+	const candleData = convertDataToTimezone(generateCandleData(500), user.timezone);
 	const markers = [
 		{
 			time: candleData[candleData.length - 2].time,
@@ -457,7 +472,7 @@ export function CandleChart() {
 		}
 	];
 	const maData = calculateMovingAverageSeriesData(candleData, 20);
-	const lineData = generateLineData(500);
+	const lineData = convertDataToTimezone(generateLineData(500), user.timezone);
 
 	useEffect(() => {
 		const timeout = setTimeout(() => {
@@ -483,5 +498,5 @@ export function CandleChart() {
 		return () => clearTimeout(timeout);
 	}, []);
 
-	return <div id="chart-container" className="size-full"></div>
+	return <div id="chart-container" className="flex-1 min-w-0 min-h-0"></div>
 }

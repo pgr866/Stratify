@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState, createContext, useContext } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { checkAuth } from "@/api";
+import { getAuthUser, User } from "@/api";
 import './App.css';
 
 // Lazy-loaded components
@@ -11,13 +11,6 @@ const RecoverPassword = lazy(() => import("@/pages/recover-password").then(modul
 const Signup = lazy(() => import("@/pages/signup").then(module => ({ default: module.Signup })));
 const Portal = lazy(() => import("@/pages/portal/portal").then(module => ({ default: module.Portal })));
 const Strategy = lazy(() => import("@/pages/strategy/strategy").then(module => ({ default: module.Strategy })));
-
-interface User {
-  id: string;
-  email: string;
-  username: string;
-  timezone_offset: string;
-}
 
 const SessionContext = createContext<{ user: User | null }>({ user: null });
 
@@ -29,7 +22,7 @@ function App() {
 
   useEffect(() => {
     if (location.pathname.startsWith("/home") || location.pathname.startsWith("/api")) return;
-    checkAuth()
+    getAuthUser()
       .then(res => setUser(res.data))
       .catch(() => setUser(null));
   }, [location]);
