@@ -91,7 +91,7 @@ export function Strategy() {
             Order conditions
           </Button>
           <Separator orientation="vertical" className="h-5 mx-1" />
-          <ThemeToggle />
+          <ThemeToggle size="9" />
           <Separator orientation="vertical" className="h-5 mx-1" />
           <Button size={"sm"} onClick={handlePublish} disabled={isLoading}>
 							{isLoading ? (

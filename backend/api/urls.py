@@ -24,6 +24,7 @@ urlpatterns = [
     
     # User Management
     path("v1/user/me/", views.UserView.as_view({"get": "retrieve", "put": "update", "delete": "destroy"}), name="user-me"),
+    path("v1/toggle-theme/", views.ToggleThemeView.as_view(), name="toggle-theme"),
     path('v1/send-email-signup/', views.SendEmailSignupView.as_view(), name='send-email-signup'),
     path("v1/signup/", views.UserView.as_view({"post": "create"}), name="signup"),
     path('v1/send-email-recover-password/', views.SendEmailRecoverPasswordView.as_view(), name='send-email-recover-password'),

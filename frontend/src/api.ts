@@ -30,6 +30,7 @@ api.interceptors.response.use(
 export interface User {
   username: string;
   email: string;
+	dark_theme: boolean;
   timezone: string;
 	password?: string;
 }
@@ -50,6 +51,9 @@ export const getAuthUser = () => api.get<User>("user/me/");
 
 // Update Authenticated User
 export const updateUser = (user: Partial<User>) => api.put<User>("user/me/", user);
+
+// Toggle Theme
+export const toggleTheme = () => api.post("toggle-theme/");
 
 // Delete Authenticated User
 export const deleteUser = () => api.delete("user/me/");

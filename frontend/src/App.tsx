@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState, createContext, useContext } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from '@/components/theme-provider.tsx'
 import { getAuthUser, User } from "@/api";
 import './App.css';
 
@@ -29,16 +30,18 @@ function App() {
   return (
     <SessionContext.Provider value={{ user }}>
       <Suspense fallback={<div></div>}>
-        <Routes>
-          <Route path="/api/*" />
-          <Route path="/home" element={<Home />} />
-          <Route path="/login" element={user ? <Navigate to="/portal" /> : <Login />} />
-          <Route path="/recover-password" element={user ? <Navigate to="/portal" /> : <RecoverPassword />} />
-          <Route path="/signup" element={user ? <Navigate to="/portal" /> : <Signup />} />
-          <Route path="/portal" element={user ? <Portal /> : <Navigate to="/login" />} />
-          <Route path="/strategy/:id" element={<Strategy />} />
-          <Route path="*" element={<Navigate to="/home" />} />
-        </Routes>
+        <ThemeProvider>
+          <Routes>
+            <Route path="/api/*" />
+            <Route path="/home" element={<Home />} />
+            <Route path="/login" element={user ? <Navigate to="/portal" /> : <Login />} />
+            <Route path="/recover-password" element={user ? <Navigate to="/portal" /> : <RecoverPassword />} />
+            <Route path="/signup" element={user ? <Navigate to="/portal" /> : <Signup />} />
+            <Route path="/portal" element={user ? <Portal /> : <Navigate to="/login" />} />
+            <Route path="/strategy/:id" element={<Strategy />} />
+            <Route path="*" element={<Navigate to="/home" />} />
+          </Routes>
+        </ThemeProvider>
       </Suspense>
       <Toaster />
     </SessionContext.Provider>

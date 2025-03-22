@@ -126,6 +126,15 @@ class UserView(viewsets.ModelViewSet):
         request.user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+class ToggleThemeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        user.dark_theme = not user.dark_theme
+        user.save(update_fields=["dark_theme"])
+        return Response({"dark_theme": user.dark_theme}, status=status.HTTP_200_OK)
+
 class SendEmailSignupView(APIView):
     permission_classes = [IsNotAuthenticated]
 

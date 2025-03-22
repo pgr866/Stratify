@@ -11,9 +11,11 @@ import { GithubSignin } from "@/components/github-signin"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useToast } from "@/hooks/use-toast"
 import { signup, sendEmailSignup, User } from "@/api";
+import { useTheme } from "@/components/theme-provider";
 
 export function Signup() {
 	const { toast } = useToast()
+	const { theme } = useTheme();
 	const navigate = useNavigate();
 	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
@@ -52,6 +54,7 @@ export function Signup() {
 				email,
 				username,
 				password,
+				dark_theme: theme !== "light",
 				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
 			};
 			await signup(user, code);

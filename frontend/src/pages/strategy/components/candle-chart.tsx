@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { createChart, CandlestickSeries, HistogramSeries, LineSeries, BarSeries, CrosshairMode, createSeriesMarkers } from "lightweight-charts";
-import { toZonedTime, getTimezoneOffset } from 'date-fns-tz';
+import { getTimezoneOffset } from 'date-fns-tz';
 import { useSession } from "@/App";
 
 function generateLineData(numberOfPoints = 500) {

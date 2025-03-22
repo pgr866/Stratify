@@ -1,29 +1,32 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState } from "react";
+import { useSession } from "@/App";
+import { toggleTheme } from "@/api";
 
-type Theme = "dark" | "light"
+type Theme = "dark" | "light";
 
-const ThemeContext = createContext<{ theme: Theme; setTheme: (theme: Theme) => void } | undefined>(undefined)
+const ThemeContext = createContext<{ theme: Theme; handleToggleTheme: () => void } | undefined>(undefined);
 
-export function ThemeProvider({ children, theme }: { children: React.ReactNode; theme?: Theme }) {
-	const [currentTheme, setTheme] = useState<Theme>(theme ?? window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+export const useTheme = () => useContext(ThemeContext);
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+	const { user } = useSession();
+	const [theme, setTheme] = useState<Theme>(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 
 	useEffect(() => {
-		const root = window.document.documentElement
-		root.classList.remove("light", "dark")
-		root.classList.add(currentTheme)
-	}, [currentTheme])
+		if (user != null) setTheme(user.dark_theme ? "dark" : "light");
+		document.documentElement.classList.toggle("dark", theme === "dark");
+		document.documentElement.classList.toggle("light", theme === "light");
+	}, [user, theme]);
 
-	return (
-		<ThemeContext.Provider value={{ theme: currentTheme, setTheme }}>
-			{children}
-		</ThemeContext.Provider>
-	)
-}
+	const handleToggleTheme = async () => {
+		if (user) {
+			const response = await toggleTheme();
+			user.dark_theme = response?.data?.dark_theme;
+			setTheme(user.dark_theme ? "dark" : "light");
+		} else {
+			setTheme(theme === "dark" ? "light" : "dark");
+		}
+	};
 
-export const useTheme = () => {
-	const context = useContext(ThemeContext)
-	if (!context) {
-		throw new Error("useTheme must be used within a ThemeProvider")
-	}
-	return context
+	return <ThemeContext.Provider value={{ theme, handleToggleTheme }}>{children}</ThemeContext.Provider>;
 }

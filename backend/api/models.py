@@ -7,6 +7,7 @@ class User(AbstractUser):
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=150, unique=True) # Explicitly declared
     password = models.CharField(max_length=128) # Explicitly declared
+    dark_theme = models.BooleanField(default=True)
     timezone = models.CharField(max_length=255, default="UTC")
     google_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     github_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
