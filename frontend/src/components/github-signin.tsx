@@ -5,9 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { githubLogin } from "@/api";
 import { useSearchParams } from "react-router-dom";
+import { useTheme } from "@/components/theme-provider";
 
 export function GithubSignin() {
 	const { toast } = useToast();
+	const { theme } = useTheme();
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
 
@@ -41,7 +43,11 @@ export function GithubSignin() {
 					if (stateFromUrl !== stateFromStorage || !stateFromUrl || !stateFromStorage) {
 						throw new Error("State mismatch. Security check failed.");
 					}
-					await githubLogin(code);
+					await githubLogin(
+						code,
+						Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+						theme !== "light"
+					);
 					navigate("/portal");
 					toast({ description: "GitHub Login successfully" });
 				} catch (error) {

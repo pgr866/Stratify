@@ -6,18 +6,10 @@ import { cn } from "@/lib/utils"
 import { toast } from "@/hooks/use-toast"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import {
-	Form,
-	FormControl,
-	FormDescription,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
-} from "@/components/ui/form"
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
-const appearanceFormSchema = z.object({
+const preferencesFormSchema = z.object({
 	theme: z.enum(["light", "dark"], {
 		required_error: "Please select a theme.",
 	}),
@@ -27,14 +19,14 @@ const appearanceFormSchema = z.object({
 	}),
 })
 
-type AppearanceFormValues = z.infer<typeof appearanceFormSchema>
+type PreferencesFormValues = z.infer<typeof preferencesFormSchema>
 
-export function Appearance() {
-	const form = useForm<AppearanceFormValues>({
-		resolver: zodResolver(appearanceFormSchema)
+export function Preferences() {
+	const form = useForm<PreferencesFormValues>({
+		resolver: zodResolver(preferencesFormSchema)
 	})
 
-	function onSubmit(data: AppearanceFormValues) {
+	function onSubmit(data: PreferencesFormValues) {
 		toast({
 			title: "You submitted the following values:",
 			description: (
@@ -48,21 +40,18 @@ export function Appearance() {
 	return (
 		<div className="space-y-4">
 			<div>
-				<h3 className="text-lg font-medium">Appearance</h3>
-				<p className="text-sm text-muted-foreground" style={{ marginTop: '0' }}>
-					Customize the appearance of the app. Automatically switch between day
-					and night themes.
-				</p>
+				<h3 className="text-lg font-medium">Preferences</h3>
+				<div><p className="text-sm text-muted-foreground">Set your preferred timezone and theme.</p></div>
 			</div>
 			<Separator />
 			<Form {...form}>
 				<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 					<FormField
 						control={form.control}
-						name="font"
+						name="timezone"
 						render={({ field }) => (
 							<FormItem>
-								<FormLabel>Font</FormLabel>
+								<FormLabel>Timezone</FormLabel>
 								<div className="relative w-max">
 									<FormControl>
 										<select
@@ -80,7 +69,7 @@ export function Appearance() {
 									<ChevronDown className="absolute right-3 top-2.5 h-4 w-4 opacity-50" />
 								</div>
 								<FormDescription>
-									Set the font you want to use in the dashboard.
+									Select the timezone you want to use across the platform.
 								</FormDescription>
 								<FormMessage />
 							</FormItem>

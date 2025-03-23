@@ -14,7 +14,7 @@ import { login } from "@/api";
 export function Login() {
 	const { toast } = useToast()
 	const navigate = useNavigate();
-	const [email, setEmail] = useState("");
+	const [emailUsername, setEmailUsername] = useState("");
 	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +22,7 @@ export function Login() {
 	const handleLogin = async () => {
 		try {
 			setIsLoading(true);
-			await login(email, password);
+			await login(emailUsername, password);
 			navigate("/portal");
 			toast({ description: "Login successfully" });
 		} catch (error) {
@@ -71,11 +71,12 @@ export function Login() {
 								<Label htmlFor="email">Email or Username</Label>
 							</div>
 							<Input
-								id="email"
-								type="email"
+								id="email_username"
+								type="text"
 								placeholder="m@example.com"
-								value={email}
-								onChange={(e) => setEmail(e.target.value)}
+								maxLength={emailUsername.includes("@") ? 254 : 150}
+								value={emailUsername}
+								onChange={(e) => setEmailUsername(e.target.value)}
 							/>
 						</div>
 						<div className="grid gap-2">
@@ -89,6 +90,7 @@ export function Login() {
 								<Input
 									id="password"
 									type={showPassword ? "text" : "password"}
+									maxLength={128}
 									value={password}
 									onChange={(e) => setPassword(e.target.value)}
 									className="pr-10"

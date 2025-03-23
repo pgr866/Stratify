@@ -4,11 +4,11 @@ import uuid
 
 class User(AbstractUser):
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=150, unique=True) # Explicitly declared
-    password = models.CharField(max_length=128) # Explicitly declared
-    dark_theme = models.BooleanField(default=True)
+    email = models.EmailField(max_length=254, unique=True)
+    username = models.CharField(max_length=150, unique=True) # Default value in AbstractUser
+    password = models.CharField(max_length=128) # Default value in AbstractUser
     timezone = models.CharField(max_length=255, default="UTC")
+    dark_theme = models.BooleanField(default=True)
     google_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     github_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
 
@@ -19,10 +19,10 @@ class ApiKey(models.Model):
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     exchange = models.CharField(max_length=50)
-    api_key = models.CharField(max_length=255, blank=True, default="")
-    secret = models.CharField(max_length=255, blank=True, default="")
-    password = models.CharField(max_length=255, blank=True, default="")
-    uid = models.CharField(max_length=255, blank=True, default="")
+    api_key = models.CharField(max_length=512, blank=True, default="")
+    secret = models.CharField(max_length=512, blank=True, default="")
+    password = models.CharField(max_length=512, blank=True, default="")
+    uid = models.CharField(max_length=512, blank=True, default="")
 
     class Meta:
         unique_together = ('user', 'exchange')

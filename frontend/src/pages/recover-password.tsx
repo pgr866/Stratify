@@ -84,6 +84,7 @@ export function RecoverPassword() {
 									id="email"
 									type="email"
 									placeholder="m@example.com"
+									maxLength={254}
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
@@ -96,6 +97,7 @@ export function RecoverPassword() {
 									<Input
 										id="password"
 										type={showPassword ? "text" : "password"}
+										maxLength={128}
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
 										className="pr-10"
@@ -117,6 +119,7 @@ export function RecoverPassword() {
 									<Input
 										id="repeat_password"
 										type={showRepeatPassword ? "text" : "password"}
+										maxLength={128}
 										value={repeatPassword}
 										onChange={(e) => setRepeatPassword(e.target.value)}
 										className="pr-10"

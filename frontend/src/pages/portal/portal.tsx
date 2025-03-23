@@ -1,14 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { MyStrategies } from "./components/my-strategies"
 import { ExploreStrategies } from "./components/explore-strategies"
@@ -36,7 +29,7 @@ export function Portal() {
 					<img src="/logo.svg" alt="Logo" className="size-8" />
 					<h1 className="text-2xl">Stratify</h1>
 				</div>
-				<TabsList className="flex flex-wrap h-auto mx-auto bg-transparent" style={{ marginTop: '0' }}>
+				<TabsList className="flex flex-wrap h-auto mx-auto bg-transparent gap-1" style={{ marginTop: '0' }}>
 					<TabsTrigger className="px-2 md:px-4" value="dashboard"><FileChartPie size={18} className="mr-1" />Dashboard</TabsTrigger>
 					<TabsTrigger className="px-2 md:px-4" value="my-strategies"><ChartNoAxesCombined size={18} className="mr-1" />My Strategies</TabsTrigger>
 					<TabsTrigger className="px-2 md:px-4" value="explore-strategies"><Globe size={18} className="mr-1" />Explore Strategies</TabsTrigger>

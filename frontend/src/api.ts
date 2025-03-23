@@ -80,10 +80,12 @@ export const login = (username: string, password: string) => api.post("login/", 
 export const logout = () => api.post("logout/");
 
 // Google Login
-export const googleLogin = (token: string) => api.post("google-login/", {}, { headers: { Authorization: `Bearer ${token}` } });
+export const googleLogin = (token: string, timezone: string, dark_theme: boolean) => 
+  api.post("google-login/", { timezone, dark_theme }, { headers: { Authorization: `Bearer ${token}` } });
 
 // GitHub Login
-export const githubLogin = (code: string) => api.post("github-login/", { code });
+export const githubLogin = (code: string, timezone: string, dark_theme: boolean) => 
+  api.post("github-login/", { code, timezone, dark_theme });
 
 
 // ** API Keys Management **

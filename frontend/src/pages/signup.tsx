@@ -54,8 +54,8 @@ export function Signup() {
 				email,
 				username,
 				password,
-				dark_theme: theme !== "light",
 				timezone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+				dark_theme: theme !== "light",
 			};
 			await signup(user, code);
 			navigate("/portal");
@@ -110,6 +110,7 @@ export function Signup() {
 									id="username"
 									type="text"
 									placeholder="Username"
+									maxLength={150}
 									value={username}
 									onChange={(e) => setUsername(e.target.value)}
 								/>
@@ -122,6 +123,7 @@ export function Signup() {
 									id="email"
 									type="email"
 									placeholder="m@example.com"
+									maxLength={254}
 									value={email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
@@ -134,6 +136,7 @@ export function Signup() {
 									<Input
 										id="password"
 										type={showPassword ? "text" : "password"}
+										maxLength={128}
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
 										className="pr-10"
@@ -155,6 +158,7 @@ export function Signup() {
 									<Input
 										id="repeat_password"
 										type={showRepeatPassword ? "text" : "password"}
+										maxLength={128}
 										value={repeatPassword}
 										onChange={(e) => setRepeatPassword(e.target.value)}
 										className="pr-10"

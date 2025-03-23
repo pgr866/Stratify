@@ -111,6 +111,7 @@ export function ApiKeys() {
           type="search"
           placeholder="Search exchanges..."
           className="w-full pr-8"
+          maxLength={50}
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
         />
@@ -198,6 +199,7 @@ export function ApiKeys() {
 						<Input
 	            id="apiKey"
             	type="password"
+              maxLength={512}
             	value={apiKey}
             	onChange={(e) => setApiKey(e.target.value)}
 							className="pr-10"
@@ -210,6 +212,7 @@ export function ApiKeys() {
 						<Input
 	            id="secret"
             	type="password"
+              maxLength={512}
             	value={secret}
             	onChange={(e) => setSecret(e.target.value)}
 							className="pr-10"
@@ -222,6 +225,7 @@ export function ApiKeys() {
 						<Input
 	            id="password"
             	type="password"
+              maxLength={512}
             	value={password}
             	onChange={(e) => setPassword(e.target.value)}
 							className="pr-10"
@@ -234,6 +238,7 @@ export function ApiKeys() {
 						<Input
 	            id="uid"
             	type="password"
+              maxLength={512}
             	value={uid}
             	onChange={(e) => setUid(e.target.value)}
 							className="pr-10"

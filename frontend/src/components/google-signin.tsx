@@ -3,15 +3,21 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { googleLogin } from "@/api";
 import { useGoogleLogin } from "@react-oauth/google";
+import { useTheme } from "@/components/theme-provider";
 
 export function GoogleSignin() {
 	const { toast } = useToast();
+	const { theme } = useTheme();
 	const navigate = useNavigate();
 
 	const handleGoogleLogin = useGoogleLogin({
 		onSuccess: async (tokenResponse) => {
 			try {
-				await googleLogin(tokenResponse.access_token);
+				await googleLogin(
+					tokenResponse.access_token,
+					Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'UTC',
+					theme !== "light"
+				);
 				navigate("/portal");
 				toast({ description: "Google Login successfully" });
 			} catch (error) {

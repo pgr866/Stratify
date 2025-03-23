@@ -19,7 +19,7 @@ from github.ApplicationOAuth import ApplicationOAuth
 
 from .models import User, ApiKey
 from .permissions import IsAuthenticated, IsNotAuthenticated, IsOwner, NoBody
-from .serializers import UserSerializer, LoginSerializer, RecoverPasswordSerializer, ApiKeySerializer
+from .serializers import UserSerializer, LoginSerializer, GoogleLoginSerializer, GithubLoginSerializer, RecoverPasswordSerializer, ApiKeySerializer
 
 def set_auth_cookies(user, signup=False):
     refresh = RefreshToken.for_user(user)
@@ -214,19 +214,11 @@ class GoogleLoginView(APIView):
                 raise ValueError("Invalid client ID")
             if not user_data.get('email_verified', False):
                 raise ValueError("Email not verified")
-            google_email = user_data.get("email")
-            google_username = google_email.split('@')[0]
-            google_id = user_data.get("sub")
-            
-            user = get_user_model().objects.filter(google_id=google_id).first()
-            if not user:
-                if get_user_model().objects.filter(username=google_username).exists():
-                    google_username = google_email
-                user = get_user_model().objects.create(
-                    email=google_email,
-                    username=google_username,
-                    google_id=google_id
-                )
+            request.data["google_email"] = user_data.get("email")
+            request.data["google_id"] = user_data.get("sub")
+            serializer = GoogleLoginSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data["user"]
             return set_auth_cookies(user)
         except Exception:
             return Response({"message": "Google Login failed. Please try again."}, status=status.HTTP_400_BAD_REQUEST)
@@ -247,26 +239,18 @@ class GithubLoginView(APIView):
                 retry=3,
                 pool_size=10
             )
-            oauth = ApplicationOAuth(requester=requester, headers={}, attributes={}, completed=False)
+            oauth = ApplicationOAuth(requester=requester, headers={}, attributes={})
             oauth._client_id = SimpleNamespace(value=settings.VITE_GITHUB_CLIENT_ID)
             oauth._client_secret = SimpleNamespace(value=settings.GITHUB_CLIENT_SECRET)
             token = oauth.get_access_token(code=code)
             user_data = Github(token.token).get_user()
-            github_id = user_data.id
-            github_username = user_data.login
-            github_email = user_data.email or f"{github_username}@github.local"
-            user = get_user_model().objects.filter(github_id=github_id).first()
-            if not user:
-                if get_user_model().objects.filter(username=github_username).exists():
-                    github_username = github_email
-
-                user = get_user_model().objects.create(
-                    email=github_email,
-                    username=github_username,
-                    github_id=github_id
-                )
+            request.data["github_id"] = user_data.id
+            request.data["github_username"] = user_data.login
+            request.data["github_email"] = user_data.email or f"{github_username}@github.local"
+            serializer = GithubLoginSerializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            user = serializer.validated_data["user"]
             return set_auth_cookies(user)
-
         except Exception:
             return Response({"message": "Github Login failed. Please try again."}, status=status.HTTP_400_BAD_REQUEST)
 

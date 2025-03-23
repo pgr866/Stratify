@@ -1,222 +1,90 @@
+import { useState } from "react";
 import { Separator } from "@/components/ui/separator"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { format } from "date-fns"
-import { CalendarIcon, Check, ChevronsUpDown } from "lucide-react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { cn } from "@/lib/utils"
-import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-
-const languages = [
-  { label: "English", value: "en" },
-  { label: "French", value: "fr" },
-  { label: "German", value: "de" },
-  { label: "Spanish", value: "es" },
-  { label: "Portuguese", value: "pt" },
-  { label: "Russian", value: "ru" },
-  { label: "Japanese", value: "ja" },
-  { label: "Korean", value: "ko" },
-  { label: "Chinese", value: "zh" },
-] as const
-
-const accountFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, {
-      message: "Name must be at least 2 characters.",
-    })
-    .max(30, {
-      message: "Name must not be longer than 30 characters.",
-    }),
-  dob: z.date({
-    required_error: "A date of birth is required.",
-  }),
-  language: z.string({
-    required_error: "Please select a language.",
-  }),
-})
-
-type AccountFormValues = z.infer<typeof accountFormSchema>
+import { toast, useToast } from "@/hooks/use-toast"
+import { Skull, Eye, EyeClosed } from "lucide-react"
+import { Label } from "@/components/ui/label";
+import { useSession } from "@/App";
 
 export function Account() {
-  const form = useForm<AccountFormValues>({
-    resolver: zodResolver(accountFormSchema)
-  })
+	const { toast } = useToast()
+	const { user } = useSession();
+	const [username, setUsername] = useState(user.username);
+	const [email, setEmail] = useState(user.email);
+	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 
-  function onSubmit(data: AccountFormValues) {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    })
-  }
-  return (
-    <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-medium">Account</h3>
-        <p className="text-sm text-muted-foreground" style={{ marginTop: '0' }}>
-          Update your account settings. Set your preferred language and
-          timezone.
-        </p>
-      </div>
-      <Separator />
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="Your name" {...field} />
-                </FormControl>
-                <FormDescription>
-                  This is the name that will be displayed on your profile and in
-                  emails.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="dob"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Date of birth</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant={"outline"}
-                        className={cn(
-                          "w-[240px] pl-3 text-left font-normal",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value ? (
-                          format(field.value, "PPP")
-                        ) : (
-                          <span>Pick a date</span>
-                        )}
-                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={field.value}
-                      onSelect={field.onChange}
-                      disabled={(date) =>
-                        date > new Date() || date < new Date("1900-01-01")
-                      }
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-                <FormDescription>
-                  Your date of birth is used to calculate your age.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="language"
-            render={({ field }) => (
-              <FormItem className="flex flex-col">
-                <FormLabel>Language</FormLabel>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <FormControl>
-                      <Button
-                        variant="outline"
-                        role="combobox"
-                        className={cn(
-                          "w-[200px] justify-between",
-                          !field.value && "text-muted-foreground"
-                        )}
-                      >
-                        {field.value
-                          ? languages.find(
-                            (language) => language.value === field.value
-                          )?.label
-                          : "Select language"}
-                        <ChevronsUpDown className="opacity-50" />
-                      </Button>
-                    </FormControl>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0">
-                    <Command>
-                      <CommandInput placeholder="Search language..." />
-                      <CommandList>
-                        <CommandEmpty>No language found.</CommandEmpty>
-                        <CommandGroup>
-                          {languages.map((language) => (
-                            <CommandItem
-                              value={language.label}
-                              key={language.value}
-                              onSelect={() => {
-                                form.setValue("language", language.value)
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2",
-                                  language.value === field.value
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                              {language.label}
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                <FormDescription>
-                  This is the language that will be used in the dashboard.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button type="submit">Update account</Button>
-        </form>
-      </Form>
-    </div>
-  )
+	return (
+		<div className="space-y-4">
+			<div>
+				<h3 className="text-lg font-medium">Account</h3>
+				<div>
+					<p className="text-sm text-muted-foreground">
+						Update your account settings.
+						To change your username or email, you will need to enter your current password and verify your email address.
+					</p>
+				</div>
+			</div>
+			<Separator />
+			<div className="grid gap-2">
+				<div className="flex items-center">
+					<Label htmlFor="username">Username</Label>
+				</div>
+				<Input
+					id="username"
+					type="text"
+					placeholder="username"
+					maxLength={150}
+					value={username}
+					onChange={(e) => setUsername(e.target.value)}
+					className="max-w-80"
+				/>
+			</div>
+			<div className="grid gap-2">
+				<div className="flex items-center">
+					<Label htmlFor="email">Email</Label>
+				</div>
+				<Input
+					id="email"
+					type="email"
+					placeholder="m@example.com"
+					maxLength={254}
+					value={email}
+					onChange={(e) => setEmail(e.target.value)}
+					className="max-w-80"
+				/>
+			</div>
+			<div className="grid gap-2">
+				<div className="flex items-center">
+					<Label htmlFor="password">Confirm Password</Label>
+				</div>
+				<div className="relative w-full max-w-80">
+					<Input
+						id="password"
+						type={showPassword ? "text" : "password"}
+						placeholder="Your current password"
+						maxLength={128}
+						value={password}
+						onChange={(e) => setPassword(e.target.value)}
+						className="pr-10"
+					/>
+					<button
+						type="button"
+						onClick={() => setShowPassword(!showPassword)}
+						className="absolute inset-y-0 right-3 flex items-center text-muted-foreground hover:text-foreground"
+					>
+						{showPassword ? <Eye size={16} /> : <EyeClosed size={16} />}
+					</button>
+				</div>
+			</div>
+			<Button>Update account</Button>
+			<div className="flex flex-row items-center gap-1">
+				<Skull className='text-destructive size-6 mb-0.5' />
+				<h3 className="text-lg font-medium">Danger Zone</h3>
+			</div>
+			<Separator />
+			<Button variant="destructive">Delete account</Button>
+		</div>
+	)
 }

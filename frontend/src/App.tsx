@@ -17,15 +17,17 @@ const SessionContext = createContext<{ user: User | null }>({ user: null });
 export const useSession = () => useContext(SessionContext);
 
 function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null | undefined>(undefined);
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname.startsWith("/home") || location.pathname.startsWith("/api")) return;
+    if (["/home", "/api"].some(path => location.pathname.startsWith(path))) return;
     getAuthUser()
       .then((response: { data: User }) => setUser(response.data))
       .catch(() => setUser(null));
   }, [location]);
+
+  if (user === undefined && location.pathname !== "/home") return null;
 
   return (
     <SessionContext.Provider value={{ user }}>
@@ -38,7 +40,7 @@ function App() {
             <Route path="/recover-password" element={user ? <Navigate to="/portal" /> : <RecoverPassword />} />
             <Route path="/signup" element={user ? <Navigate to="/portal" /> : <Signup />} />
             <Route path="/portal" element={user ? <Portal /> : <Navigate to="/login" />} />
-            <Route path="/strategy/:id" element={<Strategy />} />
+            <Route path="/strategy/:id" element={user ? <Strategy /> : <Navigate to="/login" />} />
             <Route path="*" element={<Navigate to="/home" />} />
           </Routes>
         </ThemeProvider>

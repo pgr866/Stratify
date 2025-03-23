@@ -87,6 +87,60 @@ class LoginSerializer(serializers.Serializer):
         
         return attrs
 
+class GoogleLoginSerializer(serializers.Serializer):
+    google_id = serializers.CharField()
+    google_email = serializers.EmailField()
+    timezone = serializers.CharField(default="UTC")
+    dark_theme = serializers.BooleanField(default=True)
+
+    def validate(self, data):
+        google_id = data.get("google_id")
+        google_email = data.get("google_email")
+        google_username = google_email.split('@')[0]
+        timezone = data.get("timezone")
+        dark_theme = data.get("dark_theme")
+        user = User.objects.filter(google_id=google_id).first()
+        if not user:
+            if User.objects.filter(username=google_username).exists():
+                google_username = google_email
+            user = User.objects.create(
+                email=google_email,
+                username=google_username,
+                google_id=google_id,
+                timezone=timezone,
+                dark_theme=dark_theme
+            )
+        data["user"] = user
+        return data
+
+class GithubLoginSerializer(serializers.Serializer):
+    github_id = serializers.CharField()
+    github_email = serializers.EmailField()
+    github_username = serializers.CharField()
+    timezone = serializers.CharField(default="UTC")
+    dark_theme = serializers.BooleanField(default=True)
+
+    def validate(self, data):
+        github_id = data.get("github_id")
+        github_email = data.get("github_email")
+        github_username = data.get("github_username")
+        timezone = data.get("timezone")
+        dark_theme = data.get("dark_theme")
+
+        user = User.objects.filter(github_id=github_id).first()
+        if not user:
+            if User.objects.filter(username=github_username).exists():
+                github_username = github_email
+            user = User.objects.create(
+                email=github_email,
+                username=github_username,
+                github_id=github_id,
+                timezone=timezone,
+                dark_theme=dark_theme
+            )
+        data["user"] = user
+        return data
+
 class ApiKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = ApiKey
