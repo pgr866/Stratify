@@ -9,11 +9,10 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 export function Strategy() {
   const navigate = useNavigate();
-  const { toast } = useToast()
   const strategies = ["MACD", "RSI", "Bollinger Bands", "Moving Average"];
   const exchanges = ["Binance", "Coinbase", "Kraken", "Bitfinex"];
   const symbols = ["BTC/USDT", "ETH/USDT", "XRP/USDT", "LTC/USDT"];
@@ -34,14 +33,14 @@ export function Strategy() {
   const handlePublish = async () => {
 		try {
 			setIsLoading(true);
-			toast({ description: "Publish successfully" });
+			toast("Publish successfully");
 		} catch (error) {
 			const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
 			const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
 				? Object.entries(axiosError.response.data).map(([k, v]) =>
 					k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
 				: "Something went wrong";
-			toast({ title: "Publish failed", description: errorMessage });
+			toast("Publish failed", { description: errorMessage });
 		} finally {
 			setIsLoading(false);
 		}

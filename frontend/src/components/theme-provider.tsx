@@ -9,13 +9,13 @@ const ThemeContext = createContext<{ theme: Theme; handleToggleTheme: () => void
 export const useTheme = () => useContext(ThemeContext);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-	const { user } = useSession();
+	const { user, setUser } = useSession();
 	const [theme, setTheme] = useState<Theme>(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 
 	useEffect(() => {
 		if (user) {
 			setTheme(user.dark_theme ? "dark" : "light");
-		} 
+		}
 	}, [user]);
 	
 	useEffect(() => {
@@ -26,7 +26,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 	const handleToggleTheme = async () => {
 		if (user) {
 			const response = await toggleTheme();
-			user.dark_theme = response?.data?.dark_theme;
+			setUser({ ...user, dark_theme: response.data.dark_theme });
 			setTheme(user.dark_theme ? "dark" : "light");
 		} else {
 			setTheme(theme === "dark" ? "light" : "dark");

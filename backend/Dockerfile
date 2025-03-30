@@ -1,4 +1,4 @@
-FROM python:3.13.1-slim
+FROM python:3.13.2-slim
 RUN apt update -y && apt install -y --no-install-recommends build-essential libpq-dev openssl wait-for-it wget && \
     apt autoremove -y && \
     rm -rf /var/lib/apt/lists/* && \

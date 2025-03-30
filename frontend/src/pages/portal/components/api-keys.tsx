@@ -5,11 +5,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Search, Trash, Pencil, CirclePlus, Loader2, EyeClosed } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner"
 import { getAllExchanges, getApiKeysExchanges, createUpdateApiKeys, deleteApiKeys, ApiKey } from "@/api";
 
 export function ApiKeys() {
-  const { toast } = useToast();
   const [apiKeysExchanges, setApiKeysExchanges] = useState([]);
   const [allExchanges, setAllExchanges] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -59,7 +58,7 @@ export function ApiKeys() {
     try {
       setIsLoading(true);
       if (!apiKey && !secret && !password && !uid) {
-        toast({ title: "Error", description: "At least one field must be filled" });
+        toast("Error", { description: "At least one field must be filled" });
         return;
       }
       const apiKeyData: ApiKey = {
@@ -77,9 +76,9 @@ export function ApiKeys() {
 			setSecret("");
 			setPassword("");
 			setUid("");
-      toast({ description: "API Keys saved successfully" });
+      toast("API Keys saved successfully");
     } catch (error) {
-      toast({ title: "Failed to create or update API keys", description: "Something went wrong" });
+      toast("Failed to create or update API keys", { description: "Something went wrong" });
     } finally {
       setIsLoading(false);
     }
@@ -96,9 +95,9 @@ export function ApiKeys() {
 			setSecret("");
 			setPassword("");
 			setUid("");
-      toast({ description: "API Key deleted successfully" });
+      toast("API Key deleted successfully");
     } catch (error) {
-      toast({ title: "Failed to delete API key", description: "Something went wrong" });
+      toast("Failed to delete API key", { description: "Something went wrong" });
     } finally {
       setIsLoading(false);
     }

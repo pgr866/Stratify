@@ -63,7 +63,13 @@ function convertDataToTimezone(data, timezone) {
   });
 }
 
-const getCssColor = (name) => `hsl(${getComputedStyle(document.documentElement).getPropertyValue(name).trim()})`;
+const getCssColor = (name) => {
+  const c = document.createElement('canvas'), x = c.getContext('2d');
+  x.fillStyle = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  x.fillRect(0, 0, 1, 1);
+  c.remove();
+  return `rgb(${x.getImageData(0, 0, 1, 1).data.slice(0, 3).join(', ')})`;
+};
 
 const setOpacity = (color: string, alpha: number): string => {
 	const tempDiv = document.createElement("div");

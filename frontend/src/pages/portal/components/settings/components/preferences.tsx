@@ -3,7 +3,7 @@ import { ChevronDown } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { cn } from "@/lib/utils"
-import { toast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -27,8 +27,7 @@ export function Preferences() {
 	})
 
 	function onSubmit(data: PreferencesFormValues) {
-		toast({
-			title: "You submitted the following values:",
+		toast("You submitted the following values:", {
 			description: (
 				<pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
 					<code className="text-white">{JSON.stringify(data, null, 2)}</code>

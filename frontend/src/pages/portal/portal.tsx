@@ -25,7 +25,7 @@ export function Portal() {
 	return (
 		<Tabs defaultValue="dashboard" className="h-auto">
 			<div className="flex flex-wrap items-center h-auto px-4 py-1 border-b">
-				<div className="flex gap-2 hover:drop-shadow-[0_0_2em_hsl(var(--primary))]">
+				<div className="flex gap-2">
 					<img src="/logo.svg" alt="Logo" className="size-8" />
 					<h1 className="text-2xl">Stratify</h1>
 				</div>
@@ -52,7 +52,7 @@ export function Portal() {
 							<DropdownMenuSeparator />
 							<DropdownMenuItem className="p-0">
 								<TabsList className="h-auto p-0 bg-transparent w-full">
-									<TabsTrigger className="px-2 py-1.5 w-full text-foreground font-normal gap-2 data-[state=active]:bg-transparent justify-start" value="settings">
+									<TabsTrigger className="px-2 py-1.5 w-full text-foreground font-normal gap-2 justify-start" value="settings">
 										<SettingsIcon />
 										Settings
 									</TabsTrigger>

@@ -18,7 +18,7 @@ export function Settings() {
 			</div>
 			<Separator className="my-6" />
 			<div className="flex flex-col lg:flex-row lg:space-x-4">
-				<div className="mr-4 lg:w-1/5 flex max-sm:flex-wrap lg:flex-col justify-start items-start h-auto mb-6">
+				<div className="flex max-lg:flex-wrap lg:flex-col lg:w-1/5 justify-start items-start h-auto mr-4 mb-6">
 					<Button
 						variant="ghost"
 						className={`w-full flex justify-start items-center ${selected === 'account' ? 'bg-muted hover:bg-muted' : 'hover:bg-transparent hover:underline'}`}

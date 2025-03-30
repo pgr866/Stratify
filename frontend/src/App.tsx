@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState, createContext, useContext } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from '@/components/theme-provider.tsx'
 import { getAuthUser, User } from "@/api";
 import './App.css';
@@ -21,16 +21,14 @@ function App() {
   const location = useLocation();
 
   useEffect(() => {
-    if (["/home", "/api"].some(path => location.pathname.startsWith(path))) return;
+    if (location.pathname.startsWith("/api")) return;
     getAuthUser()
       .then((response: { data: User }) => setUser(response.data))
       .catch(() => setUser(null));
   }, [location]);
 
-  if (user === undefined && location.pathname !== "/home") return null;
-
   return (
-    <SessionContext.Provider value={{ user }}>
+    <SessionContext.Provider value={{ user, setUser }}>
       <Suspense fallback={<div></div>}>
         <ThemeProvider>
           <Routes>

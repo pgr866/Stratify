@@ -98,7 +98,7 @@ export function Navbar() {
 								GitHub
 							</Button>
 						</a>
-						<ThemeToggle />
+						<ThemeToggle size="9"/>
 					</div>
 				</NavigationMenuList>
 			</NavigationMenu>

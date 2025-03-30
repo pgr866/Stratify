@@ -117,23 +117,81 @@ class UserView(viewsets.ModelViewSet):
         return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def update(self, request, *args, **kwargs):
-        serializer = self.get_serializer(request.user, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
+        verification_code = request.data.get('code')
+        email = request.data.get('email')
+        cached_code = cache.get(email)
+        if not cached_code:
+            return Response({'detail': 'Verification code not found or expired'}, status=status.HTTP_400_BAD_REQUEST)
+        if verification_code != cached_code:
+            return Response({'detail': 'Incorrect verification code'}, status=status.HTTP_400_BAD_REQUEST)
+        cache.delete(email)
+        
+        serializer = self.get_serializer(instance=request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            login_serializer = LoginSerializer(data={
+                'username': request.user.username,
+                'password': request.data['password']
+            })
+            if login_serializer.is_valid():
+                user = serializer.save()
+                return set_auth_cookies(user)
+            
+            return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
-        request.user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        verification_code = request.data.get('code')
+        email = request.user.email
+        cached_code = cache.get(email)
+        if not cached_code:
+            return Response({'detail': 'Verification code not found or expired'}, status=status.HTTP_400_BAD_REQUEST)
+        if verification_code != cached_code:
+            return Response({'detail': 'Incorrect verification code'}, status=status.HTTP_400_BAD_REQUEST)
+        cache.delete(email)
+        
+        login_serializer = LoginSerializer(data={
+            'username': request.user.username,
+            'password': request.data['password']
+        })
+        if login_serializer.is_valid():
+            request.user.delete()
+            response = Response(status=status.HTTP_204_NO_CONTENT)
+            response.delete_cookie('access_token', path='/', samesite='Strict')
+            response.delete_cookie('refresh_token', path='/', samesite='Strict')
+            return response
 
-class ToggleThemeView(APIView):
+        return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SendEmailUpdateAccountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        user = request.user
-        user.dark_theme = not user.dark_theme
-        user.save(update_fields=["dark_theme"])
-        return Response({"dark_theme": user.dark_theme}, status=status.HTTP_200_OK)
+        serializer = UserSerializer(instance=request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            login_serializer = LoginSerializer(data={
+                'username': request.user.username,
+                'password': request.data['password']
+            })
+            if login_serializer.is_valid():
+                email = serializer.validated_data['email']
+                return send_verification_code(email)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SendEmailDeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        login_serializer = LoginSerializer(data={
+            'username': request.user.username,
+            'password': request.data['password']
+        })
+        if login_serializer.is_valid():
+            email = request.user.email
+            return send_verification_code(email)
+            
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SendEmailSignupView(APIView):
     permission_classes = [IsNotAuthenticated]
@@ -177,6 +235,15 @@ class RecoverPasswordView(APIView):
         user.set_password(new_password)
         user.save()
         return set_auth_cookies(user)
+
+class ToggleThemeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        user.dark_theme = not user.dark_theme
+        user.save(update_fields=["dark_theme"])
+        return Response({"dark_theme": user.dark_theme}, status=status.HTTP_200_OK)
 
 class LoginView(APIView):
     permission_classes = [IsNotAuthenticated]

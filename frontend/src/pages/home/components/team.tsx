@@ -5,7 +5,7 @@ import { Facebook, Instagram, Linkedin } from "lucide-react";
 
 const teamList = [
 	{
-		imageUrl: "user1.jpeg",
+		imageUrl: "https://avatars.githubusercontent.com/u/124599",
 		name: "Emma Smith",
 		position: "Product Manager",
 		socialNetworks: [
@@ -24,7 +24,7 @@ const teamList = [
 		],
 	},
 	{
-		imageUrl: "user2.jpeg",
+		imageUrl: "https://avatars.githubusercontent.com/u/124599",
 		name: "John Doe",
 		position: "Tech Lead",
 		socialNetworks: [
@@ -43,7 +43,7 @@ const teamList = [
 		],
 	},
 	{
-		imageUrl: "user3.jpeg",
+		imageUrl: "https://avatars.githubusercontent.com/u/124599",
 		name: "Ashley Ross",
 		position: "Frontend Developer",
 		socialNetworks: [
@@ -59,7 +59,7 @@ const teamList = [
 		],
 	},
 	{
-		imageUrl: "user4.jpeg",
+		imageUrl: "https://avatars.githubusercontent.com/u/124599",
 		name: "Bruce Rogers",
 		position: "Backend Developer",
 		socialNetworks: [
@@ -85,7 +85,7 @@ export function Team() {
 				Crew
 			</h1>
 
-			<p className="lead mb-10">
+			<p className="lead mt-4 mb-10">
 				Lorem ipsum dolor sit amet consectetur, adipisicing elit. Veritatis dolor pariatur sit!
 			</p>
 
@@ -93,7 +93,7 @@ export function Team() {
 				{teamList.map(
 					({ imageUrl, name, position, socialNetworks }) => (
 						<Card key={name} className="bg-muted/50 relative mt-8 flex flex-col justify-center items-center">
-							<CardHeader className="mt-8 flex justify-center items-center pb-2">
+							<CardHeader className="flex flex-col justify-center items-center w-full mt-8">
 								<Avatar className="absolute -top-12 w-24 h-24">
 									<AvatarImage src={imageUrl} />
 									<AvatarFallback>User</AvatarFallback>

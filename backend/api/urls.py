@@ -24,11 +24,13 @@ urlpatterns = [
     
     # User Management
     path("v1/user/me/", views.UserView.as_view({"get": "retrieve", "put": "update", "delete": "destroy"}), name="user-me"),
-    path("v1/toggle-theme/", views.ToggleThemeView.as_view(), name="toggle-theme"),
+    path('v1/send-email-update-account/', views.SendEmailUpdateAccountView.as_view(), name='send-email-update-account'),
+    path('v1/send-email-delete-account/', views.SendEmailDeleteAccountView.as_view(), name='send-email-delete-account'),
     path('v1/send-email-signup/', views.SendEmailSignupView.as_view(), name='send-email-signup'),
     path("v1/signup/", views.UserView.as_view({"post": "create"}), name="signup"),
     path('v1/send-email-recover-password/', views.SendEmailRecoverPasswordView.as_view(), name='send-email-recover-password'),
     path('v1/recover-password/', views.RecoverPasswordView.as_view(), name='recover-password'),
+    path("v1/toggle-theme/", views.ToggleThemeView.as_view(), name="toggle-theme"),
 
     # Authentication
     path('v1/login/', views.LoginView.as_view(), name='login'),

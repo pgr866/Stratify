@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { GitHubLogoIcon } from "@radix-ui/react-icons"
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner"
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { githubLogin } from "@/api";
@@ -8,7 +8,6 @@ import { useSearchParams } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
 
 export function GithubSignin() {
-	const { toast } = useToast();
 	const { theme } = useTheme();
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
@@ -28,7 +27,7 @@ export function GithubSignin() {
 			const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=read:user&state=${state}`;
 			window.location.href = githubAuthUrl;
 		} catch (error) {
-			toast({ title: "GitHub Login failed", description: "Try to login with credentials" });
+			toast("GitHub Login failed", { description: "Try to login with credentials" });
 		}
 	};
 
@@ -49,10 +48,10 @@ export function GithubSignin() {
 						theme !== "light"
 					);
 					navigate("/portal");
-					toast({ description: "GitHub Login successfully" });
+					toast("GitHub Login successfully");
 				} catch (error) {
 					navigate("/login");
-					toast({ title: "GitHub Login failed", description: "Try to login with credentials" });
+					toast("GitHub Login failed", { description: "Try to login with credentials" });
 				}
 			};
 			gihubLogin();

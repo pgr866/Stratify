@@ -49,14 +49,18 @@ export interface ApiKey {
 // Get Authenticated User
 export const getAuthUser = () => api.get<User>("user/me/");
 
-// Update Authenticated User
-export const updateUser = (user: Partial<User>) => api.put<User>("user/me/", user);
+// Send update account verification to email
+export const sendEmailUpdateAccount = (email: string, username: string, password: string) => api.post("send-email-update-account/", { email, username, password });
 
-// Toggle Theme
-export const toggleTheme = () => api.post("toggle-theme/");
+// Update Authenticated User Account
+export const updateAccount = (email: string, username: string, password: string, code: string) =>
+	api.put<User>("user/me/", { email, username, password, code });
 
-// Delete Authenticated User
-export const deleteUser = () => api.delete("user/me/");
+// Send delete account verification to email
+export const sendEmailDeleteAccount = (password: string) => api.post("send-email-delete-account/", { password });
+
+// Delete Authenticated User Account
+export const deleteAccount = (password: string, code: string) => api.delete("user/me/", { password, code });
 
 // Send sing-up verification to email
 export const sendEmailSignup = (email: string, username: string, password: string) => api.post("send-email-signup/", { email, username, password });
@@ -70,6 +74,8 @@ export const sendEmailRecoverPassword = (email: string, new_password: string) =>
 // Recover password
 export const recoverPassword = (email: string, new_password: string, code: string) => api.post("recover-password/", { email, new_password, code });
 
+// Toggle Theme
+export const toggleTheme = () => api.post("toggle-theme/");
 
 // ** Authentication API Calls **
 
@@ -80,11 +86,11 @@ export const login = (username: string, password: string) => api.post("login/", 
 export const logout = () => api.post("logout/");
 
 // Google Login
-export const googleLogin = (token: string, timezone: string, dark_theme: boolean) => 
+export const googleLogin = (token: string, timezone: string, dark_theme: boolean) =>
   api.post("google-login/", { timezone, dark_theme }, { headers: { Authorization: `Bearer ${token}` } });
 
 // GitHub Login
-export const githubLogin = (code: string, timezone: string, dark_theme: boolean) => 
+export const githubLogin = (code: string, timezone: string, dark_theme: boolean) =>
   api.post("github-login/", { code, timezone, dark_theme });
 
 

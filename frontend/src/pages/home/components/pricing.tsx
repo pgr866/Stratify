@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
 
@@ -62,7 +63,7 @@ export function Pricing() {
 				</span>
 				Access
 			</h1>
-			<p className="lead pb-8 text-center">
+			<p className="lead mt-4 mb-8 text-center">
 				Lorem ipsum dolor sit amet consectetur adipisicing elit. Alias reiciendis.
 			</p>
 			<div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -71,7 +72,7 @@ export function Pricing() {
 						key={title}
 						className={popular ? "drop-shadow-xl shadow-black/10 dark:shadow-white/10" : ""}>
 						<CardHeader>
-							<CardTitle className="flex item-center justify-between">
+							<CardTitle className="flex item-center justify-between h-6">
 								{title}
 								{popular
 									? (<Badge variant="secondary" className="text-sm text-primary">
@@ -87,7 +88,7 @@ export function Pricing() {
 							<CardDescription>{description}</CardDescription>
 						</CardHeader>
 
-						<CardContent>
+						<CardContent className="mb-5">
 							<Button className="w-full">{buttonText}</Button>
 						</CardContent>
 

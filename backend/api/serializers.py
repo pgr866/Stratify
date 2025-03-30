@@ -22,7 +22,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ['email', 'username', 'dark_theme', 'timezone', 'password']
         extra_kwargs = {
-            'password': {'write_only': True, 'required': False}
+            'password': { 'write_only': True }
         }
         
     def validate(self, attrs):
@@ -32,10 +32,7 @@ class UserSerializer(serializers.ModelSerializer):
         if User.objects.exclude(id=self.instance.id if self.instance else None).filter(email=attrs['email']).exists():
             raise serializers.ValidationError("Email already in use")
         
-        if self.instance:
-            attrs.pop('password', None)
-        else:
-            validate_password_strength(attrs['password'])
+        validate_password_strength(attrs['password'])
         
         return attrs
 
@@ -49,6 +46,15 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+    
+    def update(self, instance, validated_data):
+        validated_data.pop('password', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 class RecoverPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)

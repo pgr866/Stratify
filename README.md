@@ -1,6 +1,9 @@
 # Requisitos Funcionales
 - Login
+- Google Login
+- GitHub Login
 - Registrarse
+- Recuperar contraseña
 - Configurar Api Keys
 - Crear Estrategia
 - Configurar Estrategia
@@ -27,20 +30,15 @@ https://docs.ccxt.com/
 
 https://ui.shadcn.com/
 
-https://shadcn.batchtool.com/
-
 https://www.tradingview.com/lightweight-charts/
 
-https://es.tradingview.com/chart/?symbol=BTCUSDT
+# Dependencias frontend
 
-# Anteproyecto
-## Nombre y Apellidos Estudiante
-Pablo Gómez Rivas
-## Título del TFG
-Plataforma Full Stack para Optimización de Estrategias Algorítmicas en Finanzas Descentralizadas
-## Modalidad del TFG
-Trabajo Técnico
-## Motivación y Justificación del TFG
+- Follow https://ui.shadcn.com/docs/installation/vite
 
-## Propuesta de Desarrollo del TFG
-
+```bash
+npx shadcn@latest add accordion avatar badge button calendar card chart command dialog dropdown-menu form input-otp input label navigation-menu popover radio-group resizable scroll-area select separator sheet sonner tabs
+```
+```bash
+npm i axios @react-oauth/google lightweight-charts date-fns-tz
+```

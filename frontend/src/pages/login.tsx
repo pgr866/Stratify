@@ -8,11 +8,10 @@ import { Label } from "@/components/ui/label"
 import { GoogleSignin } from "@/components/google-signin"
 import { GithubSignin } from "@/components/github-signin"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { login } from "@/api";
 
 export function Login() {
-	const { toast } = useToast()
 	const navigate = useNavigate();
 	const [emailUsername, setEmailUsername] = useState("");
 	const [password, setPassword] = useState("");
@@ -24,14 +23,14 @@ export function Login() {
 			setIsLoading(true);
 			await login(emailUsername, password);
 			navigate("/portal");
-			toast({ description: "Login successfully" });
+			toast("Login successfully");
 		} catch (error) {
 			const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
 			const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
 				? Object.entries(axiosError.response.data).map(([k, v]) =>
 					k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
 				: "Something went wrong";
-			toast({ title: "Login failed", description: errorMessage });
+			toast("Login failed", { description: errorMessage });
 		} finally {
 			setIsLoading(false);
 		}

@@ -10,13 +10,13 @@ export function HeroCards() {
 		<div className="hidden lg:flex flex-row flex-wrap gap-8 relative w-[700px] h-[500px]">
 			{/* Testimonial */}
 			<Card className="absolute w-[340px] -top-[15px]">
-				<CardHeader className="flex flex-row items-center gap-4 pb-2">
-					<Avatar>
-						<AvatarImage src="shadcn_avatar.jpeg" />
+				<CardHeader className="flex flex-row items-center">
+					<Avatar className="size-10">
+						<AvatarImage src="https://avatars.githubusercontent.com/u/124599" />
 						<AvatarFallback>SH</AvatarFallback>
 					</Avatar>
 
-					<div className="flex flex-col">
+					<div className="flex flex-col ml-2">
 						<CardTitle className="text-lg">John Doe React</CardTitle>
 						<CardDescription>@john_doe</CardDescription>
 					</div>
@@ -26,9 +26,9 @@ export function HeroCards() {
 
 			{/* Team */}
 			<Card className="absolute right-[20px] top-4 w-80 flex flex-col justify-center items-center">
-				<CardHeader className="mt-8 flex justify-center items-center pb-2">
+				<CardHeader className="w-full flex flex-col justify-center items-center mt-8 pb-2">
 					<Avatar className="absolute -top-12 w-24 h-24">
-						<AvatarImage src="pgr866.jpeg" />
+						<AvatarImage src="https://avatars.githubusercontent.com/u/114260059" />
 						<AvatarFallback>User</AvatarFallback>
 					</Avatar>
 
@@ -103,8 +103,8 @@ export function HeroCards() {
 
 			{/* Service */}
 			<Card className="absolute w-[350px] -right-[10px] bottom-[35px]">
-				<CardHeader className="space-y-1 flex md:flex-row justify-start items-start gap-4">
-					<div className="mt-1 bg-primary/20 p-1 rounded-2xl">
+				<CardHeader className="space-y-1 flex md:flex-row justify-start items-start">
+					<div className="mt-1 mr-2 bg-primary/20 p-1 rounded-2xl">
 						<Lightbulb />
 					</div>
 					<div>

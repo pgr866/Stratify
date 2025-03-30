@@ -7,11 +7,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { EmailVerificationDialog } from "@/components/email-verification-dialog"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { recoverPassword, sendEmailRecoverPassword } from "@/api";
 
 export function RecoverPassword() {
-	const { toast } = useToast()
 	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -36,7 +35,7 @@ export function RecoverPassword() {
 				? Object.entries(axiosError.response.data).map(([k, v]) =>
 					k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
 				: "Passwords do not match";
-			toast({ title: "Password change failed", description: errorMessage });
+			toast("Password change failed", { description: errorMessage });
 		} finally {
 			setIsLoading(false);
 		}
@@ -47,14 +46,14 @@ export function RecoverPassword() {
 			setIsLoading(true);
 			await recoverPassword(email, password, code);
 			navigate("/portal");
-			toast({ description: "Password changed successfully" });
+			toast("Password changed successfully");
 		} catch (error) {
 			const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
 			const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
 				? Object.entries(axiosError.response.data).map(([k, v]) =>
 					k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
 				: "Something went wrong";
-			toast({ title: "Password change failed", description: errorMessage });
+			toast("Password change failed", { description: errorMessage });
 		} finally {
 			setIsLoading(false);
 		}

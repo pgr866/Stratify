@@ -9,7 +9,7 @@ export function Dashboard() {
 	return (
 		<div className="flex-1 space-y-4">
 			<Tabs defaultValue="overview" className="space-y-4">
-				<div className="flex items-center justify-between space-y-2 gap-x-2 flex-wrap">
+				<div className="flex items-center justify-between m-0 space-y-2 gap-x-2 flex-wrap">
 					<TabsList>
 						<TabsTrigger className="px-2 md:px-3" value="overview">Overview</TabsTrigger>
 						<TabsTrigger className="px-2 md:px-3" value="analytics">Analytics</TabsTrigger>
@@ -24,7 +24,7 @@ export function Dashboard() {
 				<TabsContent value="overview" className="space-y-4">
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 						<Card>
-							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardHeader className="flex flex-row items-center justify-between pb-2">
 								<CardTitle className="text-sm font-medium">
 									Total Revenue
 								</CardTitle>
@@ -49,7 +49,7 @@ export function Dashboard() {
 							</CardContent>
 						</Card>
 						<Card>
-							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardHeader className="flex flex-row items-center justify-between pb-2">
 								<CardTitle className="text-sm font-medium">
 									Subscriptions
 								</CardTitle>
@@ -76,7 +76,7 @@ export function Dashboard() {
 							</CardContent>
 						</Card>
 						<Card>
-							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardHeader className="flex flex-row items-center justify-between pb-2">
 								<CardTitle className="text-sm font-medium">Sales</CardTitle>
 								<svg
 									xmlns="http://www.w3.org/2000/svg"
@@ -100,7 +100,7 @@ export function Dashboard() {
 							</CardContent>
 						</Card>
 						<Card>
-							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardHeader className="flex flex-row items-center justify-between">
 								<CardTitle className="text-sm font-medium">
 									Active Now
 								</CardTitle>
@@ -137,11 +137,11 @@ export function Dashboard() {
 						<Card className="col-span-4 lg:col-span-3">
 							<CardHeader>
 								<CardTitle>Recent Sales</CardTitle>
-								<CardDescription>
+								<CardDescription className="mb-2">
 									You made 265 sales this month.
 								</CardDescription>
 							</CardHeader>
-							<CardContent className="p-2 sm:p-6">
+							<CardContent className="px-2 sm:px-6">
 								<RecentSales />
 							</CardContent>
 						</Card>

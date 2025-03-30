@@ -18,7 +18,7 @@ export const Newsletter = () => {
             Newsletter
           </span>
         </h1>
-        <p className="lead mb-8">
+        <p className="lead mt-4 mb-6">
           Lorem ipsum dolor sit amet consectetur.
         </p>
 

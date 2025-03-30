@@ -9,12 +9,11 @@ import { EmailVerificationDialog } from "@/components/email-verification-dialog"
 import { GoogleSignin } from "@/components/google-signin"
 import { GithubSignin } from "@/components/github-signin"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { signup, sendEmailSignup, User } from "@/api";
 import { useTheme } from "@/components/theme-provider";
 
 export function Signup() {
-	const { toast } = useToast()
 	const { theme } = useTheme();
 	const navigate = useNavigate();
 	const [username, setUsername] = useState("");
@@ -41,7 +40,7 @@ export function Signup() {
 				? Object.entries(axiosError.response.data).map(([k, v]) =>
 					k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
 				: "Passwords do not match";
-			toast({ title: "Sign-up failed", description: errorMessage });
+			toast("Sign-up failed", { description: errorMessage });
 		} finally {
 			setIsLoading(false);
 		}
@@ -59,14 +58,14 @@ export function Signup() {
 			};
 			await signup(user, code);
 			navigate("/portal");
-			toast({ description: "Sign-up successful" });
+			toast("Sign-up successful");
 		} catch (error) {
 			const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
 			const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
 				? Object.entries(axiosError.response.data).map(([k, v]) =>
 					k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
 				: "Something went wrong";
-			toast({ title: "Sign-up failed", description: errorMessage });
+			toast("Sign-up failed", { description: errorMessage });
 		} finally {
 			setIsLoading(false);
 		}

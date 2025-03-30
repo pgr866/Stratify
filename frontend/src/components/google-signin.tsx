@@ -1,12 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner"
 import { googleLogin } from "@/api";
 import { useGoogleLogin } from "@react-oauth/google";
 import { useTheme } from "@/components/theme-provider";
 
 export function GoogleSignin() {
-	const { toast } = useToast();
 	const { theme } = useTheme();
 	const navigate = useNavigate();
 
@@ -19,12 +18,12 @@ export function GoogleSignin() {
 					theme !== "light"
 				);
 				navigate("/portal");
-				toast({ description: "Google Login successfully" });
+				toast("Google Login successfully");
 			} catch (error) {
-				toast({ title: "Google Login failed", description: "Try to login with credentials" });
+				toast("Google Login failed", { description: "Try to login with credentials" });
 			}
 		},
-		onError: () => toast({ title: "Google Login failed", description: "An error occurred during Google login." }),
+		onError: () => toast("Google Login failed", { description: "An error occurred during Google login." }),
 	});
 
 	return (
