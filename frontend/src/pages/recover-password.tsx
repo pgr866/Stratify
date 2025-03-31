@@ -8,11 +8,13 @@ import { Label } from "@/components/ui/label"
 import { EmailVerificationDialog } from "@/components/email-verification-dialog"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { toast } from "sonner"
+import { useSession } from "@/App";
 import { recoverPassword, sendEmailRecoverPassword } from "@/api";
 
 export function RecoverPassword() {
+	const { user } = useSession();
 	const navigate = useNavigate();
-	const [email, setEmail] = useState("");
+	const [email, setEmail] = useState(user?.email || "");
 	const [password, setPassword] = useState("");
 	const [showPassword, setShowPassword] = useState(false);
 	const [repeatPassword, setRepeatPassword] = useState("");
@@ -85,6 +87,7 @@ export function RecoverPassword() {
 									placeholder="m@example.com"
 									maxLength={254}
 									value={email}
+									disabled={!!user?.email}
 									onChange={(e) => setEmail(e.target.value)}
 								/>
 							</div>

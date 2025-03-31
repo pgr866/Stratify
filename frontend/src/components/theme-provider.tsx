@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { useSession } from "@/App";
 import { toggleTheme } from "@/api";
 
@@ -8,7 +8,7 @@ const ThemeContext = createContext<{ theme: Theme; handleToggleTheme: () => void
 
 export const useTheme = () => useContext(ThemeContext);
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
+export function ThemeProvider({ children }: Readonly<{ children: React.ReactNode }>) {
 	const { user, setUser } = useSession();
 	const [theme, setTheme] = useState<Theme>(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 
@@ -27,11 +27,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 		if (user) {
 			const response = await toggleTheme();
 			setUser({ ...user, dark_theme: response.data.dark_theme });
-			setTheme(user.dark_theme ? "dark" : "light");
 		} else {
 			setTheme(theme === "dark" ? "light" : "dark");
 		}
 	};
 
-	return <ThemeContext.Provider value={{ theme, handleToggleTheme }}>{children}</ThemeContext.Provider>;
+	const contextValue = React.useMemo(() => ({ theme, handleToggleTheme }), [theme, handleToggleTheme]);
+
+	return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 }

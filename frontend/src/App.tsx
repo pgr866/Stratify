@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useState, createContext, useContext } from "react";
+import React, { lazy, Suspense, useEffect, useState, createContext, useContext } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { Toaster } from "@/components/ui/sonner"
-import { ThemeProvider } from '@/components/theme-provider.tsx'
+import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from '@/components/theme-provider.tsx';
 import { getAuthUser, User } from "@/api";
 import './App.css';
 
@@ -13,7 +13,8 @@ const Signup = lazy(() => import("@/pages/signup").then(module => ({ default: mo
 const Portal = lazy(() => import("@/pages/portal/portal").then(module => ({ default: module.Portal })));
 const Strategy = lazy(() => import("@/pages/strategy/strategy").then(module => ({ default: module.Strategy })));
 
-const SessionContext = createContext<{ user: User | null }>({ user: null });
+const SessionContext = createContext<{ user: User | null; setUser: React.Dispatch<React.SetStateAction<User | null>>; }>({ user: null, setUser: () => {} });
+
 export const useSession = () => useContext(SessionContext);
 
 function App() {
@@ -34,8 +35,8 @@ function App() {
           <Routes>
             <Route path="/api/*" />
             <Route path="/home" element={<Home />} />
+            <Route path="/recover-password" element={<RecoverPassword />} />
             <Route path="/login" element={user ? <Navigate to="/portal" /> : <Login />} />
-            <Route path="/recover-password" element={user ? <Navigate to="/portal" /> : <RecoverPassword />} />
             <Route path="/signup" element={user ? <Navigate to="/portal" /> : <Signup />} />
             <Route path="/portal" element={user ? <Portal /> : <Navigate to="/login" />} />
             <Route path="/strategy/:id" element={user ? <Strategy /> : <Navigate to="/login" />} />

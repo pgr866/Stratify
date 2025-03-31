@@ -167,7 +167,7 @@ export function ApiKeys() {
                       setOpenCreateUpdateDialog(true);
                       setSelectedExchange(exchange);
                     }}>
-                      <CirclePlus className="text-primary"/>
+                      <CirclePlus className="text-primary size-5"/>
                     </Button>
                   </div>
                 </CardTitle>
@@ -274,7 +274,7 @@ export function ApiKeys() {
               Confirm <span className="capitalize">{selectedExchange}</span> API Key Deletion
             </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this API Key?
+              <strong>Are you sure you want to delete this API Key?</strong><br />
               This action cannot be undone, and you will lose access to the integration with this exchange.
             </DialogDescription>
           </DialogHeader>

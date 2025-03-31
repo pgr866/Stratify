@@ -60,7 +60,7 @@ export const updateAccount = (email: string, username: string, password: string,
 export const sendEmailDeleteAccount = (password: string) => api.post("send-email-delete-account/", { password });
 
 // Delete Authenticated User Account
-export const deleteAccount = (password: string, code: string) => api.delete("user/me/", { password, code });
+export const deleteAccount = (password: string, code: string) => api.delete("user/me/", { data: { password, code } });
 
 // Send sing-up verification to email
 export const sendEmailSignup = (email: string, username: string, password: string) => api.post("send-email-signup/", { email, username, password });

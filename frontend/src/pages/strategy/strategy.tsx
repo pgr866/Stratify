@@ -1,15 +1,15 @@
-import { useState } from "react"
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Bitcoin, Landmark, FileChartPie, AlignHorizontalDistributeCenter, ChartNoAxesCombined } from "lucide-react";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable"
-import { CandleChart } from "./components/candle-chart"
-import { DateTimeRangePicker } from "./components/date-time-range-picker"
-import { Combobox } from "@/pages/strategy/components/combobox"
-import { Separator } from "@/components/ui/separator"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { toast } from "sonner"
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { CandleChart } from "./components/candle-chart";
+import { DateTimeRangePicker } from "./components/date-time-range-picker";
+import { Combobox } from "@/pages/strategy/components/combobox";
+import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { toast } from "sonner";
 
 export function Strategy() {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ export function Strategy() {
           <Separator orientation="vertical" className="h-5 mx-1" />
           <Select defaultValue={selectedTimeframe}>
             <SelectTrigger
-              className="w-[100px] h-9 border-0 bg-transparent shadow-none focus:ring-0 focus:outline-none focus:ring-offset-0 hover:bg-accent hover:text-accent-foreground" >
+              className="w-[100px] h-9 border-0 bg-transparent shadow-none focus:ring-0 focus:outline-none focus:ring-offset-0 hover:bg-accent hover:text-accent-foreground">
               <AlignHorizontalDistributeCenter size={16} />
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>

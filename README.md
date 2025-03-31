@@ -37,8 +37,8 @@ https://www.tradingview.com/lightweight-charts/
 - Follow https://ui.shadcn.com/docs/installation/vite
 
 ```bash
-npx shadcn@latest add accordion avatar badge button calendar card chart command dialog dropdown-menu form input-otp input label navigation-menu popover radio-group resizable scroll-area select separator sheet sonner tabs
+npx shadcn@latest add accordion avatar badge button calendar card chart command dialog dropdown-menu input-otp input label navigation-menu popover resizable scroll-area select separator sheet sonner tabs
 ```
 ```bash
-npm i axios @react-oauth/google lightweight-charts date-fns-tz
+npm i --legacy-peer-deps axios @react-oauth/google lightweight-charts date-fns-tz @radix-ui/react-icons react-router-dom
 ```

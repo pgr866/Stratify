@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,7 +8,7 @@ import { Skull, Eye, EyeClosed, Loader2 } from "lucide-react"
 import { Label } from "@/components/ui/label";
 import { EmailVerificationDialog } from "@/components/email-verification-dialog"
 import { useSession } from "@/App";
-import { updateAccount, sendEmailUpdateAccount, deleteAccount, sendEmailDeleteAccount, User } from "@/api";
+import { updateAccount, sendEmailUpdateAccount, deleteAccount, sendEmailDeleteAccount } from "@/api";
 
 export function Account() {
 	const navigate = useNavigate();
@@ -44,12 +44,13 @@ export function Account() {
 		const handleUpdateAccount = async () => {
 			try {
 				setIsLoading(true);
-				const response: User = await updateAccount(email, username, password, code);
-				setUser({ ...user, email: response.email, username: response.username });
+				const response = await updateAccount(email, username, password, code);
+				setUser({ ...user, email: response.data.email, username: response.data.username });
 				setPassword("");
 				setCode("");
 				setShowPassword(false);
 				toast("Account updated successfully");
+				setEmailSentUpdateAccount(false);
 			} catch (error) {
 				const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
 				const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
@@ -59,7 +60,6 @@ export function Account() {
 				toast("Failed to update account", { description: errorMessage });
 			} finally {
 				setIsLoading(false);
-				setEmailSentUpdateAccount(false);
 			}
 		};
 
@@ -93,9 +93,7 @@ export function Account() {
 						k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
 					: "Something went wrong";
 				toast("Account deletion failed", { description: errorMessage });
-			} finally {
 				setIsLoading(false);
-				setEmailSentDeleteAccount(false);
 			}
 		};
 
@@ -103,12 +101,10 @@ export function Account() {
 		<div className="space-y-5">
 			<div>
 				<h3 className="text-lg font-medium">Account</h3>
-				<div>
-					<p className="text-sm text-muted-foreground">
-						Update your account settings.
-						To update your account, you will need to enter your current password and verify your email address.
-					</p>
-				</div>
+				<p className="text-sm text-muted-foreground">
+					Update your account settings.
+					To update your account, you will need to enter your current password and verify your email address.
+				</p>
 			</div>
 			<Separator />
 			<div className="grid gap-2">
@@ -161,6 +157,9 @@ export function Account() {
 						{showPassword ? <Eye size={16} /> : <EyeClosed size={16} />}
 					</button>
 				</div>
+				<Link to="/recover-password" className="mt-4 inline-block text-sm underline">
+					Change your password
+				</Link>
 			</div>
 			<Button onClick={handleSendEmailUpdateAccount} disabled={isLoading}>
 				{isLoading ? (

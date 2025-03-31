@@ -134,16 +134,21 @@ class UserView(viewsets.ModelViewSet):
             })
             if login_serializer.is_valid():
                 user = serializer.save()
-                return set_auth_cookies(user)
+                set_auth_cookies(user)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             
             return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
+        import sys
+        print('hola', file=sys.stderr)
         verification_code = request.data.get('code')
+        print(f'Verification code: {request}', file=sys.stderr)
         email = request.user.email
         cached_code = cache.get(email)
+        print(f'Cached code: {cached_code}', file=sys.stderr)
         if not cached_code:
             return Response({'detail': 'Verification code not found or expired'}, status=status.HTTP_400_BAD_REQUEST)
         if verification_code != cached_code:
@@ -176,6 +181,8 @@ class SendEmailUpdateAccountView(APIView):
             if login_serializer.is_valid():
                 email = serializer.validated_data['email']
                 return send_verification_code(email)
+
+            return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -191,7 +198,7 @@ class SendEmailDeleteAccountView(APIView):
             email = request.user.email
             return send_verification_code(email)
             
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(login_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SendEmailSignupView(APIView):
     permission_classes = [IsNotAuthenticated]
@@ -205,7 +212,7 @@ class SendEmailSignupView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class SendEmailRecoverPasswordView(APIView):
-    permission_classes = [IsNotAuthenticated]
+    permission_classes = []
     
     def post(self, request):
         serializer = RecoverPasswordSerializer(data=request.data)
@@ -216,7 +223,7 @@ class SendEmailRecoverPasswordView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class RecoverPasswordView(APIView):
-    permission_classes = [IsNotAuthenticated]
+    permission_classes = []
     
     def post(self, request, *args, **kwargs):
         email = request.data.get('email')

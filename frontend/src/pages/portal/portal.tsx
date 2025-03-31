@@ -11,7 +11,7 @@ import { Settings } from "./components/settings/settings"
 import { FileChartPie, ChartNoAxesCombined, Globe, Key, UserRound, LogOut, Settings as SettingsIcon } from "lucide-react";
 import { logout } from "@/api";
 import { useSession } from "@/App";
-
+import { toast } from "sonner"
 
 export function Portal() {
 	const navigate = useNavigate();
@@ -20,6 +20,7 @@ export function Portal() {
 	const handleLogout = async () => {
 		await logout();
 		navigate("/home");
+		toast("Logged out successfully");
 	};
 
 	return (
