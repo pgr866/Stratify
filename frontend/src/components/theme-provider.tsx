@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useSession } from "@/App";
 import { toggleTheme } from "@/api";
+import { toast } from "sonner"
 
 type Theme = "dark" | "light";
 
@@ -25,8 +26,17 @@ export function ThemeProvider({ children }: Readonly<{ children: React.ReactNode
 
 	const handleToggleTheme = async () => {
 		if (user) {
-			const response = await toggleTheme();
-			setUser({ ...user, dark_theme: response.data.dark_theme });
+			try {
+				const response = await toggleTheme();
+				setUser({ ...user, dark_theme: response.data.dark_theme });
+			} catch (error) {
+				const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
+				const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
+					? Object.entries(axiosError.response.data).map(([k, v]) =>
+						k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
+					: "Something went wrong";
+				toast("Failed to toggle theme", { description: errorMessage });
+			}
 		} else {
 			setTheme(theme === "dark" ? "light" : "dark");
 		}

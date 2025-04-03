@@ -4,7 +4,7 @@ import { Bitcoin, Landmark, FileChartPie, AlignHorizontalDistributeCenter, Chart
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { CandleChart } from "./components/candle-chart";
 import { DateTimeRangePicker } from "./components/date-time-range-picker";
-import { Combobox } from "@/pages/strategy/components/combobox";
+import { Combobox } from "@/components/combobox";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";

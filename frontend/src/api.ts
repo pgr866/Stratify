@@ -75,7 +75,10 @@ export const sendEmailRecoverPassword = (email: string, new_password: string) =>
 export const recoverPassword = (email: string, new_password: string, code: string) => api.post("recover-password/", { email, new_password, code });
 
 // Toggle Theme
-export const toggleTheme = () => api.post("toggle-theme/");
+export const toggleTheme = () => api.patch("toggle-theme/");
+
+// Update Timezone
+export const updateTimezone = (timezone: string) => api.patch("update-timezone/", { timezone });
 
 // ** Authentication API Calls **
 

@@ -31,6 +31,7 @@ urlpatterns = [
     path('v1/send-email-recover-password/', views.SendEmailRecoverPasswordView.as_view(), name='send-email-recover-password'),
     path('v1/recover-password/', views.RecoverPasswordView.as_view(), name='recover-password'),
     path("v1/toggle-theme/", views.ToggleThemeView.as_view(), name="toggle-theme"),
+    path("v1/update-timezone/", views.UpdateTimezoneView.as_view(), name="update-timezone"),
 
     # Authentication
     path('v1/login/', views.LoginView.as_view(), name='login'),

@@ -246,11 +246,25 @@ class RecoverPasswordView(APIView):
 class ToggleThemeView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def patch(self, request):
         user = request.user
         user.dark_theme = not user.dark_theme
         user.save(update_fields=["dark_theme"])
         return Response({"dark_theme": user.dark_theme}, status=status.HTTP_200_OK)
+
+class UpdateTimezoneView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        user = request.user
+        timezone = request.data.get("timezone")
+
+        if not timezone:
+            return Response({"error": "Timezone is required"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        user.timezone = timezone
+        user.save(update_fields=["timezone"])
+        return Response({"timezone": user.timezone}, status=status.HTTP_200_OK)
 
 class LoginView(APIView):
     permission_classes = [IsNotAuthenticated]
