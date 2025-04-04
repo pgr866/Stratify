@@ -53,13 +53,13 @@ export function Strategy() {
           <Button variant={"ghost"} size={"sm"} onClick={() => navigate("/portal")}>
             <img src="/logo.svg" alt="Logo" className="logo size-6"/>
           </Button>
-          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-1" />
           <Combobox defaultValue={selectedStrategy} values={strategies} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Strategy"} icon={<FileChartPie />} />
-          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-1" />
           <Combobox defaultValue={selectedExchange} values={exchanges} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Exchange"} icon={<Landmark />} />
-          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-1" />
           <Combobox defaultValue={selectedSymbol} values={symbols} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Symbol"} icon={<Bitcoin />} />
-          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-1" />
           <Select defaultValue={selectedTimeframe}>
             <SelectTrigger
               className="w-[100px] h-9 border-0 bg-transparent shadow-none focus:ring-0 focus:outline-none focus:ring-offset-0 hover:bg-accent hover:text-accent-foreground">
@@ -77,21 +77,21 @@ export function Strategy() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-1" />
           <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"310px"} />
-          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-1" />
           <Combobox key={resetKey} values={indicators} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Indicators"}
             onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} />
-          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-1" />
           <Button variant={"ghost"} size={"sm"} className="w-[170px] overflow-hidden font-normal">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 28 28" style={{ width: "24", height: "24" }}>
               <path stroke="currentColor" strokeWidth="1.5" d="m20 17-5 5m0-5 5 5M9 11.5h7M17.5 8a2.5 2.5 0 0 0-5 0v11a2.5 2.5 0 0 1-5 0" />
             </svg>
             Order conditions
           </Button>
-          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-1" />
           <ThemeToggle size="9" />
-          <Separator orientation="vertical" className="h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-1" />
           <Button size={"sm"} onClick={handlePublish} disabled={isLoading}>
 							{isLoading ? (
 								<><Loader2 className="animate-spin mr-2" />Publishing...</>

@@ -28,6 +28,10 @@ function App() {
       .catch(() => setUser(null));
   }, [location]);
 
+  if (user === undefined) {
+    return;
+  }
+
   return (
     <SessionContext.Provider value={{ user, setUser }}>
       <Suspense fallback={<div></div>}>
