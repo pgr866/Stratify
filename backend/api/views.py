@@ -142,13 +142,9 @@ class UserView(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, *args, **kwargs):
-        import sys
-        print('hola', file=sys.stderr)
         verification_code = request.data.get('code')
-        print(f'Verification code: {request}', file=sys.stderr)
         email = request.user.email
         cached_code = cache.get(email)
-        print(f'Cached code: {cached_code}', file=sys.stderr)
         if not cached_code:
             return Response({'detail': 'Verification code not found or expired'}, status=status.HTTP_400_BAD_REQUEST)
         if verification_code != cached_code:

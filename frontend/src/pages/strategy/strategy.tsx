@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Bitcoin, Landmark, FileChartPie, AlignHorizontalDistributeCenter, ChartNoAxesCombined } from "lucide-react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -10,11 +10,12 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { toast } from "sonner";
+import { getAllExchanges } from "@/api";
 
 export function Strategy() {
   const navigate = useNavigate();
   const strategies = ["MACD", "RSI", "Bollinger Bands", "Moving Average"];
-  const exchanges = ["Binance", "Coinbase", "Kraken", "Bitfinex"];
+  const [exchanges, setExchanges] = useState([]);
   const symbols = ["BTC/USDT", "ETH/USDT", "XRP/USDT", "LTC/USDT"];
   const timeframes = ["1m", "5m", "15m", "30m", "45m", "1h", "2h", "4h", "1d", "1w", "1M"];
   const indicators = ["MACD", "RSI", "Bollinger Bands", "Moving Average"];
@@ -24,6 +25,12 @@ export function Strategy() {
   const selectedTimeframe = "1h";
   const [resetKey, setResetKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    getAllExchanges()
+      .then((response: { data: string[] }) => setExchanges(response.data.map((exchange) => exchange[0].toUpperCase() + exchange.slice(1))))
+      .catch((error) => toast("Failed to fetch exchanges", { description: error.message }));
+  }, []);
 
   const handleIndicatorsComboboxChange = (newValue: string) => {
     console.log("New indicator selected:", newValue);
@@ -54,16 +61,17 @@ export function Strategy() {
             <img src="/logo.svg" alt="Logo" className="logo size-6"/>
           </Button>
           <Separator orientation="vertical" className="!h-5 mx-1" />
-          <Combobox defaultValue={selectedStrategy} values={strategies} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Strategy"} icon={<FileChartPie />} />
+          <Combobox defaultValue={selectedStrategy} values={strategies} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"200px"} placeholder={"Strategy"} icon={<FileChartPie />} />
           <Separator orientation="vertical" className="!h-5 mx-1" />
-          <Combobox defaultValue={selectedExchange} values={exchanges} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Exchange"} icon={<Landmark />} />
+          <Combobox defaultValue={selectedExchange} values={exchanges} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Exchange"} icon={<Landmark />} />
           <Separator orientation="vertical" className="!h-5 mx-1" />
-          <Combobox defaultValue={selectedSymbol} values={symbols} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Symbol"} icon={<Bitcoin />} />
+          <Combobox defaultValue={selectedSymbol} values={symbols} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Symbol"} icon={<Bitcoin />} />
           <Separator orientation="vertical" className="!h-5 mx-1" />
           <Select defaultValue={selectedTimeframe}>
             <SelectTrigger
-              className="w-[100px] h-9 border-0 bg-transparent shadow-none focus:ring-0 focus:outline-none focus:ring-offset-0 hover:bg-accent hover:text-accent-foreground">
-              <AlignHorizontalDistributeCenter size={16} />
+              size="sm"
+              className="w-[100px] h-9 border-0 gap-1.5 shadow-none focus:outline-none !bg-transparent hover:!bg-accent dark:hover:!bg-accent/50">
+              <AlignHorizontalDistributeCenter size={16} className="text-foreground" />
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
             <SelectContent className="w-[160px]">

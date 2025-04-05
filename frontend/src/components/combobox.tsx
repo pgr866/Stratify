@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 type ButtonProps = {
   defaultValue?: string;
   values?: string[];
+  alwaysSelected?: boolean;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "logo";
   width?: string;
@@ -19,6 +20,7 @@ type ButtonProps = {
 export function Combobox({
   defaultValue = "",
   values = ["item1", "item2"],
+  alwaysSelected = false,
   variant = "default",
   size = "default",
   width = "200px",
@@ -30,7 +32,7 @@ export function Combobox({
   const [value, setValue] = React.useState(defaultValue)
 
   const handleSelect = (item: string) => {
-    const newValue = item === value ? "" : item;
+    const newValue = (item === value && !alwaysSelected) ? "" : item;
     setValue(newValue);
     setOpen(false);
     onChange?.(newValue);
@@ -46,14 +48,14 @@ export function Combobox({
           aria-expanded={open}
           style={{ width }}
           className="justify-between overflow-hidden font-normal">
-          <span className="flex items-center gap-2">
+          <span className="flex items-center gap-2 truncate">
             {icon && icon}
             {value || placeholder}
           </span>
           <ChevronDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">  
+      <PopoverContent className="p-0 w-fit">
         <Command>
           <CommandInput placeholder={`Search ${placeholder.toLowerCase()}...`} className="h-9" />
           <CommandList>

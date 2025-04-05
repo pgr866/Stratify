@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import logging
 from logging.handlers import RotatingFileHandler
+from datetime import timedelta
 
 from pathlib import Path
 import os
@@ -188,7 +189,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -240,5 +240,12 @@ AUTH_USER_MODEL = 'api.User'
 
 ACCESS_TOKEN_MAX_AGE = 3600 # 1 hour
 REFRESH_TOKEN_MAX_AGE = 604800 # 7 days
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=ACCESS_TOKEN_MAX_AGE), 
+    'REFRESH_TOKEN_LIFETIME': timedelta(seconds=REFRESH_TOKEN_MAX_AGE),
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+}
 
 SITE_ID = 1
