@@ -55,7 +55,7 @@ export function Combobox({
           <ChevronDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 w-fit">
+      <PopoverContent className={`p-0 w-fit`} style={{ minWidth: width }}>
         <Command>
           <CommandInput placeholder={`Search ${placeholder.toLowerCase()}...`} className="h-9" />
           <CommandList>
