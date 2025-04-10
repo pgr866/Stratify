@@ -22,6 +22,7 @@ export function ThemeProvider({ children }: Readonly<{ children: React.ReactNode
 	useEffect(() => {
 		document.documentElement.classList.remove("dark", "light");
 		document.documentElement.classList.add(theme);
+		localStorage.setItem('vite-ui-theme', theme);
 	}, [theme]);
 
 	const handleToggleTheme = async () => {
