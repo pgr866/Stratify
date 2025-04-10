@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Bitcoin, Landmark, FileChartPie, AlignHorizontalDistributeCenter, ChartNoAxesCombined } from "lucide-react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { CandleChart } from "./components/candle-chart";
+import { StrategyChart } from "./components/strategy-chart";
 import { DateTimeRangePicker } from "./components/date-time-range-picker";
 import { Combobox } from "@/components/combobox";
 import { Separator } from "@/components/ui/separator";
@@ -112,7 +113,7 @@ export function Strategy() {
       </ResizablePanel>
       <ResizableHandle />
       <ResizablePanel defaultSize={50} className="flex justify-center items-center">
-
+        <StrategyChart />
       </ResizablePanel>
     </ResizablePanelGroup>
   )
