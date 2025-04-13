@@ -113,3 +113,5 @@ export const deleteApiKeys = (exchange: string) => api.delete(`apiKey/${exchange
 
 // Get all ccxt exchanges
 export const getAllExchanges = () => api.get("exchanges/");
+
+export const getExchangeMarkets = (exchange) => api.get('markets/', { params: { exchange } });

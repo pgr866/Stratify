@@ -45,4 +45,5 @@ urlpatterns = [
 
     # Exchange Data
     path('v1/exchanges/', views.ExchangesView.as_view(), name='exchanges'),
+    path('v1/markets/', views.MarketsView.as_view(), name='markets')
 ]

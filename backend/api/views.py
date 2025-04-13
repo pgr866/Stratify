@@ -364,8 +364,38 @@ class ApiKeyView(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response({"error": "API Key not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class ExchangesView(APIView):
-    permission_classes = []
+    permission_classes = [IsAuthenticated]
+    
     def get(self, request):
         return Response(ccxt.exchanges)
+    
+class MarketsView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        try:
+            exchange_name = request.query_params.get('exchange')
+            api_key_instance = list(ApiKey.objects.filter(user=request.user, exchange=exchange_name).values('api_key', 'secret', 'password', 'uid'))
+            exchange_class = getattr(ccxt, exchange_name)(api_key_instance[0] if api_key_instance else {})
+            if exchange_class.has.get('fetchStatus'):
+                status_response = exchange_class.fetch_status()
+                if status_response.get('status') != 'ok':
+                    return Response({'warning': f"{exchange_name} status: {status_response.get('status')}"})
+            if exchange_name not in ['alpaca', 'bitpanda', 'bybit', 'coinbase', 'phemex', 'zaif']:
+                exchange_class.load_markets(True)
+                
+            markets_data = exchange_class.markets.values() if exchange_class.markets else []
+            symbols = [
+                {
+                    'symbol': x['symbol'],
+                    'spot': x.get('spot', False),
+                    'perp': x.get('swap', False)
+                }
+                for x in markets_data
+                if x.get('active') and (x.get('spot') or x.get('swap'))
+            ]
+            timeframes = [x for x in list(exchange_class.timeframes.keys()) if exchange_class.timeframes[x]] if exchange_class.timeframes else []
+            return Response({ 'symbols': symbols, 'timeframes': timeframes })
+        except Exception:
+            return Response({'error': f"Failed to load {exchange_name} markets"}, status=status.HTTP_404_NOT_FOUND)

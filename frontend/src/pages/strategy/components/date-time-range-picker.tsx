@@ -1,4 +1,4 @@
-import * as React from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
@@ -12,16 +12,18 @@ type ButtonProps = {
 	variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 	size?: "default" | "sm" | "lg" | "logo";
 	width?: string;
+	timezone: string;
+	onChange?: (range: DateRange) => void;
 };
 
-export function DateTimeRangePicker({ variant = "default", size = "default", width = "200px" }: Readonly<ButtonProps>) {
-	const [dateRange, setDateRange] = React.useState<DateRange>({
+export function DateTimeRangePicker({ variant = "default", size = "default", width = "200px", timezone = "UTC", onChange }: Readonly<ButtonProps>) {
+	const [dateRange, setDateRange] = useState<DateRange>({
 		from: undefined,
 		to: undefined,
 	});
-	const [isSettingStartTime, setIsSettingStartTime] = React.useState(true);
-	const [time, setTime] = React.useState({ hour: 0, minute: 0 });
-	const [isOpen, setIsOpen] = React.useState(false);
+	const [isSettingStartTime, setIsSettingStartTime] = useState(true);
+	const [time, setTime] = useState({ hour: 0, minute: 0 });
+	const [isOpen, setIsOpen] = useState(false);
 
 	const hours = Array.from({ length: 24 }, (_, i) => i);
 	const minutes = Array.from({ length: 60 }, (_, i) => i);
@@ -55,9 +57,15 @@ export function DateTimeRangePicker({ variant = "default", size = "default", wid
 		}
 	};
 
-	React.useEffect(() => {
+	useEffect(() => {
 		applyTimeToDateRange();
 	}, [time]);
+
+	useEffect(() => {
+    if (!isOpen && dateRange.from && dateRange.to) {
+      onChange?.(dateRange);
+    }
+  }, [isOpen, dateRange, onChange]);
 
 	const formatDateTime = (date: Date | undefined) => {
 		if (!date) return "";
