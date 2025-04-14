@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
+import { fromZonedTime, toZonedTime, getTimezoneOffset } from 'date-fns-tz';
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,8 @@ export function DateTimeRangePicker({ variant = "default", size = "default", wid
 
 	const hours = Array.from({ length: 24 }, (_, i) => i);
 	const minutes = Array.from({ length: 60 }, (_, i) => i);
+
+	const prevDateRange = useRef<DateRange>({ from: undefined, to: undefined });
 
 	const handleTimeChange = (field: "hour" | "minute", value: number) => {
 		setTime((prev) => ({
@@ -61,11 +64,23 @@ export function DateTimeRangePicker({ variant = "default", size = "default", wid
 		applyTimeToDateRange();
 	}, [time]);
 
+	function convertDateToTimezone(date: Date, timezone: string) {
+		const dateUTC = fromZonedTime(date, "UTC");
+		const offsetMs = getTimezoneOffset(timezone, dateUTC);
+		return dateUTC.getTime() - offsetMs;
+	}
+
 	useEffect(() => {
-    if (!isOpen && dateRange.from && dateRange.to) {
-      onChange?.(dateRange);
-    }
-  }, [isOpen, dateRange, onChange]);
+		if (!isOpen && dateRange.from && dateRange.to
+			&& (dateRange.from.getTime() !== prevDateRange.current?.from?.getTime()
+				|| dateRange.to.getTime() !== prevDateRange.current?.to?.getTime())) {
+			onChange?.({
+				from: convertDateToTimezone(dateRange.from, timezone),
+				to: convertDateToTimezone(dateRange.to, timezone)
+			});
+			prevDateRange.current = dateRange;
+		}
+	}, [isOpen, dateRange, onChange]);
 
 	const formatDateTime = (date: Date | undefined) => {
 		if (!date) return "";
