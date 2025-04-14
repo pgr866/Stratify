@@ -43,7 +43,7 @@ export function Preferences() {
 				<div className="flex items-center mb-2">
 					<Label>Timezone</Label>
 				</div>
-				<Combobox defaultValue={selectedTimezone} values={timezones} variant={"outline"} size={"default"} width={"300px"} placeholder={"Timezone"} onChange={(value) => setSelectedTimezone(value)} icon={<ClockFading />} />
+				<Combobox value={selectedTimezone} values={timezones} variant={"outline"} size={"default"} width={"300px"} placeholder={"Timezone"} onChange={(value) => setSelectedTimezone(value)} icon={<ClockFading />} />
 				<p className="text-sm text-muted-foreground">Select the timezone you want to use across the platform.</p>
 			</div>
 
