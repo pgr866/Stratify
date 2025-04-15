@@ -120,13 +120,13 @@ export function Strategy() {
           <Button variant={"ghost"} size={"sm"} onClick={() => navigate("/portal")}>
             <img src="/logo.svg" alt="Logo" className="logo size-6" />
           </Button>
-          <Separator orientation="vertical" className="!h-5 mx-1" />
-          <Combobox value={selectedStrategy} values={strategies} onChange={(value) => setSelectedStrategy(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"200px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleEditStrategyName} onDelete={() => setOpenDeleteDialog(true)} />
-          <Separator orientation="vertical" className="!h-5 mx-1" />
-          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => setSelectedExchange(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"170px"} placeholder={"Exchange"} icon={<Landmark />} />
-          <Separator orientation="vertical" className="!h-5 mx-1" />
-          <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"180px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
-          <Separator orientation="vertical" className="!h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-0.5" />
+          <Combobox value={selectedStrategy} values={strategies} onChange={(value) => setSelectedStrategy(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleEditStrategyName} onDelete={() => setOpenDeleteDialog(true)} />
+          <Separator orientation="vertical" className="!h-5 mx-0.5" />
+          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => setSelectedExchange(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Exchange"} icon={<Landmark />} />
+          <Separator orientation="vertical" className="!h-5 mx-0.5" />
+          <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
+          <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Select value={selectedTimeframe}
             onValueChange={(value) => setSelectedTimeframe(value)}>
             <SelectTrigger
@@ -148,7 +148,7 @@ export function Strategy() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Separator orientation="vertical" className="!h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"310px"}
             timezone={user.timezone}
             initialRange={{ from: 1744498860000, to: 1744588920000 }}
@@ -157,24 +157,24 @@ export function Strategy() {
               console.log("Fecha inicio:", range.from);
               console.log("Fecha fin:", range.to);
             }} />
-          <Separator orientation="vertical" className="!h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox key={resetKey} values={indicators} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Indicators"}
             onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} />
-          <Separator orientation="vertical" className="!h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Button variant={"ghost"} size={"sm"} className="w-[170px] overflow-hidden font-normal">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 28 28" style={{ width: "24", height: "24" }}>
               <path stroke="currentColor" strokeWidth="1.5" d="m20 17-5 5m0-5 5 5M9 11.5h7M17.5 8a2.5 2.5 0 0 0-5 0v11a2.5 2.5 0 0 1-5 0" />
             </svg>
             Order conditions
           </Button>
-          <Separator orientation="vertical" className="!h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <ThemeToggle size="9" />
           <Separator orientation="vertical" className="!h-5 mx-1" />
           <Button size={"sm"} onClick={handlePublish} disabled={isLoading || isLoadingPublishing}>
             {isLoadingPublishing ? (
-              <><Loader2 className="animate-spin mr-2" />Publishing...</>
+              <><Loader2 className="animate-spin mr-2" />Loading...</>
             ) : (
-              "Publish"
+              "Unpublish"
             )}
           </Button>
         </div>
