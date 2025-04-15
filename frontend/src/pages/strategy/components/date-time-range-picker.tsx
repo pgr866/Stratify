@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
-import { fromZonedTime, getTimezoneOffset } from 'date-fns-tz';
+import { fromZonedTime, toZonedTime, getTimezoneOffset } from 'date-fns-tz';
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
@@ -14,22 +14,44 @@ type ButtonProps = {
 	size?: "default" | "sm" | "lg" | "logo";
 	width?: string;
 	timezone: string;
-	onChange?: (range: DateRange) => void;
+	initialRange?: { from?: number; to?: number };
+	onChange?: (range: { from: number; to: number }) => void;
 };
 
-export function DateTimeRangePicker({ variant = "default", size = "default", width = "200px", timezone = "UTC", onChange }: Readonly<ButtonProps>) {
-	const [dateRange, setDateRange] = useState<DateRange>({
-		from: undefined,
-		to: undefined,
-	});
+export function DateTimeRangePicker({
+	variant = "default",
+	size = "default",
+	width = "200px",
+	timezone = "UTC",
+	initialRange = { from: undefined, to: undefined },
+	onChange
+}: Readonly<ButtonProps>) {
+
+	const convertUtcTimestampToZonedDate = (timestamp: number, timezone: string): Date => {
+		const dateUTC = new Date(timestamp);
+		return toZonedTime(dateUTC, timezone);
+	};
+
+	const convertDateToUtcTimestamp = (date: Date, timezone: string): number => {
+		const dateUTC = fromZonedTime(date, "UTC");
+		const offsetMs = getTimezoneOffset(timezone, dateUTC);
+		return dateUTC.getTime() - offsetMs;
+	};
+
+	const initialDateRange: DateRange = {
+		from: initialRange?.from ? convertUtcTimestampToZonedDate(initialRange.from, timezone) : undefined,
+		to: initialRange?.to ? convertUtcTimestampToZonedDate(initialRange.to, timezone) : undefined,
+	};
+
+	const [dateRange, setDateRange] = useState<DateRange>(initialDateRange);
+	const prevDateRange = useRef<DateRange>(initialDateRange);
+
 	const [isSettingStartTime, setIsSettingStartTime] = useState(true);
 	const [time, setTime] = useState({ hour: 0, minute: 0 });
 	const [isOpen, setIsOpen] = useState(false);
 
 	const hours = Array.from({ length: 24 }, (_, i) => i);
 	const minutes = Array.from({ length: 60 }, (_, i) => i);
-
-	const prevDateRange = useRef<DateRange>({ from: undefined, to: undefined });
 
 	const handleTimeChange = (field: "hour" | "minute", value: number) => {
 		setTime((prev) => ({
@@ -39,7 +61,7 @@ export function DateTimeRangePicker({ variant = "default", size = "default", wid
 	};
 
 	const applyTimeToDateRange = () => {
-		if (isSettingStartTime && dateRange.from) {
+		if (isSettingStartTime && dateRange.from && isOpen) {
 			const updatedFrom = new Date(dateRange.from);
 			updatedFrom.setHours(time.hour);
 			updatedFrom.setMinutes(time.minute);
@@ -64,19 +86,13 @@ export function DateTimeRangePicker({ variant = "default", size = "default", wid
 		applyTimeToDateRange();
 	}, [time]);
 
-	function convertDateToTimezone(date: Date, timezone: string) {
-		const dateUTC = fromZonedTime(date, "UTC");
-		const offsetMs = getTimezoneOffset(timezone, dateUTC);
-		return dateUTC.getTime() - offsetMs;
-	}
-
 	useEffect(() => {
 		if (!isOpen && dateRange.from && dateRange.to
 			&& (dateRange.from.getTime() !== prevDateRange.current?.from?.getTime()
 				|| dateRange.to.getTime() !== prevDateRange.current?.to?.getTime())) {
 			onChange?.({
-				from: convertDateToTimezone(dateRange.from, timezone),
-				to: convertDateToTimezone(dateRange.to, timezone)
+				from: convertDateToUtcTimestamp(dateRange.from, timezone),
+				to: convertDateToUtcTimestamp(dateRange.to, timezone)
 			});
 			prevDateRange.current = dateRange;
 		}
@@ -128,7 +144,8 @@ export function DateTimeRangePicker({ variant = "default", size = "default", wid
 							initialFocus
 							defaultMonth={undefined}
 							disabled={(date) =>
-								date > new Date() || date < new Date("1900-01-01")
+								fromZonedTime(date, "UTC").getTime() > (new Date()).getTime() + getTimezoneOffset(timezone, new Date()) ||
+								fromZonedTime(date, "UTC").getTime() < new Date("2009-01-01").getTime()
 							}
 						/>
 					</div>

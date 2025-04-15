@@ -150,7 +150,8 @@ export function Strategy() {
           </Select>
           <Separator orientation="vertical" className="!h-5 mx-1" />
           <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"310px"}
-          timezone={user.timezone}
+            timezone={user.timezone}
+            initialRange={{ from: 1744498860000, to: 1744588920000 }}
             onChange={(range) => {
               console.log(user.timezone);
               console.log("Fecha inicio:", range.from);
