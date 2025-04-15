@@ -14,7 +14,7 @@ type ButtonProps = {
 	size?: "default" | "sm" | "lg" | "logo";
 	width?: string;
 	timezone: string;
-	initialRange?: { from?: number; to?: number };
+	initialRange?: { from: number; to: number };
 	onChange?: (range: { from: number; to: number }) => void;
 };
 
@@ -23,7 +23,7 @@ export function DateTimeRangePicker({
 	size = "default",
 	width = "200px",
 	timezone = "UTC",
-	initialRange = { from: undefined, to: undefined },
+	initialRange,
 	onChange
 }: Readonly<ButtonProps>) {
 
@@ -39,14 +39,14 @@ export function DateTimeRangePicker({
 	};
 
 	const initialDateRange: DateRange = {
-		from: initialRange?.from ? convertUtcTimestampToZonedDate(initialRange.from, timezone) : undefined,
-		to: initialRange?.to ? convertUtcTimestampToZonedDate(initialRange.to, timezone) : undefined,
+		from: initialRange?.from ? convertUtcTimestampToZonedDate(initialRange?.from, timezone) : undefined,
+		to: initialRange?.to ? convertUtcTimestampToZonedDate(initialRange?.to, timezone) : undefined,
 	};
 
 	const [dateRange, setDateRange] = useState<DateRange>(initialDateRange);
 	const prevDateRange = useRef<DateRange>(initialDateRange);
 
-	const [isSettingStartTime, setIsSettingStartTime] = useState(true);
+	const [isSettingStartTime, setIsSettingStartTime] = useState(initialRange === undefined);
 	const [time, setTime] = useState({ hour: 0, minute: 0 });
 	const [isOpen, setIsOpen] = useState(false);
 
@@ -61,7 +61,7 @@ export function DateTimeRangePicker({
 	};
 
 	const applyTimeToDateRange = () => {
-		if (isSettingStartTime && dateRange.from && isOpen) {
+		if (isOpen && isSettingStartTime && dateRange.from) {
 			const updatedFrom = new Date(dateRange.from);
 			updatedFrom.setHours(time.hour);
 			updatedFrom.setMinutes(time.minute);
@@ -70,7 +70,7 @@ export function DateTimeRangePicker({
 				from: updatedFrom,
 				to: prev?.to ?? undefined,
 			}));
-		} else if (!isSettingStartTime && dateRange.to) {
+		} else if (isOpen && !isSettingStartTime && dateRange.to) {
 			const updatedTo = new Date(dateRange.to);
 			updatedTo.setHours(time.hour);
 			updatedTo.setMinutes(time.minute);
