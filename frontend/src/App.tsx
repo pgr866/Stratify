@@ -20,6 +20,7 @@ export const useSession = () => useContext(SessionContext);
 function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
   const location = useLocation();
+  const sessionValue = React.useMemo(() => ({ user, setUser }), [user, setUser]);
 
   useEffect(() => {
     if (location.pathname.startsWith("/api")) return;
@@ -33,7 +34,7 @@ function App() {
   }
 
   return (
-    <SessionContext.Provider value={{ user, setUser }}>
+    <SessionContext.Provider value={sessionValue}>
       <Suspense fallback={<div></div>}>
         <ThemeProvider>
           <Routes>

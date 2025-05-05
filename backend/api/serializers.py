@@ -3,7 +3,7 @@ import re
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 
-from .models import User, ApiKey
+from .models import User, ApiKey, Strategy, Candle
 
 def validate_password_strength(password):
     if len(password) < 8:
@@ -157,3 +157,24 @@ class ApiKeySerializer(serializers.ModelSerializer):
             'password': {'write_only': True, 'required': False},
             'uid': {'write_only': True, 'required': False},
         }
+
+class StrategySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Strategy
+        fields = '__all__'
+        extra_kwargs = {
+            'name': {'required': False},
+            'exchange': {'required': False},
+            'symbol': {'required': False},
+            'timeframe': {'required': False},
+            'indicators': {'required': False},
+            'order_conditions': {'required': False},
+            'leverage': {'required': False},
+            'is_public': {'required': False},
+            'copies_count': {'required': False},
+        }
+
+class CandleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Candle
+        fields = ['exchange', 'symbol', 'timeframe', 'timestamp', 'open', 'high', 'low', 'close', 'volume']

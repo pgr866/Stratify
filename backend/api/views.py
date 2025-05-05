@@ -7,6 +7,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
+from django.db.models import Q
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 
@@ -17,9 +19,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from github import Github, Requester
 from github.ApplicationOAuth import ApplicationOAuth
 
-from .models import User, ApiKey
+from .models import User, ApiKey, Strategy, Candle
 from .permissions import IsAuthenticated, IsNotAuthenticated, IsOwner, NoBody
-from .serializers import UserSerializer, LoginSerializer, GoogleLoginSerializer, GithubLoginSerializer, RecoverPasswordSerializer, ApiKeySerializer
+from .serializers import UserSerializer, LoginSerializer, GoogleLoginSerializer, GithubLoginSerializer, RecoverPasswordSerializer, ApiKeySerializer, StrategySerializer
 
 def set_auth_cookies(user, signup=False):
     refresh = RefreshToken.for_user(user)
@@ -55,15 +57,33 @@ def send_verification_code(email):
         send_mail(subject, message, from_email, [email])
     return Response({'detail': 'Verification code sent to your email'}, status=status.HTTP_200_OK)
 
+class Exchange:
+    def __new__(cls, exchange_name, user):
+        try:
+            api_key_instance = list(ApiKey.objects.filter(user=user, exchange=exchange_name).values('api_key', 'secret', 'password', 'uid'))
+            exchange = getattr(ccxt, exchange_name)(api_key_instance[0] if api_key_instance else {})
+            if exchange.has.get('fetchStatus'):
+                status_response = exchange.fetch_status()
+                if status_response.get('status') != 'ok':
+                    raise Exception('Exchange service unavailable')
+            if exchange_name not in ['alpaca', 'bitpanda', 'bybit', 'coinbase', 'phemex', 'zaif']:
+                exchange.load_markets(True)
+            exchange.name = exchange_name
+            return exchange
+        except Exception:
+            raise Exception('Unable to initialize exchange')
+
 #@method_decorator(cache_page(60*15), name='dispatch')
 class UserView(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
     def get_permissions(self):
+        if self.action in ['retrieve']:
+            self.permission_classes = []
         if self.action in ['create']:
             self.permission_classes = [IsNotAuthenticated]
-        elif self.action in ['update', 'partial_update', 'destroy', 'retrieve']:
+        elif self.action in ['update', 'partial_update', 'destroy']:
             self.permission_classes = [IsOwner]
         elif self.action in ['list']:
             self.permission_classes = [NoBody]
@@ -376,16 +396,8 @@ class MarketsView(APIView):
     def get(self, request):
         try:
             exchange_name = request.query_params.get('exchange')
-            api_key_instance = list(ApiKey.objects.filter(user=request.user, exchange=exchange_name).values('api_key', 'secret', 'password', 'uid'))
-            exchange_class = getattr(ccxt, exchange_name)(api_key_instance[0] if api_key_instance else {})
-            if exchange_class.has.get('fetchStatus'):
-                status_response = exchange_class.fetch_status()
-                if status_response.get('status') != 'ok':
-                    return Response({'warning': f"{exchange_name} status: {status_response.get('status')}"})
-            if exchange_name not in ['alpaca', 'bitpanda', 'bybit', 'coinbase', 'phemex', 'zaif']:
-                exchange_class.load_markets(True)
-                
-            markets_data = exchange_class.markets.values() if exchange_class.markets else []
+            exchange = Exchange(exchange_name, request.user)
+            markets_data = exchange.markets.values() if exchange.markets else []
             symbols = [
                 {
                     'symbol': x['symbol'],
@@ -395,7 +407,110 @@ class MarketsView(APIView):
                 for x in markets_data
                 if x.get('active') and (x.get('spot') or x.get('swap'))
             ]
-            timeframes = [x for x in list(exchange_class.timeframes.keys()) if exchange_class.timeframes[x]] if exchange_class.timeframes else []
+            timeframes = [x for x in list(exchange.timeframes.keys()) if exchange.timeframes[x]] if exchange.timeframes else []
             return Response({ 'symbols': symbols, 'timeframes': timeframes })
         except Exception:
             return Response({'error': f"Failed to load {exchange_name} markets"}, status=status.HTTP_404_NOT_FOUND)
+
+class StrategyView(viewsets.ModelViewSet):
+    serializer_class = StrategySerializer
+    
+    def get_permissions(self):
+        if self.action in ['retrieve', 'list']:
+            self.permission_classes = [IsAuthenticated]
+        elif self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [IsOwner]
+        return super().get_permissions()
+
+    def get_queryset(self):
+        if self.action == 'list':
+            if self.request.path.endswith('/strategy/me/'):
+                return Strategy.objects.filter(user=self.request.user)
+            else:
+                return Strategy.objects.filter(is_public=True)
+        else:
+            return Strategy.objects.filter(Q(id=self.kwargs['pk']), Q(is_public=True) | Q(user=self.request.user))
+        
+    def _get_unique_name(self, name, current_id=None):
+        counter = 0
+        test_name = name
+        query = Strategy.objects.filter(user=self.request.user, name=test_name)
+        if current_id:
+            query = query.exclude(id=current_id)
+        while query.exists():
+            counter += 1
+            test_name = f"{name} ({counter})"
+            query = Strategy.objects.filter(user=self.request.user, name=test_name)
+            if current_id:
+                query = query.exclude(id=current_id)
+        return test_name
+    
+    def perform_create(self, serializer):
+        name = serializer.validated_data.get('name', "New Strategy")
+        serializer.validated_data['name'] = self._get_unique_name(name)
+        serializer.save(user=self.request.user)
+    
+    def perform_update(self, serializer):
+        name = serializer.validated_data.get('name')
+        serializer.validated_data['name'] = self._get_unique_name(name, self.kwargs['pk'])
+        serializer.save(user=self.request.user)
+
+class CandleView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def fetch_missing_candles_from_ccxt(self, exchange, symbol, timeframe, timestamp_start, timestamp_end):
+        candles = Candle.objects.filter(
+                exchange=exchange.name,
+                symbol=symbol,
+                timeframe=timeframe,
+                timestamp__gte=timestamp_start,
+                timestamp__lte=timestamp_end
+            ).order_by('timestamp')
+        import sys; print(candles, file=sys.stderr)
+    
+    def get(self, request):
+        try:
+            exchange = request.query_params.get('exchange')
+            symbol = request.query_params.get('symbol')
+            timeframe = request.query_params.get('timeframe')
+            timestamp_start = request.query_params.get('timestamp_start')
+            timestamp_end = request.query_params.get('timestamp_end')
+            
+            if not all([exchange, symbol, timeframe, timestamp_start, timestamp_end]):
+                return Response(
+                    {'error': 'Missing required parameters. Please provide: exchange, symbol, timeframe, timestamp_start, timestamp_end'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            self.fetch_missing_candles_from_ccxt(
+                exchange=Exchange(exchange, request.user),
+                symbol=symbol,
+                timeframe=timeframe,
+                timestamp_start=timestamp_start,
+                timestamp_end=timestamp_end
+            )
+            
+            candles = Candle.objects.filter(
+                exchange=exchange,
+                symbol=symbol,
+                timeframe=timeframe,
+                timestamp__gte=timestamp_start,
+                timestamp__lte=timestamp_end
+            ).order_by('-timestamp')
+                
+            # Pagination
+            page = request.query_params.get('page', 1)
+            page_size = request.query_params.get('page_size', 1000)
+            paginator = Paginator(candles, page_size)
+            current_page = paginator.page(page)
+            
+            serializer = CandleSerializer(current_page, many=True)
+            return Response({
+                'candles': serializer.data,
+                'total': paginator.count,
+                'pages': paginator.num_pages,
+                'current_page': int(page)
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

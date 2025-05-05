@@ -12,21 +12,23 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { toast } from "sonner";
-import { getAllExchanges, getExchangeMarkets } from "@/api";
+import { getAllExchanges, getExchangeMarkets, Strategy as StrategyType, getStrategy, getUserStrategies, updateStrategy, deleteStrategy } from "@/api";
 import { useSession } from "@/App";
 
 export function Strategy() {
+  const params = useParams<{ id: string }>();
+  const [id, setId] = useState(params.id);
   const { user } = useSession();
   const navigate = useNavigate();
-  const [strategies, setStrategies] = useState(["MACD", "RSI", "Bollinger Bands", "Moving Average"]);
+  const [strategies, setStrategies] = useState([]);
   const [exchanges, setExchanges] = useState([]);
   const [symbols, setSymbols] = useState([]);
   const [timeframes, setTimeframes] = useState([]);
   const [indicators, setIndicators] = useState(["MACD", "RSI", "Bollinger Bands", "Moving Average"]);
-  const [selectedStrategy, setSelectedStrategy] = useState(strategies[0]);
-  const [selectedExchange, setSelectedExchange] = useState("Binance");
-  const [selectedSymbol, setSelectedSymbol] = useState("BTC/USDT");
-  const [selectedTimeframe, setSelectedTimeframe] = useState("1d");
+  const [selectedStrategy, setSelectedStrategy] = useState();
+  const [selectedExchange, setSelectedExchange] = useState();
+  const [selectedSymbol, setSelectedSymbol] = useState("");
+  const [selectedTimeframe, setSelectedTimeframe] = useState("");
   const [resetKey, setResetKey] = useState(0);
   const [isLoadingPublishing, setIsLoadingPublishing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,46 +48,91 @@ export function Strategy() {
   ]
 
   useEffect(() => {
+    getStrategy(id)
+      .then((response: StrategyType) => setSelectedStrategy(response.data))
+      .catch((error) => toast("Failed to load strategy", { description: error.message }));
+    getUserStrategies()
+      .then((response: { data: StrategyType[] }) => setStrategies(response.data.map(({ id, name }) => ({ id, name }))))
+      .catch((error) => toast("Failed to fetch your strategies", { description: error.message }));
     getAllExchanges()
       .then((response: { data: string[] }) => setExchanges(response.data.map((exchange) => exchange[0].toUpperCase() + exchange.slice(1))))
       .catch((error) => toast("Failed to fetch exchanges", { description: error.message }));
-  }, []);
+  }, [id]);
 
   useEffect(() => {
-    setIsLoading(true);
-    setSymbols([]);
-    setTimeframes([]);
-    getExchangeMarkets(selectedExchange.toLowerCase())
-      .then((response: { data: string[] }) => {
-        setSymbols(response.data.symbols.map((symbol) => symbol.symbol));
-        setTimeframes(response.data.timeframes);
-      })
-      .catch((error) => toast("Failed to fetch symbols", { description: error.message }))
-      .then(() => setIsLoading(false));
+    if (selectedStrategy) {
+      setSelectedSymbol(selectedStrategy.symbol);
+      setSelectedTimeframe(selectedStrategy.timeframe);
+      setSelectedExchange(selectedStrategy.exchange.charAt(0).toUpperCase() + selectedStrategy.exchange.slice(1));
+    }
+  }, [selectedStrategy]);
+
+  useEffect(() => {
+    if (selectedExchange) {
+      setIsLoading(true);
+      setSymbols([]);
+      setTimeframes([]);
+      getExchangeMarkets(selectedExchange.toLowerCase())
+        .then((response: { data: string[] }) => {
+          setSymbols(response.data.symbols.map((symbol) => symbol.symbol));
+          setTimeframes(response.data.timeframes);
+        })
+        .catch((error) => toast("Failed to fetch symbols", { description: error.message }))
+        .finally(() => setIsLoading(false));
+    }
   }, [selectedExchange]);
 
   useEffect(() => {
-    console.log(selectedSymbol, selectedTimeframe);
+    if (symbols.length && !symbols.includes(selectedSymbol)) {
+      setSelectedSymbol(symbols[0]);
+    }
+    if (timeframes.length && !timeframes.includes(selectedTimeframe)) {
+      setSelectedTimeframe(timeframes[0]);
+    }
+  }, [symbols, timeframes]);
+
+  useEffect(() => {
+    //console.log(selectedSymbol, selectedTimeframe);
   }, [selectedSymbol, selectedTimeframe]);
 
-  const handleEditStrategyName = (oldValue: string, newValue: string) => {
-    setStrategies(prev => prev.map(strategy =>
-      strategy === oldValue ? newValue : strategy
-    ))
-    setSelectedStrategy(newValue)
+  const handleOnChangeStrategy = (value) => {
+    const newStrategyId = strategies.find((s) => s.name === value).id;
+    navigate(`/strategy/${newStrategyId}`);
+    getStrategy(newStrategyId)
+      .then((response: StrategyType) => setSelectedStrategy(response.data))
+      .catch((error) => toast("Failed to load strategy", { description: error.message }));
   }
 
-  const handleDeleteStrategy = (value: string) => {
+  const handleRenameStrategy = (oldValue: string, newValue: string) => {
+    updateStrategy(selectedStrategy.id, { ...selectedStrategy, name: newValue })
+      .then((response: StrategyType) => {
+        setSelectedStrategy(response.data)
+        setStrategies(prev =>
+          prev.map(strategy =>
+            strategy.id === selectedStrategy.id ? { ...strategy, name: newValue } : strategy
+          )
+        );
+      })
+      .catch((error) => toast("Failed to rename strategy", { description: error.message }));
+  }
+
+  const handleDeleteStrategy = () => {
     try {
       setIsLoading(true);
-
-      const newStrategies = strategies.filter(strategy => strategy !== value)
-      const lastStrategy = newStrategies.at(0) ?? ""
-      setStrategies(newStrategies)
-      setSelectedStrategy(lastStrategy)
+      deleteStrategy(selectedStrategy.id)
+      const newStrategies = strategies.filter(strategy => strategy.id !== selectedStrategy.id);
+      if ([...newStrategies].length) {
+        setStrategies(newStrategies);
+        const newId = newStrategies.at(0).id;
+        setId(newId);
+        navigate(`/strategy/${newId}`);
+      } else {
+        navigate(`/portal`);
+      }
       setOpenDeleteDialog(false);
       toast("Strategy deleted successfully");
     } catch (error) {
+      console.error("Error deleting strategy:", error);
       toast("Failed to delete strategy", { description: "Something went wrong" });
     } finally {
       setIsLoading(false);
@@ -93,7 +140,7 @@ export function Strategy() {
   }
 
   const handleIndicatorsComboboxChange = (newValue: string) => {
-    console.log("New indicator selected:", newValue);
+    //console.log("New indicator selected:", newValue);
     setResetKey((prevKey: number) => prevKey + 1);
   };
 
@@ -121,7 +168,7 @@ export function Strategy() {
             <img src="/logo.svg" alt="Logo" className="logo size-6" />
           </Button>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedStrategy} values={strategies} onChange={(value) => setSelectedStrategy(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleEditStrategyName} onDelete={() => setOpenDeleteDialog(true)} />
+          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onChange={(value) => handleOnChangeStrategy(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox value={selectedExchange} values={exchanges} onChange={(value) => setSelectedExchange(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Exchange"} icon={<Landmark />} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
@@ -149,14 +196,10 @@ export function Strategy() {
             </SelectContent>
           </Select>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"310px"}
+          <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"309px"}
             timezone={user.timezone}
             initialRange={{ from: 1744498860000, to: 1744588920000 }}
-            onChange={(range) => {
-              console.log(user.timezone);
-              console.log("Fecha inicio:", range.from);
-              console.log("Fecha fin:", range.to);
-            }} />
+          />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox key={resetKey} values={indicators} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Indicators"}
             onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} />
@@ -189,7 +232,7 @@ export function Strategy() {
         >
           <DialogHeader>
             <DialogTitle className="text-2xl">
-              Confirm <span className="capitalize">{selectedStrategy}</span> Strategy Deletion
+              Confirm <span className="capitalize">{selectedStrategy?.name}</span> Strategy Deletion
             </DialogTitle>
             <DialogDescription>
               <strong>Are you sure you want to delete this Strategy?</strong><br />
@@ -197,7 +240,7 @@ export function Strategy() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="destructive" onClick={() => handleDeleteStrategy(selectedStrategy)} disabled={isLoading} className="w-full">
+            <Button variant="destructive" onClick={() => handleDeleteStrategy()} disabled={isLoading} className="w-full">
               {isLoading ? (
                 <>
                   <Loader2 className="animate-spin mr-2" />

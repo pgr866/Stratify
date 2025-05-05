@@ -1,6 +1,6 @@
 FROM node:22.14.0-slim
 WORKDIR /app
-COPY frontend/package.json frontend/package-lock.json /app/
+COPY frontend/package*.json /app/
 RUN npm i -g npm@latest && npm ci --legacy-peer-deps
 COPY frontend/ /app/
 CMD ["sh", "-c", "\

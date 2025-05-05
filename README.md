@@ -1,10 +1,10 @@
 # Requisitos Funcionales
-- Login
-- Google Login
-- GitHub Login
-- Registrarse
-- Recuperar contraseña
-- Configurar Api Keys
+*- Login
+*- Google Login
+*- GitHub Login
+*- Registrarse
+*- Recuperar contraseña
+*- Configurar Api Keys
 - Crear Estrategia
 - Configurar Estrategia
     - Añadir indicadores estadísticos a estrategia
@@ -40,5 +40,5 @@ https://www.tradingview.com/lightweight-charts/
 npx shadcn@latest add accordion avatar badge button calendar card chart command dialog dropdown-menu input-otp input label navigation-menu popover resizable scroll-area select separator sheet sonner tabs
 ```
 ```bash
-npm i --legacy-peer-deps axios @react-oauth/google lightweight-charts date-fns-tz @radix-ui/react-icons react-router-dom
+npm i --legacy-peer-deps axios @react-oauth/google lightweight-charts date-fns-tz @tanstack/react-virtual @radix-ui/react-icons react-router-dom
 ```

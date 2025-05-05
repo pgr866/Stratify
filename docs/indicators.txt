@@ -23,6 +23,7 @@ Typical Price (TYPPRICE) → TypicalPrice
 Parabolic SAR (SAR) → Parabolic SAR
 Average True Range (ATR) → Average True Range
 Standard Deviation (STDDEV) → Standard Deviation
+
 Indicadores que coinciden pero con nombres ligeramente distintos:
 Double Exponential Moving Average (DEMA) → Double EMA
 Exponential Moving Average (EMA) → Moving Average Exponential
