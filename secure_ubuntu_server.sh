@@ -4,7 +4,7 @@
 # Start the Azure VM
 # Connect via SSH (ssh azureuser@<VM IP>)
 # In your Azure VM settings, go to Networking > Network settings and edit SSH inbound port rule (Service: Custom, Destination port range: 717, Protocol: TCP, Name: SSH)
-# In yout Azure VM settings, go to Connect and and change the Port (change) to 717
+# In yout Azure VM settings, go to Connect and change the Port (change) to 717
 # Copy and run this script in your VM via SSH (sudo chmod +x secure_ubuntu_server.sh && ./secure_ubuntu_server.sh)
 # Connect via SSH (ssh user@<VM IP> -p 717)
 
