@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Bitcoin, Landmark, FileChartPie, AlignHorizontalDistributeCenter, ChartNoAxesCombined, Loader2 } from "lucide-react";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { toast } from "sonner";
-import { getAllExchanges, getExchangeMarkets, Strategy as StrategyType, getStrategy, getUserStrategies, updateStrategy, deleteStrategy } from "@/api";
+import { getAllExchanges, getExchangeMarkets, Strategy as StrategyType, getStrategy, getUserStrategies, createStrategy, updateStrategy, deleteStrategy } from "@/api";
 import { useSession } from "@/App";
 
 export function Strategy() {
@@ -26,11 +26,12 @@ export function Strategy() {
   const [timeframes, setTimeframes] = useState([]);
   const [indicators, setIndicators] = useState(["MACD", "RSI", "Bollinger Bands", "Moving Average"]);
   const [selectedStrategy, setSelectedStrategy] = useState();
+  const prevStrategyRef = useRef(selectedStrategy);
   const [selectedExchange, setSelectedExchange] = useState();
   const [selectedSymbol, setSelectedSymbol] = useState("");
   const [selectedTimeframe, setSelectedTimeframe] = useState("");
+  const [selectedDatetimeRange, setSelectedDatetimeRange] = useState("");
   const [resetKey, setResetKey] = useState(0);
-  const [isLoadingPublishing, setIsLoadingPublishing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
@@ -83,27 +84,52 @@ export function Strategy() {
   }, [selectedExchange]);
 
   useEffect(() => {
+    setIsLoading(true);
     if (symbols.length && !symbols.includes(selectedSymbol)) {
       setSelectedSymbol(symbols[0]);
     }
     if (timeframes.length && !timeframes.includes(selectedTimeframe)) {
       setSelectedTimeframe(timeframes[0]);
     }
+    setIsLoading(false);
   }, [symbols, timeframes]);
 
   useEffect(() => {
-    //console.log(selectedSymbol, selectedTimeframe);
-  }, [selectedSymbol, selectedTimeframe]);
+    const prev = prevStrategyRef.current;
+    if (prev && selectedStrategy && prev === selectedStrategy) {
+      setIsLoading(true);
+      updateStrategy(selectedStrategy.id, { ...selectedStrategy, exchange: selectedExchange.toLowerCase(), symbol: selectedSymbol, timeframe: selectedTimeframe })
+        .then((response: StrategyType) => setSelectedStrategy(response.data))
+        .catch((error) => toast("Failed to update strategy", { description: error.message }))
+        .finally(() => setIsLoading(false));
+    }
+    prevStrategyRef.current = selectedStrategy;
+  }, [selectedExchange, selectedSymbol, selectedTimeframe]);
+
+  const handleCreateStrategy = () => {
+    setIsLoading(true);
+    createStrategy()
+      .then((response: StrategyType) => {
+        const newId = response.data.id;
+        setId(newId);
+        navigate(`/strategy/${newId}`);
+      })
+      .catch((error) => toast("Failed to create new strategy", { description: error.message }))
+      .finally(() => setIsLoading(false));
+  }
 
   const handleOnChangeStrategy = (value) => {
     const newStrategyId = strategies.find((s) => s.name === value).id;
     navigate(`/strategy/${newStrategyId}`);
+    setIsLoading(true);
     getStrategy(newStrategyId)
       .then((response: StrategyType) => setSelectedStrategy(response.data))
-      .catch((error) => toast("Failed to load strategy", { description: error.message }));
+      .catch((error) => toast("Failed to load strategy", { description: error.message }))
+      .finally(() => setIsLoading(false));
   }
 
   const handleRenameStrategy = (oldValue: string, newValue: string) => {
+    setIsLoading(true);
     updateStrategy(selectedStrategy.id, { ...selectedStrategy, name: newValue })
       .then((response: StrategyType) => {
         setSelectedStrategy(response.data)
@@ -113,7 +139,8 @@ export function Strategy() {
           )
         );
       })
-      .catch((error) => toast("Failed to rename strategy", { description: error.message }));
+      .catch((error) => toast("Failed to rename strategy", { description: error.message }))
+      .finally(() => setIsLoading(false));
   }
 
   const handleDeleteStrategy = () => {
@@ -145,19 +172,11 @@ export function Strategy() {
   };
 
   const handlePublish = async () => {
-    try {
-      setIsLoadingPublishing(true);
-      toast("Publish successfully");
-    } catch (error) {
-      const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
-      const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
-        ? Object.entries(axiosError.response.data).map(([k, v]) =>
-          k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
-        : "Something went wrong";
-      toast("Publish failed", { description: errorMessage });
-    } finally {
-      setIsLoadingPublishing(false);
-    }
+    setIsLoading(true);
+    updateStrategy(selectedStrategy.id, { ...selectedStrategy, is_public: !selectedStrategy.is_public })
+      .then((response: StrategyType) => setSelectedStrategy(response.data))
+      .catch((error) => toast("Failed to update strategy", { description: error.message }))
+      .finally(() => setIsLoading(false));
   };
 
   return (
@@ -168,7 +187,7 @@ export function Strategy() {
             <img src="/logo.svg" alt="Logo" className="logo size-6" />
           </Button>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onChange={(value) => handleOnChangeStrategy(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
+          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox value={selectedExchange} values={exchanges} onChange={(value) => setSelectedExchange(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Exchange"} icon={<Landmark />} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
@@ -198,7 +217,7 @@ export function Strategy() {
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"309px"}
             timezone={user.timezone}
-            initialRange={{ from: 1744498860000, to: 1744588920000 }}
+            initialRange={selectedDatetimeRange}
           />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox key={resetKey} values={indicators} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Indicators"}
@@ -213,11 +232,11 @@ export function Strategy() {
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <ThemeToggle size="9" />
           <Separator orientation="vertical" className="!h-5 mx-1" />
-          <Button size={"sm"} onClick={handlePublish} disabled={isLoading || isLoadingPublishing}>
-            {isLoadingPublishing ? (
-              <><Loader2 className="animate-spin mr-2" />Loading...</>
+          <Button size={"sm"} onClick={handlePublish} disabled={isLoading}>
+            {isLoading ? (
+              <Loader2 className="animate-spin mx-6.5" />
             ) : (
-              "Unpublish"
+              selectedStrategy?.is_public ? "Unpublish" : "\u00A0\u00A0Publish\u00A0\u00A0"
             )}
           </Button>
         </div>

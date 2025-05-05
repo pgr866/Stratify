@@ -446,8 +446,7 @@ class StrategyView(viewsets.ModelViewSet):
         return test_name
     
     def perform_create(self, serializer):
-        name = serializer.validated_data.get('name', "New Strategy")
-        serializer.validated_data['name'] = self._get_unique_name(name)
+        serializer.validated_data['name'] = self._get_unique_name("New Strategy")
         serializer.save(user=self.request.user)
     
     def perform_update(self, serializer):

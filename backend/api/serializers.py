@@ -162,6 +162,7 @@ class StrategySerializer(serializers.ModelSerializer):
     class Meta:
         model = Strategy
         fields = '__all__'
+        read_only_fields = ['user']
         extra_kwargs = {
             'name': {'required': False},
             'exchange': {'required': False},

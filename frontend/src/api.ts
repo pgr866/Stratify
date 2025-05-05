@@ -168,7 +168,7 @@ export const getUserStrategies = () => api.get<Strategy[]>("strategy/me/");
 export const getStrategy = (id: string) => api.get<Strategy>(`strategy/${id}/`);
 
 // Create new strategy
-export const createStrategy = (strategy: Strategy) => api.post<Strategy>("strategy/me/", strategy);
+export const createStrategy = () => api.post<Strategy>("strategy/me/");
 
 // Update strategy
 export const updateStrategy = (id: string, strategy: Strategy) => api.put<Strategy>(`strategy/${id}/`, strategy);
