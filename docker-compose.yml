@@ -22,8 +22,8 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: backend/Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile
     volumes:
       - /etc/ssl/certs/redis.crt:/etc/ssl/certs/redis.crt:ro
       - /etc/ssl/private/redis.key:/etc/ssl/private/redis.key.enc:ro
@@ -47,8 +47,8 @@ services:
 
   frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile
+      context: ./frontend
+      dockerfile: Dockerfile
     environment:
       DEBUG: ${DEBUG}
       VITE_ENV_PATH: ${VITE_ENV_PATH}
@@ -66,7 +66,7 @@ services:
     restart: always
   
   redis:
-    image: redis:7.4.2
+    image: redis:7.4.3
     volumes:
       - /etc/ssl/certs/redis.crt:/etc/ssl/certs/redis.crt:ro
       - /etc/ssl/private/redis.key:/etc/ssl/private/redis.key:ro
@@ -82,7 +82,7 @@ services:
     restart: always
 
   nginx:
-    image: nginx:1.27.4
+    image: nginx:1.27.5
     environment:
       ALLOWED_HOST: ${ALLOWED_HOST}
     volumes:

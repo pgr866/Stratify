@@ -1,8 +1,8 @@
-FROM node:22.14.0-slim
+FROM node:22.15.0-alpine
 WORKDIR /app
-COPY frontend/package*.json /app/
+COPY package*.json .
 RUN npm i -g npm@latest && npm ci --legacy-peer-deps
-COPY frontend/ /app/
+COPY . .
 CMD ["sh", "-c", "\
     if [ \"${DEBUG}\" = \"True\" ]; then \
         npm run dev -- --host; \

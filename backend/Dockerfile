@@ -1,22 +1,14 @@
-FROM python:3.13.2-slim
+FROM python:3.13.3-slim
 RUN apt update -y && apt install -y --no-install-recommends build-essential libpq-dev openssl wait-for-it wget && \
-    apt autoremove -y && \
-    rm -rf /var/lib/apt/lists/* && \
-    wget https://github.com/TA-Lib/ta-lib/releases/download/v0.6.4/ta-lib-0.6.4-src.tar.gz && \
-    tar -xzf ta-lib*.tar.gz && \
-    cd ta-lib* && \
-    ./configure && \
-    make && \
-    make install && \
-    cd .. && \
-    rm -rf ta-lib*
+    wget https://github.com/TA-Lib/ta-lib/releases/download/v0.6.4/ta-lib_0.6.4_amd64.deb && dpkg -i ta-lib_0.6.4_amd64.deb && rm ta-lib_0.6.4_amd64.deb && \
+    apt autoremove -y && apt clean && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-RUN python -m venv /app/venv
-ENV PATH="/app/venv/bin:$PATH"
-COPY backend/requirements.txt /app/
+RUN python -m venv venv
+ENV PATH="venv/bin:$PATH"
+COPY requirements.txt .
 RUN pip install --no-cache-dir -U pip && pip install --no-cache-dir -U -r requirements.txt && rm -rf /root/.cache && \
     mkdir -p /etc/ssl/private_decrypted && chmod 700 /etc/ssl/private_decrypted
-COPY backend/ /app/
+COPY . .
 CMD ["sh", "-c", "\
     if [ \"${DEBUG}\" != \"True\" ]; then \
         openssl rsa -in /etc/ssl/private/postgresdb.key.enc -out /etc/ssl/private_decrypted/postgresdb.key -passin pass:$POSTGRES_SSL_PASSPHRASE && \
