@@ -2,6 +2,8 @@ import requests
 import secrets
 from types import SimpleNamespace
 import ccxt
+import pandas as pd
+from decimal import Decimal
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -21,7 +23,7 @@ from github.ApplicationOAuth import ApplicationOAuth
 
 from .models import User, ApiKey, Strategy, Candle
 from .permissions import IsAuthenticated, IsNotAuthenticated, IsOwner, NoBody
-from .serializers import UserSerializer, LoginSerializer, GoogleLoginSerializer, GithubLoginSerializer, RecoverPasswordSerializer, ApiKeySerializer, StrategySerializer
+from .serializers import UserSerializer, LoginSerializer, GoogleLoginSerializer, GithubLoginSerializer, RecoverPasswordSerializer, ApiKeySerializer, StrategySerializer, CandleSerializer
 
 def set_auth_cookies(user, signup=False):
     refresh = RefreshToken.for_user(user)
@@ -457,23 +459,45 @@ class StrategyView(viewsets.ModelViewSet):
 class CandleView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def fetch_missing_candles_from_ccxt(self, exchange, symbol, timeframe, timestamp_start, timestamp_end):
-        candles = Candle.objects.filter(
+    def get_candles(self, exchange, symbol, timeframe, timestamp_start, timestamp_end, first=False):
+        candles = pd.DataFrame(columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+        if first:
+            candles = pd.DataFrame.from_records(Candle.objects.filter(
                 exchange=exchange.name,
                 symbol=symbol,
                 timeframe=timeframe,
                 timestamp__gte=timestamp_start,
                 timestamp__lte=timestamp_end
-            ).order_by('timestamp')
-        import sys; print(candles, file=sys.stderr)
+            ).order_by('timestamp').values())
+        if candles.empty:
+            candles = pd.DataFrame(exchange.fetch_ohlcv(symbol=symbol, timeframe=timeframe, since=timestamp_start - 1, limit=int((timestamp_end - timestamp_start) // (pd.Timedelta(f"{int(timeframe[:-1]) * (30 if timeframe.endswith('M') else 365)}d" if timeframe.endswith(('M','y')) else timeframe).total_seconds() * 1000)) + 1), columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+        if candles.empty:
+            Candle.objects.filter(
+                exchange=exchange.name,
+                symbol=symbol,
+                timeframe=timeframe,
+                timestamp__lt=timestamp_start
+            ).delete()
+            return candles
+        ts_start = candles['timestamp'].iloc[0]
+        ts_end = candles['timestamp'].iloc[-1]
+        if ts_start <= timestamp_start and ts_end >= timestamp_end:
+            return candles
+        if ts_start > timestamp_start:
+            new_candles = get_candles(exchange, symbol, timeframe, timestamp_start, ts_start - 1)
+            candles = pd.concat([candles, new_candles]).sort_values(by='timestamp', ascending=True).reset_index(drop=True)
+        if ts_end < timestamp_end:
+            new_candles = get_candles(exchange, symbol, timeframe, ts_end + 1, timestamp_end)
+            candles = pd.concat([candles, new_candles]).sort_values(by='timestamp', ascending=True).reset_index(drop=True)
+        return candles
     
     def get(self, request):
         try:
             exchange = request.query_params.get('exchange')
             symbol = request.query_params.get('symbol')
             timeframe = request.query_params.get('timeframe')
-            timestamp_start = request.query_params.get('timestamp_start')
-            timestamp_end = request.query_params.get('timestamp_end')
+            timestamp_start = int(request.query_params.get('timestamp_start'))
+            timestamp_end = int(request.query_params.get('timestamp_end'))
             
             if not all([exchange, symbol, timeframe, timestamp_start, timestamp_end]):
                 return Response(
@@ -481,25 +505,45 @@ class CandleView(APIView):
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            self.fetch_missing_candles_from_ccxt(
+            candles_df = self.get_candles(
                 exchange=Exchange(exchange, request.user),
                 symbol=symbol,
                 timeframe=timeframe,
                 timestamp_start=timestamp_start,
-                timestamp_end=timestamp_end
+                timestamp_end=timestamp_end,
+                first=True
             )
             
-            candles = Candle.objects.filter(
-                exchange=exchange,
-                symbol=symbol,
-                timeframe=timeframe,
-                timestamp__gte=timestamp_start,
-                timestamp__lte=timestamp_end
-            ).order_by('-timestamp')
+            if not candles_df.empty:
+                for col in ['open', 'high', 'low', 'close', 'volume']:
+                    candles_df[col] = candles_df[col].apply(lambda x: Decimal(str(x)))
+                records = candles_df.assign(
+                    exchange=exchange,
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp=candles_df['timestamp'].astype(int),
+                    open=candles_df['open'],
+                    high=candles_df['high'],
+                    low=candles_df['low'],
+                    close=candles_df['close'],
+                    volume=candles_df['volume']
+                ).to_dict(orient='records')
                 
+                Candle.objects.bulk_create([Candle(**row) for row in records], ignore_conflicts=True)
+
+                candles = Candle.objects.filter(
+                    exchange=exchange,
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp__gte=timestamp_start,
+                    timestamp__lte=timestamp_end
+                ).order_by('timestamp')
+            else:
+                candles = Candle.objects.none()
+            
             # Pagination
-            page = request.query_params.get('page', 1)
-            page_size = request.query_params.get('page_size', 1000)
+            page = int(request.query_params.get('page', 1))
+            page_size = int(request.query_params.get('page_size', 1000))
             paginator = Paginator(candles, page_size)
             current_page = paginator.page(page)
             

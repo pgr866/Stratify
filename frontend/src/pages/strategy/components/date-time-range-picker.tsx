@@ -14,7 +14,7 @@ type ButtonProps = {
 	size?: "default" | "sm" | "lg" | "logo";
 	width?: string;
 	timezone: string;
-	initialRange?: { from: number; to: number };
+	range?: { from: number; to: number };
 	onChange?: (range: { from: number; to: number }) => void;
 };
 
@@ -23,7 +23,7 @@ export function DateTimeRangePicker({
 	size = "default",
 	width = "200px",
 	timezone = "UTC",
-	initialRange,
+	range,
 	onChange
 }: Readonly<ButtonProps>) {
 
@@ -39,19 +39,34 @@ export function DateTimeRangePicker({
 	};
 
 	const initialDateRange: DateRange = {
-		from: initialRange?.from ? convertUtcTimestampToZonedDate(initialRange?.from, timezone) : undefined,
-		to: initialRange?.to ? convertUtcTimestampToZonedDate(initialRange?.to, timezone) : undefined,
+		from: range?.from ? convertUtcTimestampToZonedDate(range?.from, timezone) : undefined,
+		to: range?.to ? convertUtcTimestampToZonedDate(range?.to, timezone) : undefined,
 	};
 
 	const [dateRange, setDateRange] = useState<DateRange>(initialDateRange);
 	const prevDateRange = useRef<DateRange>(initialDateRange);
 
-	const [isSettingStartTime, setIsSettingStartTime] = useState(initialRange === undefined);
+	const [isSettingStartTime, setIsSettingStartTime] = useState(range === undefined);
 	const [time, setTime] = useState({ hour: 0, minute: 0 });
 	const [isOpen, setIsOpen] = useState(false);
 
 	const hours = Array.from({ length: 24 }, (_, i) => i);
 	const minutes = Array.from({ length: 60 }, (_, i) => i);
+
+	useEffect(() => {
+		const newRange: DateRange = {
+			from: range?.from ? convertUtcTimestampToZonedDate(range.from, timezone) : undefined,
+			to: range?.to ? convertUtcTimestampToZonedDate(range.to, timezone) : undefined,
+		};
+
+		if (
+			newRange.from?.getTime() !== dateRange.from?.getTime() ||
+			newRange.to?.getTime() !== dateRange.to?.getTime()
+		) {
+			setDateRange(newRange);
+			prevDateRange.current = newRange;
+		}
+	}, [range, timezone]);
 
 	const handleTimeChange = (field: "hour" | "minute", value: number) => {
 		setTime((prev) => ({
@@ -87,14 +102,16 @@ export function DateTimeRangePicker({
 	}, [time]);
 
 	useEffect(() => {
-		if (!isOpen && dateRange.from && dateRange.to
-			&& (dateRange.from.getTime() !== prevDateRange.current?.from?.getTime()
-				|| dateRange.to.getTime() !== prevDateRange.current?.to?.getTime())) {
-			onChange?.({
-				from: convertDateToUtcTimestamp(dateRange.from, timezone),
-				to: convertDateToUtcTimestamp(dateRange.to, timezone)
-			});
-			prevDateRange.current = dateRange;
+		if (!isOpen && dateRange.from && dateRange.to &&
+			(dateRange.from.getTime() !== prevDateRange.current?.from?.getTime() || dateRange.to.getTime() !== prevDateRange.current?.to?.getTime())) {
+			const newFrom = convertDateToUtcTimestamp(dateRange.from, timezone);
+			const newTo = convertDateToUtcTimestamp(dateRange.to, timezone);
+			const prevFrom = convertDateToUtcTimestamp(prevDateRange.current.from!, timezone);
+			const prevTo = convertDateToUtcTimestamp(prevDateRange.current.to!, timezone);
+			if (newFrom !== prevFrom || newTo !== prevTo) {
+				onChange?.({ from: newFrom, to: newTo });
+				prevDateRange.current = dateRange;
+			}
 		}
 	}, [isOpen, dateRange, onChange]);
 

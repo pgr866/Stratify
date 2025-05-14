@@ -30,7 +30,7 @@ export function Strategy() {
   const [selectedExchange, setSelectedExchange] = useState();
   const [selectedSymbol, setSelectedSymbol] = useState("");
   const [selectedTimeframe, setSelectedTimeframe] = useState("");
-  const [selectedDatetimeRange, setSelectedDatetimeRange] = useState("");
+  const [selectedDatetimeRange, setSelectedDatetimeRange] = useState();
   const [resetKey, setResetKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -49,15 +49,18 @@ export function Strategy() {
   ]
 
   useEffect(() => {
+    getAllExchanges()
+      .then((response: { data: string[] }) => setExchanges(response.data.map((exchange) => exchange[0].toUpperCase() + exchange.slice(1))))
+      .catch((error) => toast("Failed to fetch exchanges", { description: error.message }));
+  }, []);
+
+  useEffect(() => {
     getStrategy(id)
       .then((response: StrategyType) => setSelectedStrategy(response.data))
       .catch((error) => toast("Failed to load strategy", { description: error.message }));
     getUserStrategies()
       .then((response: { data: StrategyType[] }) => setStrategies(response.data.map(({ id, name }) => ({ id, name }))))
       .catch((error) => toast("Failed to fetch your strategies", { description: error.message }));
-    getAllExchanges()
-      .then((response: { data: string[] }) => setExchanges(response.data.map((exchange) => exchange[0].toUpperCase() + exchange.slice(1))))
-      .catch((error) => toast("Failed to fetch exchanges", { description: error.message }));
   }, [id]);
 
   useEffect(() => {
@@ -65,6 +68,7 @@ export function Strategy() {
       setSelectedSymbol(selectedStrategy.symbol);
       setSelectedTimeframe(selectedStrategy.timeframe);
       setSelectedExchange(selectedStrategy.exchange.charAt(0).toUpperCase() + selectedStrategy.exchange.slice(1));
+      setSelectedDatetimeRange({ from: 1747008000000, to: 1747011600000 });
     }
   }, [selectedStrategy]);
 
@@ -95,6 +99,8 @@ export function Strategy() {
   }, [symbols, timeframes]);
 
   useEffect(() => {
+    if (!selectedStrategy || !selectedExchange || !selectedSymbol || !selectedTimeframe || !selectedDatetimeRange) return;
+    console.log(selectedDatetimeRange);
     const prev = prevStrategyRef.current;
     if (prev && selectedStrategy && prev === selectedStrategy) {
       setIsLoading(true);
@@ -104,7 +110,7 @@ export function Strategy() {
         .finally(() => setIsLoading(false));
     }
     prevStrategyRef.current = selectedStrategy;
-  }, [selectedExchange, selectedSymbol, selectedTimeframe]);
+  }, [selectedExchange, selectedSymbol, selectedTimeframe, selectedDatetimeRange]);
 
   const handleCreateStrategy = () => {
     setIsLoading(true);
@@ -167,7 +173,7 @@ export function Strategy() {
   }
 
   const handleIndicatorsComboboxChange = (newValue: string) => {
-    //console.log("New indicator selected:", newValue);
+    console.log("New indicator selected:", newValue);
     setResetKey((prevKey: number) => prevKey + 1);
   };
 
@@ -187,7 +193,7 @@ export function Strategy() {
             <img src="/logo.svg" alt="Logo" className="logo size-6" />
           </Button>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
+          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"192px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox value={selectedExchange} values={exchanges} onChange={(value) => setSelectedExchange(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Exchange"} icon={<Landmark />} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
@@ -215,9 +221,12 @@ export function Strategy() {
             </SelectContent>
           </Select>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"309px"}
+          <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"312px"}
             timezone={user.timezone}
-            initialRange={selectedDatetimeRange}
+            range={selectedDatetimeRange}
+            onChange={(newRange) => {
+              setSelectedDatetimeRange(newRange);
+            }}
           />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox key={resetKey} values={indicators} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Indicators"}
@@ -231,7 +240,7 @@ export function Strategy() {
           </Button>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <ThemeToggle size="9" />
-          <Separator orientation="vertical" className="!h-5 mx-1" />
+          <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Button size={"sm"} onClick={handlePublish} disabled={isLoading}>
             {isLoading ? (
               <Loader2 className="animate-spin mx-6.5" />

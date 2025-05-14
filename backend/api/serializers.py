@@ -178,4 +178,4 @@ class StrategySerializer(serializers.ModelSerializer):
 class CandleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Candle
-        fields = ['exchange', 'symbol', 'timeframe', 'timestamp', 'open', 'high', 'low', 'close', 'volume']
+        fields = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
