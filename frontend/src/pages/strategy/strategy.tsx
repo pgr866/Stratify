@@ -64,23 +64,33 @@ export function Strategy() {
   }, [id]);
 
   useEffect(() => {
-    if (selectedStrategy) {
+    if (selectedStrategy?.id !== prevStrategyRef.current?.id) {
+      setIsLoading(true);
+      prevStrategyRef.current = selectedStrategy;
       setSelectedSymbol(selectedStrategy.symbol);
       setSelectedTimeframe(selectedStrategy.timeframe);
       setSelectedExchange(selectedStrategy.exchange.charAt(0).toUpperCase() + selectedStrategy.exchange.slice(1));
-      setSelectedDatetimeRange({ from: 1747008000000, to: 1747011600000 });
+      setSelectedDatetimeRange({from: 1747008000000, to: 1747011600000});
+      setTimeout(() => setIsLoading(false));
     }
   }, [selectedStrategy]);
 
   useEffect(() => {
     if (selectedExchange) {
-      setIsLoading(true);
       setSymbols([]);
       setTimeframes([]);
       getExchangeMarkets(selectedExchange.toLowerCase())
         .then((response: { data: string[] }) => {
-          setSymbols(response.data.symbols.map((symbol) => symbol.symbol));
-          setTimeframes(response.data.timeframes);
+          const newSymbols = response.data.symbols.map((symbol) => symbol.symbol);
+          const newTimeframes = response.data.timeframes;
+          if (!newSymbols.includes(selectedSymbol)) {
+            setSelectedSymbol(newSymbols[0]);
+          }
+          if (!newTimeframes.includes(selectedTimeframe)) {
+            setSelectedTimeframe(newTimeframes[0]);
+          }
+          setSymbols(newSymbols);
+          setTimeframes(newTimeframes);
         })
         .catch((error) => toast("Failed to fetch symbols", { description: error.message }))
         .finally(() => setIsLoading(false));
@@ -88,41 +98,20 @@ export function Strategy() {
   }, [selectedExchange]);
 
   useEffect(() => {
-    setIsLoading(true);
-    if (symbols.length && !symbols.includes(selectedSymbol)) {
-      setSelectedSymbol(symbols[0]);
-    }
-    if (timeframes.length && !timeframes.includes(selectedTimeframe)) {
-      setSelectedTimeframe(timeframes[0]);
-    }
-    setIsLoading(false);
-  }, [symbols, timeframes]);
-
-  useEffect(() => {
-    if (!selectedStrategy || !selectedExchange || !selectedSymbol || !selectedTimeframe || !selectedDatetimeRange) return;
-    console.log(selectedDatetimeRange);
-    const prev = prevStrategyRef.current;
-    if (prev && selectedStrategy && prev === selectedStrategy) {
+    console.log(selectedStrategy , !symbols.length , !timeframes.length , !selectedExchange , !selectedSymbol , !selectedTimeframe , !selectedDatetimeRange , isLoading);
+    if (!selectedStrategy || !symbols.length || !timeframes.length || !selectedExchange ||
+      !selectedSymbol || !selectedTimeframe || !selectedDatetimeRange || isLoading) return;
+    //getCandles
+    if (selectedStrategy.exchange.toLowerCase() !== selectedExchange ||
+      selectedStrategy.symbol !== selectedSymbol ||
+      selectedStrategy.timeframe !== selectedTimeframe) {
       setIsLoading(true);
       updateStrategy(selectedStrategy.id, { ...selectedStrategy, exchange: selectedExchange.toLowerCase(), symbol: selectedSymbol, timeframe: selectedTimeframe })
         .then((response: StrategyType) => setSelectedStrategy(response.data))
         .catch((error) => toast("Failed to update strategy", { description: error.message }))
         .finally(() => setIsLoading(false));
     }
-    prevStrategyRef.current = selectedStrategy;
-  }, [selectedExchange, selectedSymbol, selectedTimeframe, selectedDatetimeRange]);
-
-  const handleCreateStrategy = () => {
-    setIsLoading(true);
-    createStrategy()
-      .then((response: StrategyType) => {
-        const newId = response.data.id;
-        setId(newId);
-        navigate(`/strategy/${newId}`);
-      })
-      .catch((error) => toast("Failed to create new strategy", { description: error.message }))
-      .finally(() => setIsLoading(false));
-  }
+  }, [symbols, timeframes, selectedSymbol, selectedTimeframe, selectedDatetimeRange]);
 
   const handleOnChangeStrategy = (value) => {
     const newStrategyId = strategies.find((s) => s.name === value).id;
@@ -132,6 +121,16 @@ export function Strategy() {
       .then((response: StrategyType) => setSelectedStrategy(response.data))
       .catch((error) => toast("Failed to load strategy", { description: error.message }))
       .finally(() => setIsLoading(false));
+  }
+
+  const handleCreateStrategy = () => {
+    createStrategy()
+      .then((response: StrategyType) => {
+        const newId = response.data.id;
+        setId(newId);
+        navigate(`/strategy/${newId}`);
+      })
+      .catch((error) => toast("Failed to create new strategy", { description: error.message }));
   }
 
   const handleRenameStrategy = (oldValue: string, newValue: string) => {
@@ -195,7 +194,7 @@ export function Strategy() {
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"192px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => setSelectedExchange(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Exchange"} icon={<Landmark />} />
+          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => { setIsLoading(true); setSelectedExchange(value); }} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Exchange"} icon={<Landmark />} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
