@@ -98,10 +98,9 @@ export function Strategy() {
   }, [selectedExchange]);
 
   useEffect(() => {
-    console.log(selectedStrategy , !symbols.length , !timeframes.length , !selectedExchange , !selectedSymbol , !selectedTimeframe , !selectedDatetimeRange , isLoading);
     if (!selectedStrategy || !symbols.length || !timeframes.length || !selectedExchange ||
       !selectedSymbol || !selectedTimeframe || !selectedDatetimeRange || isLoading) return;
-    //getCandles
+    console.log(selectedExchange, selectedSymbol, selectedTimeframe, selectedDatetimeRange); // will be getCandles soon
     if (selectedStrategy.exchange.toLowerCase() !== selectedExchange ||
       selectedStrategy.symbol !== selectedSymbol ||
       selectedStrategy.timeframe !== selectedTimeframe) {

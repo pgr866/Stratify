@@ -54,17 +54,18 @@ export function DateTimeRangePicker({
 	const minutes = Array.from({ length: 60 }, (_, i) => i);
 
 	useEffect(() => {
-		const newRange: DateRange = {
-			from: range?.from ? convertUtcTimestampToZonedDate(range.from, timezone) : undefined,
-			to: range?.to ? convertUtcTimestampToZonedDate(range.to, timezone) : undefined,
-		};
-
-		if (
-			newRange.from?.getTime() !== dateRange.from?.getTime() ||
-			newRange.to?.getTime() !== dateRange.to?.getTime()
-		) {
-			setDateRange(newRange);
-			prevDateRange.current = newRange;
+		if (range?.from && range?.to) {
+			const newRange: DateRange = {
+				from: convertUtcTimestampToZonedDate(range.from, timezone),
+				to: convertUtcTimestampToZonedDate(range.to, timezone),
+			};
+			if (
+				newRange.from?.getTime() !== dateRange.from?.getTime() ||
+				newRange.to?.getTime() !== dateRange.to?.getTime()
+			) {
+				setDateRange(newRange);
+				prevDateRange.current = newRange;
+			}
 		}
 	}, [range, timezone]);
 
@@ -102,18 +103,22 @@ export function DateTimeRangePicker({
 	}, [time]);
 
 	useEffect(() => {
-		if (!isOpen && dateRange.from && dateRange.to &&
-			(dateRange.from.getTime() !== prevDateRange.current?.from?.getTime() || dateRange.to.getTime() !== prevDateRange.current?.to?.getTime())) {
+		const shouldUpdate = !isOpen &&
+			dateRange.from &&
+			dateRange.to &&
+			prevDateRange.current?.from &&
+			prevDateRange.current?.to &&
+			(dateRange.from.getTime() !== prevDateRange.current.from.getTime() ||
+				dateRange.to.getTime() !== prevDateRange.current.to.getTime());
+		if (shouldUpdate) {
 			const newFrom = convertDateToUtcTimestamp(dateRange.from, timezone);
 			const newTo = convertDateToUtcTimestamp(dateRange.to, timezone);
-			const prevFrom = convertDateToUtcTimestamp(prevDateRange.current.from!, timezone);
-			const prevTo = convertDateToUtcTimestamp(prevDateRange.current.to!, timezone);
-			if (newFrom !== prevFrom || newTo !== prevTo) {
+			if (newFrom !== range?.from || newTo !== range?.to) {
 				onChange?.({ from: newFrom, to: newTo });
-				prevDateRange.current = dateRange;
 			}
+			prevDateRange.current = { ...dateRange };
 		}
-	}, [isOpen, dateRange, onChange]);
+	}, [isOpen, dateRange]);
 
 	const formatDateTime = (date: Date | undefined) => {
 		if (!date) return "";
