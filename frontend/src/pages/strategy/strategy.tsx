@@ -60,9 +60,6 @@ export function Strategy() {
     getAllExchanges()
       .then((response: { data: string[] }) => setExchanges(response.data.map((exchange) => exchange[0].toUpperCase() + exchange.slice(1))))
       .catch((error) => toast("Failed to fetch exchanges", { description: error.message }));
-    getUserStrategies()
-      .then((response: { data: StrategyType[] }) => setStrategies(response.data.map(({ id, name }) => ({ id, name }))))
-      .catch((error) => toast("Failed to fetch your strategies", { description: error.message }));
   }, []);
 
   useEffect(() => {
@@ -71,6 +68,9 @@ export function Strategy() {
       .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
       .catch((error) => toast("Failed to load strategy", { description: error.message }))
       .finally(() => setIsLoading(false));
+    getUserStrategies()
+      .then((response: { data: StrategyType[] }) => setStrategies(response.data.map(({ id, name }) => ({ id, name }))))
+      .catch((error) => toast("Failed to fetch your strategies", { description: error.message }));
   }, [id]);
 
   useEffect(() => {
