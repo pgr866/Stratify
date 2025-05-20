@@ -496,16 +496,8 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			default:
 				toast("Indicator type not implemented");
 		}
-		// const maData1 = calculateMovingAverageSeriesData(candleData, 20);
-		// const maData2 = calculateMovingAverageSeriesData(candleData, 50);
-		// addLineSeries(maData1, 0, () => 'blue', 1, 0, '24269ad35d', 'RSI 14');
-		// addLineSeries(maData1, 0, () => 'red', 1, 0, '37dc6434de', 'MA 20');
-		// addLineSeries(maData2, 0, () => 'green', 1, 0);
 		// addHistogramSeries(maData2, 1, (dataPoint) => dataPoint.value > 0 ? 'green' : 'red', '51bb1126ca', 'MACD 4');
-		// addLineSeries(maData2, 1, () => 'purple', 1, 0);
-		// addLineSeries(maData1, 1, () => 'green', 1, 0);
 		// addBarSeries(maData2, 2, (dataPoint, index, array) => (index === 0 || dataPoint.value >= array[index - 1].value) ? 'green' : 'red', '7ba4964dda', 'MACD 5');
-		// addHorizontalLine(2, 500, 'orange', '');
 	}
 
 	function updateChart() {
