@@ -23,6 +23,7 @@ type ButtonProps = {
   placeholder?: string;
   onChange?: (value: string) => void;
   icon?: ReactNode;
+  disabled?: boolean;
   isLoading?: boolean;
   tagConfig?: TagConfig[];
   onEdit?: (oldValue: string, newValue: string) => void;
@@ -41,6 +42,7 @@ export function Combobox({
   onChange,
   icon,
   isLoading = false,
+  disabled = false,
   tagConfig = [],
   onEdit,
   onDelete,
@@ -62,7 +64,7 @@ export function Combobox({
   const parentRef = useRef<HTMLDivElement | null>(null);
 
   const handleSelect = (item: string) => {
-    if (!isEditing && !deletingItem) {
+    if (!isEditing && !deletingItem && !isLoading && !disabled) {
       const newValue = item === value && !alwaysSelected ? "" : item;
       setOpen(false);
       onChange?.(newValue);
@@ -119,7 +121,7 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           style={{ width }}
-          disabled={isLoading}
+          disabled={isLoading || disabled}
           className="justify-between overflow-hidden font-normal"
         >
           <span className="flex items-center gap-2 truncate">

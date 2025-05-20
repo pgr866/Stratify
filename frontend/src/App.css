@@ -58,6 +58,11 @@
   @apply hidden;
 }
 
+button:disabled {
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
+}
+
 [data-slot="card"] {
   gap: 0 !important;
 }

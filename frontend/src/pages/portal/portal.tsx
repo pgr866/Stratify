@@ -3,12 +3,11 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { MyStrategies } from "./components/my-strategies"
 import { ExploreStrategies } from "./components/explore-strategies"
 import { ApiKeys } from "./components/api-keys"
 import { Dashboard } from "./components/dashboard/dashboard"
 import { Settings } from "./components/settings/settings"
-import { FileChartPie, ChartNoAxesCombined, Globe, Key, UserRound, LogOut, Settings as SettingsIcon } from "lucide-react";
+import { FileChartPie, ChartNoAxesCombined, Key, UserRound, LogOut, Settings as SettingsIcon } from "lucide-react";
 import { logout } from "@/api";
 import { useSession } from "@/App";
 import { toast } from "sonner"
@@ -32,8 +31,7 @@ export function Portal() {
 				</div>
 				<TabsList className="flex flex-wrap h-auto mx-auto bg-transparent gap-1" style={{ marginTop: '0' }}>
 					<TabsTrigger className="px-2 md:px-4" value="dashboard"><FileChartPie size={18} className="mr-1" />Dashboard</TabsTrigger>
-					<TabsTrigger className="px-2 md:px-4" value="my-strategies"><ChartNoAxesCombined size={18} className="mr-1" />My Strategies</TabsTrigger>
-					<TabsTrigger className="px-2 md:px-4" value="explore-strategies"><Globe size={18} className="mr-1" />Explore Strategies</TabsTrigger>
+					<TabsTrigger className="px-2 md:px-4" value="explore-strategies"><ChartNoAxesCombined size={18} className="mr-1" />Explore Strategies</TabsTrigger>
 					<TabsTrigger className="px-2 md:px-4" value="api-keys"><Key size={18} className="mr-1" />API Keys</TabsTrigger>
 				</TabsList>
 				<div className="flex items-center gap-1">
@@ -67,7 +65,6 @@ export function Portal() {
 				</div>
 			</div>
 			<TabsContent className="py-2 sm:px-4" value="dashboard"><Dashboard /></TabsContent>
-			<TabsContent className="py-2 sm:px-4" value="my-strategies"><MyStrategies /></TabsContent>
 			<TabsContent className="py-2 sm:px-4" value="explore-strategies"><ExploreStrategies /></TabsContent>
 			<TabsContent className="py-2 sm:px-4" value="api-keys"><ApiKeys /></TabsContent>
 			<TabsContent className="py-2 sm:px-4" value="settings"><Settings /></TabsContent>

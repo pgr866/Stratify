@@ -28,6 +28,7 @@ api.interceptors.response.use(
 
 // User Interface
 export interface User {
+	id: string;
 	username: string;
 	email: string;
 	dark_theme: boolean;

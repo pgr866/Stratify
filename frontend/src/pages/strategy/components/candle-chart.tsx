@@ -251,7 +251,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 				style="position:relative;z-index:10;width:13px;height:13px;color:var(--foreground);cursor:pointer;">
 				<path d="M2 12a1 1 0 0 1 0 0 11 11 0 0 1 20 0 1 1 0 0 1 0 0 11 11 0 0 1-20 0"/><circle cx="12" cy="12" r="3"/>
 			</svg>
-			${removeIcon ? `
+			${removeIcon && user?.id === selectedStrategy?.user ? `
 			<svg id="updateIcon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
 				stroke-width="2" class="lucide lucide-bolt-icon lucide-bolt" viewBox="0 0 24 24"
 				style="position:relative;z-index:10;width:13px;height:13px;color:var(--foreground);cursor:pointer;">

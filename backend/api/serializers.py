@@ -20,7 +20,7 @@ def validate_password_strength(password):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'username', 'dark_theme', 'timezone', 'password']
+        fields = ['id', 'email', 'username', 'dark_theme', 'timezone', 'password']
         extra_kwargs = {
             'password': { 'write_only': True }
         }

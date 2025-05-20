@@ -68,13 +68,15 @@ export function Strategy() {
       .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
       .catch((error) => toast("Failed to load strategy", { description: error.message }))
       .finally(() => setIsLoading(false));
-    getUserStrategies()
-      .then((response: { data: StrategyType[] }) => setStrategies(response.data.map(({ id, name }) => ({ id, name }))))
-      .catch((error) => toast("Failed to fetch your strategies", { description: error.message }));
   }, [id]);
 
   useEffect(() => {
     if (selectedStrategy?.id !== prevStrategyRef.current?.id) {
+      if (selectedStrategy.user === user.id) {
+        getUserStrategies()
+          .then((response: { data: StrategyType[] }) => setStrategies(response.data.map(({ id, name }) => ({ id, name }))))
+          .catch((error) => toast("Failed to fetch your strategies", { description: error.message }));
+      }
       prevStrategyRef.current = selectedStrategy;
       setSelectedSymbol(selectedStrategy.symbol);
       setSelectedTimeframe(selectedStrategy.timeframe);
@@ -129,9 +131,11 @@ export function Strategy() {
       })
       .catch((error) => toast("Failed to fetch candles", { description: error.response?.data?.error ?? error.message }))
       .finally(() => setIsLoading(false));
-    if (selectedStrategy.exchange.toLowerCase() !== selectedExchange ||
+    if ((selectedStrategy.exchange.toLowerCase() !== selectedExchange ||
       selectedStrategy.symbol !== selectedSymbol ||
-      selectedStrategy.timeframe !== selectedTimeframe) {
+      selectedStrategy.timeframe !== selectedTimeframe) &&
+      user?.id === selectedStrategy?.user) {
+        console.log('yeeeeee');
       updateStrategy(selectedStrategy.id, { ...selectedStrategy, exchange: selectedExchange.toLowerCase(), symbol: selectedSymbol, timeframe: selectedTimeframe, indicators: JSON.stringify(selectedStrategy.indicators) })
         .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
         .catch((error) => toast("Failed to update strategy", { description: error.message }));
@@ -220,16 +224,16 @@ export function Strategy() {
             <img src="/logo.svg" alt="Logo" className="logo size-6" />
           </Button>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} isLoading={isLoading} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"225px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
+          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"225px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => { setIsLoading(true); setSelectedExchange(value); }} isLoading={isLoading} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"200px"} placeholder={"Exchange"} icon={<Landmark />} />
+          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => { setIsLoading(true); setSelectedExchange(value); }} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"200px"} placeholder={"Exchange"} icon={<Landmark />} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"230px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
+          <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"230px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Select value={selectedTimeframe}
             onValueChange={(value) => setSelectedTimeframe(value)}>
             <SelectTrigger
-              disabled={isLoading}
+              disabled={isLoading || !user?.id || user?.id !== selectedStrategy?.user}
               size="sm"
               className="w-[100px] h-9 border-0 gap-1.5 shadow-none focus:outline-none !bg-transparent hover:!bg-accent dark:hover:!bg-accent/50">
               <AlignHorizontalDistributeCenter size={16} className="text-foreground" />
@@ -254,11 +258,11 @@ export function Strategy() {
             onChange={(newRange) => {
               setSelectedDatetimeRange(newRange);
             }}
-            disabled={isLoading}
+            disabled={isLoading || !user?.id || user?.id !== selectedStrategy?.user}
           />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox key={resetKey} values={indicatorNames.map(indicator => indicator.name)} variant={"ghost"} size={"sm"} width={"235px"} placeholder={"Indicators"}
-            onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} isLoading={isLoading} />
+            onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           {/* <Button variant={"ghost"} size={"sm"} className="w-[170px] overflow-hidden font-normal">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 28 28" style={{ width: "24", height: "24" }}>
