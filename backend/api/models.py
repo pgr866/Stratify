@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import time
 import uuid
 
 class User(AbstractUser):
@@ -37,11 +38,11 @@ class Strategy(models.Model):
     exchange = models.CharField(max_length=50, default="binance")
     symbol = models.CharField(max_length=20, default="BTC/USDT")
     timeframe = models.CharField(max_length=5, default="1d")
+    timestamp_start = models.BigIntegerField(default=int(time.time() * 1000) - 2592000000)
+    timestamp_end = models.BigIntegerField(default=int(time.time() * 1000))
     indicators = models.TextField(default="[]")
-    order_conditions = models.TextField(default="{}")
-    leverage = models.IntegerField(default=1)
     is_public = models.BooleanField(default=False)
-    copies_count = models.IntegerField(default=0)
+    clones_count = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name

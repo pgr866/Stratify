@@ -51,6 +51,7 @@ urlpatterns = [
     # Strategy
     path("v1/strategy/me/", views.StrategyView.as_view({"get": "list", "post": "create"}), name="my-strategies"),
     path("v1/strategy/<uuid:pk>/", views.StrategyView.as_view({"get": "retrieve", "put": "update", "delete": "destroy"}), name="strategy"),
+    path("v1/strategy/<uuid:pk>/clone/", views.StrategyView.as_view({"post": "clone"}), name="clone-strategy"),
     path("v1/strategy/", views.StrategyView.as_view({"get": "list"}), name="public-strategies"),
     
     # Indicator

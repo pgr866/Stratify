@@ -458,6 +458,33 @@ class StrategyView(viewsets.ModelViewSet):
         serializer.validated_data['name'] = self._get_unique_name(name, self.kwargs['pk'])
         serializer.save(user=self.request.user)
 
+    def clone(self, request, pk=None):
+        try:
+            original = Strategy.objects.get(id=pk, is_public=True)
+        except Strategy.DoesNotExist:
+            return Response({"detail": "Strategy does not exist or is not public"}, status=status.HTTP_404_NOT_FOUND)
+
+        clone_name = self._get_unique_name(f"{original.name} (Clone)")
+
+        cloned = Strategy.objects.create(
+            user=request.user,
+            name=clone_name,
+            exchange=original.exchange,
+            symbol=original.symbol,
+            timeframe=original.timeframe,
+            timestamp_start=original.timestamp_start,
+            timestamp_end=original.timestamp_end,
+            indicators=original.indicators,
+            is_public=False,
+        )
+
+        if original.user != request.user:
+            original.clones_count += 1
+            original.save(update_fields=["clones_count"])
+
+        serializer = self.get_serializer(cloned)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
 class CandleView(APIView):
     permission_classes = [IsAuthenticated]
     
