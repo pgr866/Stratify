@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { toast } from "sonner";
-import { getAllExchanges, getExchangeMarkets, Strategy as StrategyType, getStrategy, getUserStrategies, createStrategy, updateStrategy, deleteStrategy } from "@/api";
+import { getAllExchanges, getExchangeMarkets, Strategy as StrategyType, getStrategy, getUserStrategies, createStrategy, updateStrategy, deleteStrategy, Candle, getCandles } from "@/api";
 import { useSession } from "@/App";
 
 export function Strategy() {
@@ -24,13 +24,21 @@ export function Strategy() {
   const [exchanges, setExchanges] = useState([]);
   const [symbols, setSymbols] = useState([]);
   const [timeframes, setTimeframes] = useState([]);
-  const [indicators, setIndicators] = useState(["MACD", "RSI", "Bollinger Bands", "Moving Average"]);
+  const [indicatorNames, setIndicatorNames] = useState([
+    { name: "Relative Strength Index", short_name: "RSI" },
+    { name: "Simple Moving Average", short_name: "SMA" },
+    { name: "Exponential Moving Average", short_name: "EMA" },
+    { name: "Bollinger Bands", short_name: "BBANDS" },
+    { name: "MACD", short_name: "MACD" },
+  ]);
   const [selectedStrategy, setSelectedStrategy] = useState();
   const prevStrategyRef = useRef(selectedStrategy);
   const [selectedExchange, setSelectedExchange] = useState();
   const [selectedSymbol, setSelectedSymbol] = useState("");
   const [selectedTimeframe, setSelectedTimeframe] = useState("");
   const [selectedDatetimeRange, setSelectedDatetimeRange] = useState();
+  const isUpdatingDatetimeRange = useRef(false);
+  const [candles, setCandles] = useState<Candle[]>([]);
   const [resetKey, setResetKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -52,26 +60,26 @@ export function Strategy() {
     getAllExchanges()
       .then((response: { data: string[] }) => setExchanges(response.data.map((exchange) => exchange[0].toUpperCase() + exchange.slice(1))))
       .catch((error) => toast("Failed to fetch exchanges", { description: error.message }));
-  }, []);
-
-  useEffect(() => {
-    getStrategy(id)
-      .then((response: StrategyType) => setSelectedStrategy(response.data))
-      .catch((error) => toast("Failed to load strategy", { description: error.message }));
     getUserStrategies()
       .then((response: { data: StrategyType[] }) => setStrategies(response.data.map(({ id, name }) => ({ id, name }))))
       .catch((error) => toast("Failed to fetch your strategies", { description: error.message }));
+  }, []);
+
+  useEffect(() => {
+    setIsLoading(true);
+    getStrategy(id)
+      .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
+      .catch((error) => toast("Failed to load strategy", { description: error.message }))
+      .finally(() => setIsLoading(false));
   }, [id]);
 
   useEffect(() => {
     if (selectedStrategy?.id !== prevStrategyRef.current?.id) {
-      setIsLoading(true);
       prevStrategyRef.current = selectedStrategy;
       setSelectedSymbol(selectedStrategy.symbol);
       setSelectedTimeframe(selectedStrategy.timeframe);
       setSelectedExchange(selectedStrategy.exchange.charAt(0).toUpperCase() + selectedStrategy.exchange.slice(1));
-      setSelectedDatetimeRange({from: 1747008000000, to: 1747011600000});
-      setTimeout(() => setIsLoading(false));
+      setSelectedDatetimeRange({ from: 1747008000000, to: 1747011600000 });
     }
   }, [selectedStrategy]);
 
@@ -100,26 +108,40 @@ export function Strategy() {
   useEffect(() => {
     if (!selectedStrategy || !symbols.length || !timeframes.length || !selectedExchange ||
       !selectedSymbol || !selectedTimeframe || !selectedDatetimeRange || isLoading) return;
-    console.log(selectedExchange, selectedSymbol, selectedTimeframe, selectedDatetimeRange); // will be getCandles soon
+    if (isUpdatingDatetimeRange.current) {
+      isUpdatingDatetimeRange.current = false;
+      return;
+    }
+    setIsLoading(true);
+    setCandles([]);
+    getCandles(selectedExchange.toLowerCase(), selectedSymbol, selectedTimeframe, selectedDatetimeRange.from, selectedDatetimeRange.to)
+      .then((response: Candle[]) => {
+        if (response.data.length === 0) {
+          toast("Failed to fetch candles", { description: "No candle data found in the selected range." });
+        } else {
+          setCandles(response.data);
+          isUpdatingDatetimeRange.current = true;
+          setSelectedDatetimeRange({ from: response.data[0].time, to: response.data[response.data.length - 1].time });
+          if (response.data.length > 50000) {
+            toast("Data has been truncated to the most recent 50,000 candles");
+          }
+        }
+      })
+      .catch((error) => toast("Failed to fetch candles", { description: error.response?.data?.error ?? error.message }))
+      .finally(() => setIsLoading(false));
     if (selectedStrategy.exchange.toLowerCase() !== selectedExchange ||
       selectedStrategy.symbol !== selectedSymbol ||
       selectedStrategy.timeframe !== selectedTimeframe) {
-      setIsLoading(true);
-      updateStrategy(selectedStrategy.id, { ...selectedStrategy, exchange: selectedExchange.toLowerCase(), symbol: selectedSymbol, timeframe: selectedTimeframe })
-        .then((response: StrategyType) => setSelectedStrategy(response.data))
-        .catch((error) => toast("Failed to update strategy", { description: error.message }))
-        .finally(() => setIsLoading(false));
+      updateStrategy(selectedStrategy.id, { ...selectedStrategy, exchange: selectedExchange.toLowerCase(), symbol: selectedSymbol, timeframe: selectedTimeframe, indicators: JSON.stringify(selectedStrategy.indicators) })
+        .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
+        .catch((error) => toast("Failed to update strategy", { description: error.message }));
     }
   }, [symbols, timeframes, selectedSymbol, selectedTimeframe, selectedDatetimeRange]);
 
   const handleOnChangeStrategy = (value) => {
     const newStrategyId = strategies.find((s) => s.name === value).id;
     navigate(`/strategy/${newStrategyId}`);
-    setIsLoading(true);
-    getStrategy(newStrategyId)
-      .then((response: StrategyType) => setSelectedStrategy(response.data))
-      .catch((error) => toast("Failed to load strategy", { description: error.message }))
-      .finally(() => setIsLoading(false));
+    setId(newStrategyId);
   }
 
   const handleCreateStrategy = () => {
@@ -134,9 +156,9 @@ export function Strategy() {
 
   const handleRenameStrategy = (oldValue: string, newValue: string) => {
     setIsLoading(true);
-    updateStrategy(selectedStrategy.id, { ...selectedStrategy, name: newValue })
+    updateStrategy(selectedStrategy.id, { ...selectedStrategy, name: newValue, indicators: JSON.stringify(selectedStrategy.indicators) })
       .then((response: StrategyType) => {
-        setSelectedStrategy(response.data)
+        setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') })
         setStrategies(prev =>
           prev.map(strategy =>
             strategy.id === selectedStrategy.id ? { ...strategy, name: newValue } : strategy
@@ -155,8 +177,8 @@ export function Strategy() {
       if ([...newStrategies].length) {
         setStrategies(newStrategies);
         const newId = newStrategies.at(0).id;
-        setId(newId);
         navigate(`/strategy/${newId}`);
+        setId(newId);
       } else {
         navigate(`/portal`);
       }
@@ -170,17 +192,24 @@ export function Strategy() {
     }
   }
 
-  const handleIndicatorsComboboxChange = (newValue: string) => {
-    console.log("New indicator selected:", newValue);
-    setResetKey((prevKey: number) => prevKey + 1);
-  };
-
   const handlePublish = async () => {
     setIsLoading(true);
-    updateStrategy(selectedStrategy.id, { ...selectedStrategy, is_public: !selectedStrategy.is_public })
-      .then((response: StrategyType) => setSelectedStrategy(response.data))
+    updateStrategy(selectedStrategy.id, { ...selectedStrategy, is_public: !selectedStrategy.is_public, indicators: JSON.stringify(selectedStrategy.indicators) })
+      .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
       .catch((error) => toast("Failed to update strategy", { description: error.message }))
       .finally(() => setIsLoading(false));
+  };
+
+  const handleIndicatorsComboboxChange = (newValue: string) => {
+    const selectedIndicator = indicatorNames.find(ind => ind.name === newValue);
+    if (!selectedIndicator) return;
+    setResetKey((prevKey: number) => prevKey + 1);
+    updateStrategy(selectedStrategy.id, {
+      ...selectedStrategy, indicators: JSON.stringify([...(selectedStrategy.indicators ?? []),
+      { id: crypto.randomUUID().replace(/-/g, '').slice(0, 10), name: selectedIndicator.name, short_name: selectedIndicator.short_name }])
+    })
+      .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
+      .catch((error) => toast("Failed to update strategy", { description: error.message }));
   };
 
   return (
@@ -191,11 +220,11 @@ export function Strategy() {
             <img src="/logo.svg" alt="Logo" className="logo size-6" />
           </Button>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"192px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
+          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} isLoading={isLoading} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"225px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => { setIsLoading(true); setSelectedExchange(value); }} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Exchange"} icon={<Landmark />} />
+          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => { setIsLoading(true); setSelectedExchange(value); }} isLoading={isLoading} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"200px"} placeholder={"Exchange"} icon={<Landmark />} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"185px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
+          <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"230px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Select value={selectedTimeframe}
             onValueChange={(value) => setSelectedTimeframe(value)}>
@@ -204,7 +233,7 @@ export function Strategy() {
               size="sm"
               className="w-[100px] h-9 border-0 gap-1.5 shadow-none focus:outline-none !bg-transparent hover:!bg-accent dark:hover:!bg-accent/50">
               <AlignHorizontalDistributeCenter size={16} className="text-foreground" />
-              {isLoading && <Loader2 className="animate-spin ml-2" />}
+              {isLoading && <Loader2 className="animate-spin ml-2.5" />}
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
             <SelectContent className="w-[160px]">
@@ -219,24 +248,25 @@ export function Strategy() {
             </SelectContent>
           </Select>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"312px"}
+          <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"315px"}
             timezone={user.timezone}
             range={selectedDatetimeRange}
             onChange={(newRange) => {
               setSelectedDatetimeRange(newRange);
             }}
+            disabled={isLoading}
           />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox key={resetKey} values={indicators} variant={"ghost"} size={"sm"} width={"160px"} placeholder={"Indicators"}
-            onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} />
+          <Combobox key={resetKey} values={indicatorNames.map(indicator => indicator.name)} variant={"ghost"} size={"sm"} width={"235px"} placeholder={"Indicators"}
+            onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} isLoading={isLoading} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Button variant={"ghost"} size={"sm"} className="w-[170px] overflow-hidden font-normal">
+          {/* <Button variant={"ghost"} size={"sm"} className="w-[170px] overflow-hidden font-normal">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 28 28" style={{ width: "24", height: "24" }}>
               <path stroke="currentColor" strokeWidth="1.5" d="m20 17-5 5m0-5 5 5M9 11.5h7M17.5 8a2.5 2.5 0 0 0-5 0v11a2.5 2.5 0 0 1-5 0" />
             </svg>
             Order conditions
           </Button>
-          <Separator orientation="vertical" className="!h-5 mx-0.5" />
+          <Separator orientation="vertical" className="!h-5 mx-0.5" /> */}
           <ThemeToggle size="9" />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Button size={"sm"} onClick={handlePublish} disabled={isLoading}>
@@ -247,7 +277,7 @@ export function Strategy() {
             )}
           </Button>
         </div>
-        <CandleChart></CandleChart>
+        <CandleChart candles={candles} selectedStrategy={selectedStrategy} setSelectedStrategy={setSelectedStrategy} setIsLoading={setIsLoading} />
       </ResizablePanel>
       <Dialog open={openDeleteDialog} onOpenChange={() => setOpenDeleteDialog(false)}>
         <DialogContent

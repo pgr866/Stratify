@@ -27,7 +27,7 @@ type ButtonProps = {
   tagConfig?: TagConfig[];
   onEdit?: (oldValue: string, newValue: string) => void;
   onDelete?: (value: string) => void;
-  onCreate?: () => void; // New parameter for creating a new item
+  onCreate?: () => void;
 };
 
 export function Combobox({
@@ -44,7 +44,7 @@ export function Combobox({
   tagConfig = [],
   onEdit,
   onDelete,
-  onCreate, // New parameter
+  onCreate,
 }: Readonly<ButtonProps>) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -169,7 +169,7 @@ export function Combobox({
                   </CommandItem>
                 )}
                 {virtualizer.getVirtualItems().map((virtualRow, index) => {
-                  if (onCreate && index === 0) return null; // Skip first row if onCreate is provided
+                  if (onCreate && index === 0) return null;
                   const adjustedIndex = onCreate ? virtualRow.index - 1 : virtualRow.index;
                   const item = filteredValues[adjustedIndex];
                   const matchingTag = tagConfig.find((config) => config.condition(item));

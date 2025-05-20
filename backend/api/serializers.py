@@ -176,6 +176,8 @@ class StrategySerializer(serializers.ModelSerializer):
         }
 
 class CandleSerializer(serializers.ModelSerializer):
+    time = serializers.IntegerField(source='timestamp')
+    
     class Meta:
         model = Candle
-        fields = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+        fields = ['time', 'open', 'high', 'low', 'close', 'volume']

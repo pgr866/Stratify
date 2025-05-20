@@ -37,7 +37,7 @@ class Strategy(models.Model):
     exchange = models.CharField(max_length=50, default="binance")
     symbol = models.CharField(max_length=20, default="BTC/USDT")
     timeframe = models.CharField(max_length=5, default="1d")
-    indicators = models.TextField(default="{}")
+    indicators = models.TextField(default="[]")
     order_conditions = models.TextField(default="{}")
     leverage = models.IntegerField(default=1)
     is_public = models.BooleanField(default=False)

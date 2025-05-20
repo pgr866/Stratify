@@ -1,8 +1,10 @@
 import requests
 import secrets
+import json
 from types import SimpleNamespace
 import ccxt
 import pandas as pd
+import talib as ta
 from decimal import Decimal
 
 from django.conf import settings
@@ -459,37 +461,49 @@ class StrategyView(viewsets.ModelViewSet):
 class CandleView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def get_candles(self, exchange, symbol, timeframe, timestamp_start, timestamp_end, first=False):
+    def get_candles(self, exchange, symbol, timeframe, timestamp_start, timestamp_end, db_search=False, extra_candles=0):
+        MAX_CANDLES = 50000
         candles = pd.DataFrame(columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        if first:
+        if extra_candles > 0:
+            timeframe_ms = int(pd.Timedelta(f"{int(timeframe[:-1]) * (30 if timeframe.endswith('M') else 365)}d" if timeframe.endswith(('M','y')) else timeframe).total_seconds() * 1000)
+            timestamp_start -= extra_candles * timeframe_ms
+        candles_count = int((timestamp_end - timestamp_start) // (pd.Timedelta(f"{int(timeframe[:-1]) * (30 if timeframe.endswith('M') else 365)}d" if timeframe.endswith(('M','y')) else timeframe).total_seconds() * 1000)) + 2
+        if candles_count > MAX_CANDLES:
+            timeframe_ms = int(pd.Timedelta(f"{int(timeframe[:-1]) * (30 if timeframe.endswith('M') else 365)}d" if timeframe.endswith(('M','y')) else timeframe).total_seconds() * 1000)
+            timestamp_start = timestamp_end - (MAX_CANDLES * timeframe_ms)
+            candles_count = MAX_CANDLES
+        if db_search:
             candles = pd.DataFrame.from_records(Candle.objects.filter(
                 exchange=exchange.name,
                 symbol=symbol,
                 timeframe=timeframe,
                 timestamp__gte=timestamp_start,
                 timestamp__lte=timestamp_end
-            ).order_by('timestamp').values())
+            ).order_by('timestamp').values('timestamp', 'open', 'high', 'low', 'close', 'volume'))
         if candles.empty:
-            candles = pd.DataFrame(exchange.fetch_ohlcv(symbol=symbol, timeframe=timeframe, since=timestamp_start - 1, limit=int((timestamp_end - timestamp_start) // (pd.Timedelta(f"{int(timeframe[:-1]) * (30 if timeframe.endswith('M') else 365)}d" if timeframe.endswith(('M','y')) else timeframe).total_seconds() * 1000)) + 1), columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            if candles_count <= 0:
+                return candles
+            candles = pd.DataFrame(exchange.fetch_ohlcv(symbol=symbol, timeframe=timeframe, since=timestamp_start - 1, limit=candles_count), columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            candles = candles[candles['timestamp'].between(timestamp_start, timestamp_end, inclusive='both')]
         if candles.empty:
             Candle.objects.filter(
                 exchange=exchange.name,
                 symbol=symbol,
                 timeframe=timeframe,
-                timestamp__lt=timestamp_start
+                timestamp__lt=timestamp_end
             ).delete()
             return candles
-        ts_start = candles['timestamp'].iloc[0]
-        ts_end = candles['timestamp'].iloc[-1]
+        ts_start = int(candles['timestamp'].iloc[0])
+        ts_end = int(candles['timestamp'].iloc[-1])
         if ts_start <= timestamp_start and ts_end >= timestamp_end:
             return candles
         if ts_start > timestamp_start:
-            new_candles = get_candles(exchange, symbol, timeframe, timestamp_start, ts_start - 1)
+            new_candles = self.get_candles(exchange, symbol, timeframe, timestamp_start, ts_start - 1)
             candles = pd.concat([candles, new_candles]).sort_values(by='timestamp', ascending=True).reset_index(drop=True)
         if ts_end < timestamp_end:
-            new_candles = get_candles(exchange, symbol, timeframe, ts_end + 1, timestamp_end)
+            new_candles = self.get_candles(exchange, symbol, timeframe, ts_end + 1, timestamp_end)
             candles = pd.concat([candles, new_candles]).sort_values(by='timestamp', ascending=True).reset_index(drop=True)
-        return candles
+        return candles.drop_duplicates('timestamp')
     
     def get(self, request):
         try:
@@ -511,10 +525,12 @@ class CandleView(APIView):
                 timeframe=timeframe,
                 timestamp_start=timestamp_start,
                 timestamp_end=timestamp_end,
-                first=True
+                db_search=True
             )
             
-            if not candles_df.empty:
+            if candles_df.empty:
+                candles = Candle.objects.none()
+            else:
                 for col in ['open', 'high', 'low', 'close', 'volume']:
                     candles_df[col] = candles_df[col].apply(lambda x: Decimal(str(x)))
                 records = candles_df.assign(
@@ -538,22 +554,160 @@ class CandleView(APIView):
                     timestamp__gte=timestamp_start,
                     timestamp__lte=timestamp_end
                 ).order_by('timestamp')
-            else:
-                candles = Candle.objects.none()
             
-            # Pagination
-            page = int(request.query_params.get('page', 1))
-            page_size = int(request.query_params.get('page_size', 1000))
-            paginator = Paginator(candles, page_size)
-            current_page = paginator.page(page)
+            serializer = CandleSerializer(candles, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
             
-            serializer = CandleSerializer(current_page, many=True)
-            return Response({
-                'candles': serializer.data,
-                'total': paginator.count,
-                'pages': paginator.num_pages,
-                'current_page': int(page)
-            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+class IndicatorView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            strategy_id = request.query_params.get('strategy_id')
+            indicator_id = request.query_params.get('indicator_id')
+            timestamp_start = int(request.query_params.get('timestamp_start'))
+            timestamp_end = int(request.query_params.get('timestamp_end'))
+            if not all([strategy_id, indicator_id, timestamp_start, timestamp_end]):
+                return Response({'error': 'Missing required parameters. Please provide: strategy_id, indicator_id, timestamp_start, timestamp_end'}, status=status.HTTP_400_BAD_REQUEST)
             
+            try:
+                strategy = Strategy.objects.get(id=strategy_id)
+            except Strategy.DoesNotExist:
+                return Response({'error': 'Strategy not found'}, status=status.HTTP_404_NOT_FOUND)
+            exchange = strategy.exchange
+            symbol = strategy.symbol
+            timeframe = strategy.timeframe
+            indicators = json.loads(strategy.indicators)
+            indicator = next((ind for ind in indicators if ind['id'] == indicator_id), None)
+            if indicator is None:
+                return Response({'error': 'Indicator not found'}, status=status.HTTP_404_NOT_FOUND)
+            new_indicator = 'params' not in indicator
+            
+            match indicator.get('short_name'):
+                case 'RSI':
+                    if new_indicator:
+                        indicator['params'] = [
+                            {"key": "length", "value": 14},
+                            {"key": "upper_limit", "value": 70},
+                            {"key": "middle_limit", "value": 50},
+                            {"key": "lower_limit", "value": 30},
+                        ]
+                    length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+                    candles_df = CandleView().get_candles(
+                        exchange=Exchange(exchange, request.user),
+                        symbol=symbol,
+                        timeframe=timeframe,
+                        timestamp_start=timestamp_start,
+                        timestamp_end=timestamp_end,
+                        db_search=True,
+                        extra_candles=2 * length
+                    )
+                    candles_df['rsi'] = ta.RSI(candles_df['close'].astype(float).values, timeperiod=length)
+                case 'SMA':
+                    if new_indicator:
+                        indicator['params'] = [
+                            {"key": "length", "value": 9},
+                        ]
+                    length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+                    candles_df = CandleView().get_candles(
+                        exchange=Exchange(exchange, request.user),
+                        symbol=symbol,
+                        timeframe=timeframe,
+                        timestamp_start=timestamp_start,
+                        timestamp_end=timestamp_end,
+                        db_search=True,
+                        extra_candles=length
+                    )
+                    candles_df['sma'] = ta.SMA(candles_df['close'].astype(float).values, timeperiod=length)
+                case 'EMA':
+                    if new_indicator:
+                        indicator['params'] = [
+                            {"key": "length", "value": 9},
+                        ]
+                    length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+                    candles_df = CandleView().get_candles(
+                        exchange=Exchange(exchange, request.user),
+                        symbol=symbol,
+                        timeframe=timeframe,
+                        timestamp_start=timestamp_start,
+                        timestamp_end=timestamp_end,
+                        db_search=True,
+                        extra_candles=2 * length
+                    )
+                    candles_df['ema'] = ta.EMA(candles_df['close'].astype(float).values, timeperiod=length)
+                case 'BBANDS':
+                    if new_indicator:
+                        indicator['params'] = [
+                            {"key": "length", "value": 20},
+                            {"key": "multiplier", "value": 2},
+                        ]
+                    length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+                    multiplier = float(next(p for p in indicator['params'] if p['key'] == 'multiplier')['value'])
+                    candles_df = CandleView().get_candles(
+                        exchange=Exchange(exchange, request.user),
+                        symbol=symbol,
+                        timeframe=timeframe,
+                        timestamp_start=timestamp_start,
+                        timestamp_end=timestamp_end,
+                        db_search=True,
+                        extra_candles=length
+                    )
+                    candles_df['upperband'], candles_df['middleband'], candles_df['lowerband'] = ta.BBANDS(
+                        candles_df['close'].astype(float).values,
+                        timeperiod=length,
+                        nbdevup=multiplier,
+                        nbdevdn=multiplier,
+                        matype=0
+                    )
+                case 'MACD':
+                    if new_indicator:
+                        indicator['params'] = [
+                            {"key": "fast_period", "value": 12},
+                            {"key": "slow_period", "value": 26},
+                            {"key": "signal_period", "value": 9},
+                        ]
+                    fast_period = int(next(p for p in indicator['params'] if p['key'] == 'fast_period')['value'])
+                    slow_period = int(next(p for p in indicator['params'] if p['key'] == 'slow_period')['value'])
+                    signal_period = int(next(p for p in indicator['params'] if p['key'] == 'signal_period')['value'])
+
+                    candles_df = CandleView().get_candles(
+                        exchange=Exchange(exchange, request.user),
+                        symbol=symbol,
+                        timeframe=timeframe,
+                        timestamp_start=timestamp_start,
+                        timestamp_end=timestamp_end,
+                        db_search=True,
+                        extra_candles=2 * max(fast_period, slow_period, signal_period)
+                    )
+
+                    candles_df['macd'], candles_df['macdsignal'], candles_df['macdhist'] = ta.MACD(
+                        candles_df['close'].astype(float).values,
+                        fastperiod=fast_period,
+                        slowperiod=slow_period,
+                        signalperiod=signal_period
+                    )
+                case _:
+                    return Response({'error': 'Indicator type not implemented'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            if new_indicator:
+                strategy.indicators = json.dumps([{k: v for k, v in (ind.items()) if k != 'data'} if ind['id'] == indicator_id else ind for ind in indicators])
+                strategy.save()
+            
+            cols_map = {
+                'timestamp': ('time', int),
+                **{col: (col, None) for col in candles_df.columns if col not in {'timestamp', 'open', 'high', 'low', 'close', 'volume'}}
+            }
+            
+            indicator['data'] = [
+                {out_key: (func(row[col]) if func else row[col]) for col, (out_key, func) in cols_map.items()}
+                for _, row in candles_df.iterrows()
+                if timestamp_start <= row['timestamp'] <= timestamp_end
+                and not any(pd.isna(row[col_name]) for col_name in cols_map.keys())
+            ]
+            
+            return Response(indicator, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

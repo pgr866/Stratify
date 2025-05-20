@@ -16,6 +16,7 @@ type ButtonProps = {
 	timezone: string;
 	range?: { from: number; to: number };
 	onChange?: (range: { from: number; to: number }) => void;
+	disabled?: boolean;
 };
 
 export function DateTimeRangePicker({
@@ -24,7 +25,8 @@ export function DateTimeRangePicker({
 	width = "200px",
 	timezone = "UTC",
 	range,
-	onChange
+	onChange,
+	disabled
 }: Readonly<ButtonProps>) {
 
 	const convertUtcTimestampToZonedDate = (timestamp: number, timezone: string): Date => {
@@ -147,6 +149,7 @@ export function DateTimeRangePicker({
 					variant={variant}
 					size={size}
 					style={{ width }}
+					disabled={disabled}
 					className={cn(
 						"justify-start text-left font-normal overflow-hidden"
 					)}>
