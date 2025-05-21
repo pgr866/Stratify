@@ -24,8 +24,8 @@ export function ResultsChart({ netProfit, drawdown, hodlingProfit }) {
     },
     grid: { vertLines: { visible: false }, horzLines: { visible: false } },
     timeScale: { borderVisible: false },
-    rightPriceScale: { visible: true, borderVisible: false, alignLabels: false, scaleMargins: { bottom: 0.02, top: 0.02 } },
-    leftPriceScale: { visible: true, borderVisible: false, alignLabels: false, scaleMargins: { bottom: 0.02, top: 0.02 } },
+    rightPriceScale: { visible: true, borderVisible: false, alignLabels: false, scaleMargins: { bottom: 0.03, top: 0.03 } },
+    leftPriceScale: { visible: true, borderVisible: false, alignLabels: false, scaleMargins: { bottom: 0.03, top: 0.03 } },
     handleScroll: false,
     handleScale: false,
     crosshair: {
@@ -56,11 +56,11 @@ export function ResultsChart({ netProfit, drawdown, hodlingProfit }) {
       priceScaleId: 'right', priceLineVisible: false, lastValueVisible: false,
     });
     series.current.netProfit = chart.addSeries(LineSeries, {
-      lineWidth: 1.2, priceScaleId: 'left',
+      lineWidth: 1.5, priceScaleId: 'left',
       priceLineVisible: false, lastValueVisible: false,
     });
     series.current.hodling = chart.addSeries(LineSeries, {
-      color: "#2962ff", lineWidth: 1.2, priceScaleId: 'left',
+      color: "#2962ff", lineWidth: 1.5, priceScaleId: 'left',
       priceLineVisible: false, lastValueVisible: false,
     });
     chart.timeScale().fitContent();
@@ -93,5 +93,9 @@ export function ResultsChart({ netProfit, drawdown, hodlingProfit }) {
     chartInstance.current.timeScale().fitContent();
   }, [netProfit, drawdown, hodlingProfit]);
 
-  return <div ref={chartRef} className="size-full" />;
+  return (
+    <div className="size-full" >
+      <div ref={chartRef} className="size-full" />
+    </div>
+  );
 }
