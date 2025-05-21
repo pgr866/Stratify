@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Strategy, updateStrategy } from "@/api"
 import { useSession } from "@/App";;
@@ -16,7 +17,10 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, isLoadi
   const handlePublish = async () => {
     setIsLoading(true);
     updateStrategy(selectedStrategy.id, { ...selectedStrategy, is_public: !selectedStrategy.is_public, indicators: JSON.stringify(selectedStrategy.indicators) })
-      .then((response: Strategy) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
+      .then((response: Strategy) => {
+        setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') });
+        toast("Strategy visibility updated successfully", { description: "Your strategy is " + (response.data.is_public ? "public" : "private") + " now" });
+    })
       .catch((error) => toast("Failed to update strategy", { description: error.message }))
       .finally(() => setIsLoading(false));
   };
