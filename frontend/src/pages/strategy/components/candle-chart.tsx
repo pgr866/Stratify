@@ -8,24 +8,17 @@ import { toast } from "sonner"
 import { Loader2 } from "lucide-react";
 import { getTimezoneOffset } from 'date-fns-tz';
 import { useSession } from "@/App";
-import { Strategy, updateStrategy, Indicator, getIndicator } from "@/api";
-
-interface CandleChartProps {
-	readonly candles: Candle[];
-	readonly selectedStrategy: Strategy[];
-	readonly setSelectedStrategy: React.Dispatch<React.SetStateAction<Strategy | null>>;
-	readonly setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-}
+import { updateStrategy, Indicator, getIndicator } from "@/api";
 
 let chart: any;
 let candleData = [];
 let markers = [];
-let displayedIndicators = {};
 
-export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, setIsLoading }: CandleChartProps) {
+export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, setIsLoading }) {
 	const { user } = useSession();
+	const displayedIndicatorsRef = useRef({});
 	const [updatingIndicator, setUpdatingIndicator] = useState();
-	const pendingIndicatorsRef = useRef(0);
+	const pendingIndicatorsIdRef = useRef<Set<string>>(new Set());
 	const selectedStrategyRef = useRef(selectedStrategy);
 
 	function convertDataToTimezone(data: any[], timezone: string, valueKey?: string) {
@@ -155,11 +148,11 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 	}
 
 	function hideShowIndicator(indicatorId) {
-		displayedIndicators[indicatorId].visible = !displayedIndicators[indicatorId].visible;
-		displayedIndicators[indicatorId].series.forEach(series =>
-			series.applyOptions({ visible: displayedIndicators[indicatorId].visible })
+		displayedIndicatorsRef.current[indicatorId].visible = !displayedIndicatorsRef.current[indicatorId].visible;
+		displayedIndicatorsRef.current[indicatorId].series.forEach(series =>
+			series.applyOptions({ visible: displayedIndicatorsRef.current[indicatorId].visible })
 		);
-		displayedIndicators[indicatorId].subLegend.querySelector('#legendMenu').querySelector('#hideIcon').innerHTML = displayedIndicators[indicatorId].visible
+		displayedIndicatorsRef.current[indicatorId].subLegend.querySelector('#legendMenu').querySelector('#hideIcon').innerHTML = displayedIndicatorsRef.current[indicatorId].visible
 			? `<svg id="hideIcon" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
 			stroke-width="2" class="lucide lucide-eye" viewBox="0 0 24 24"
 			style="position:relative;z-index:10;width:13px;height:13px;color:var(--foreground);cursor:pointer;">
@@ -189,13 +182,13 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 		console.log("Eliminando: ", indicatorId);
 		let pane;
 		try {
-			pane = displayedIndicators[indicatorId].series[0].getPane();
+			pane = displayedIndicatorsRef.current[indicatorId].series[0].getPane();
 		} catch {
-			delete displayedIndicators[indicatorId];
+			delete displayedIndicatorsRef.current[indicatorId];
 			return;
 		}
 		if (pane.getSeries().some(series => series._internal__series._private__seriesType === "Candlestick")) {
-			displayedIndicators[indicatorId].subLegend.remove();
+			displayedIndicatorsRef.current[indicatorId].subLegend.remove();
 		} else {
 			let paneIndex = pane.paneIndex();
 			while (paneIndex < chart.panes().length - 1) {
@@ -204,7 +197,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			}
 		}
 
-		displayedIndicators[indicatorId].series.forEach(series => {
+		displayedIndicatorsRef.current[indicatorId].series.forEach(series => {
 			chart.removeSeries(series);
 		});
 
@@ -212,7 +205,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			updateArrowMenu(paneIndex);
 		});
 
-		delete displayedIndicators[indicatorId];
+		delete displayedIndicatorsRef.current[indicatorId];
 
 		if (deleteFromDb && selectedStrategy.indicators.some(indicator => indicator.id === indicatorId)) {
 			setSelectedStrategy(prev => {
@@ -266,7 +259,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			` : ''}
 		`;
 			subLegend.appendChild(legendMenu);
-			displayedIndicators[newIndicatorId] = { series, visible: true, subLegend };
+			displayedIndicatorsRef.current[newIndicatorId] = { series, visible: true, subLegend };
 			legendMenu.querySelector('#hideIcon')?.addEventListener('click', () => hideShowIndicator(newIndicatorId));
 			if (removeIcon) {
 				legendMenu.querySelector('#updateIcon')?.addEventListener('click', () => setUpdatingIndicator(JSON.parse(JSON.stringify(selectedStrategyRef.current.indicators.find(ind => ind.id === newIndicatorId)))));
@@ -276,7 +269,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			let subLegends = legend.querySelectorAll('#subLegend');
 			subLegend = subLegends[subLegends.length - 1];
 			legendContent = subLegend.querySelector('#legendContent');
-			displayedIndicators[Object.keys(displayedIndicators).at(-1)]?.series.push(...series);
+			displayedIndicatorsRef.current[Object.keys(displayedIndicatorsRef.current).at(-1)]?.series.push(...series);
 		}
 		return legendContent;
 	}
@@ -286,8 +279,8 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			{ time: candleData[candleData.length - 1].time, position: 'aboveBar', color: '#F6465D', shape: 'arrowDown', text: '@1 -15.34' },
 			{ time: candleData[candleData.length - 1].time, position: 'belowBar', color: '#2EBD85', shape: 'arrowUp', text: '@2 +15.34' }
 		]
-		if (displayedIndicators['candles']?.series?.[0]) {
-			createSeriesMarkers(displayedIndicators['candles'].series[0], markers);
+		if (displayedIndicatorsRef.current['candles']?.series?.[0]) {
+			createSeriesMarkers(displayedIndicatorsRef.current['candles'].series[0], markers);
 		}
 	}
 
@@ -530,7 +523,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			document.documentElement.style.setProperty('--muted-opacity', setOpacity(getCssColor('--muted'), 0.7));
 			if (chart) {
 				chart.remove();
-				displayedIndicators = {};
+				displayedIndicatorsRef.current = {};
 			}
 			chart = createChart(document.getElementById('chart-container'), getChartOptions());
 			if (candles.length && user?.timezone) {
@@ -546,34 +539,36 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 		const timeout = setTimeout(() => {
 			selectedStrategyRef.current = selectedStrategy;
 			if (!candles.length || !candleData.length) return;
-			if (pendingIndicatorsRef.current !== 0) return;
-			console.log('principio del metodo:  ', selectedStrategy.indicators, displayedIndicators);
-			const displayedIds = Object.keys(displayedIndicators).filter(id => id !== 'candles');
+			if (pendingIndicatorsIdRef.current.size !== 0) return;
+			console.log('principio del metodo:  ', selectedStrategy.indicators, displayedIndicatorsRef.current);
+			const displayedIds = Object.keys(displayedIndicatorsRef.current).filter(id => id !== 'candles');
 			const indicatorIds = selectedStrategy.indicators.filter(indicator => indicator.id).map(indicator => indicator.id);
 			displayedIds.filter(id => !indicatorIds.includes(id)).forEach(id => removeIndicator(id));
-			const missingIndicators = indicatorIds.filter(id => !displayedIds.includes(id));
+			console.log(pendingIndicatorsIdRef.current);
+			const missingIndicators = indicatorIds.filter(id => !displayedIds.includes(id)).filter(id => !pendingIndicatorsIdRef.current.has(id));;
 			if (!missingIndicators.length) return;
-			pendingIndicatorsRef.current += missingIndicators.length;
-			console.log("Añadido: ", pendingIndicatorsRef.current);
+			missingIndicators.forEach(id => pendingIndicatorsIdRef.current.add(id));
+			console.log("Añadido: ", pendingIndicatorsIdRef.current.size);
 			setIsLoading(true);
 			const indicatorsToAdd = [];
 			missingIndicators.forEach(id => {
 				const indicator = selectedStrategy.indicators.find(ind => ind.id === id);
 				if (!indicator) return;
-				console.log('antes de getIndicator: ', selectedStrategy.indicators, displayedIndicators);
+				console.log('antes de getIndicator: ', selectedStrategy.indicators, displayedIndicatorsRef.current);
 				getIndicator(selectedStrategy.id, indicator.id, candles[0].time, candles[candles.length - 1].time)
 					.then((response: Indicator) => {
 						indicatorsToAdd.push((({ data, ...rest }) => rest)(response.data));
 						addIndicator(response.data);
-						console.log('despues de getIndicator: ', response.data, displayedIndicators);
+						console.log('despues de getIndicator: ', response.data, displayedIndicatorsRef.current);
+						return new Promise(resolve => requestAnimationFrame(() => resolve()));
 					})
 					.catch((error) => {
 						toast("Failed to get indicator", { description: error.message });
 					})
 					.finally(() => {
-						pendingIndicatorsRef.current--;
-						console.log("Restado: ", pendingIndicatorsRef.current);
-						if (pendingIndicatorsRef.current === 0) {
+						pendingIndicatorsIdRef.current.delete(id);
+						console.log("Restado: ", pendingIndicatorsIdRef.current.size);
+						if (pendingIndicatorsIdRef.current.size === 0) {
 							console.log("indicatorsToAdd: ", indicatorsToAdd);
 							setSelectedStrategy(prev => ({ ...prev, indicators: [...(prev.indicators ?? []).filter(i => !indicatorsToAdd.some(newInd => newInd.id === i.id)), ...indicatorsToAdd] }));
 							setIsLoading(false);
@@ -626,8 +621,8 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 					))}
 
 					<DialogFooter>
-						<Button onClick={updateIndicator} disabled={pendingIndicatorsRef.current !== 0} className="w-full">
-							{pendingIndicatorsRef.current !== 0 ? (
+						<Button onClick={updateIndicator} disabled={pendingIndicatorsIdRef.current.size !== 0} className="w-full">
+							{pendingIndicatorsIdRef.current.size !== 0 ? (
 								<>
 									<Loader2 className="animate-spin mr-2" />
 									Loading...

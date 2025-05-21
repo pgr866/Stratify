@@ -333,7 +333,7 @@ export function Strategy() {
         </DialogContent>
       </Dialog>
       <ResizableHandle />
-      <ResizablePanel defaultSize={50} className="flex justify-center items-center">
+      <ResizablePanel defaultSize={50} className="flex flex-col">
         <StrategyResults selectedStrategy={selectedStrategy} setSelectedStrategy={setSelectedStrategy} isLoading={isLoading} setIsLoading={setIsLoading} />
       </ResizablePanel>
     </ResizablePanelGroup>

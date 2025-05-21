@@ -29,12 +29,10 @@ export function Account() {
 				setEmailSentUpdateAccount(true);
 			} catch (error) {
 				const axiosError = error as { isAxiosError?: boolean; response?: { data?: Record<string, unknown> } };
-				console.log(axiosError);
 				const errorMessage = axiosError?.isAxiosError && axiosError.response?.data
 					? Object.entries(axiosError.response.data).map(([k, v]) =>
 						k === "non_field_errors" || k === "detail" ? (Array.isArray(v) ? v[0] : v) : `${k}: ${(Array.isArray(v) ? v[0] : v)}`).shift()
 					: "Something went wrong";
-				console.log(errorMessage);
 				toast("Failed to update account", { description: errorMessage });
 			} finally {
 				setIsLoading(false);
