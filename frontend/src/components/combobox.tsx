@@ -29,6 +29,7 @@ type ButtonProps = {
   onEdit?: (oldValue: string, newValue: string) => void;
   onDelete?: (value: string) => void;
   onCreate?: () => void;
+  searchable?: boolean;
 };
 
 export function Combobox({
@@ -47,6 +48,7 @@ export function Combobox({
   onEdit,
   onDelete,
   onCreate,
+  searchable = true,
 }: Readonly<ButtonProps>) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -56,10 +58,11 @@ export function Combobox({
   const [deletingItem, setDeletingItem] = useState<string | null>(null);
 
   const filteredValues = useMemo(() => {
+    if (!searchable) return values;
     return values.filter((item) =>
       item.toLowerCase().includes(search.toLowerCase())
     );
-  }, [values, search]);
+  }, [values, search, searchable]);
 
   const parentRef = useRef<HTMLDivElement | null>(null);
 
@@ -68,6 +71,7 @@ export function Combobox({
       const newValue = item === value && !alwaysSelected ? "" : item;
       setOpen(false);
       onChange?.(newValue);
+      setSearch("");
     }
   };
 
@@ -134,12 +138,14 @@ export function Combobox({
       </PopoverTrigger>
       <PopoverContent className="p-0 w-fit" style={{ minWidth: width }}>
         <Command shouldFilter={false}>
-          <CommandInput
-            placeholder={`Search ${placeholder.toLowerCase()}...`}
-            className="h-9"
-            value={search}
-            onValueChange={setSearch}
-          />
+          {searchable && (
+            <CommandInput
+              placeholder={`Search ${placeholder.toLowerCase()}...`}
+              className="h-9"
+              value={search}
+              onValueChange={setSearch}
+            />
+          )}
           <CommandGroup className="overflow-hidden">
             <div ref={parentRef} className="max-h-[300px] overflow-auto">
               <div

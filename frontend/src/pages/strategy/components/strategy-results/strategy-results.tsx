@@ -1,9 +1,15 @@
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
-import { Strategy, updateStrategy } from "@/api";
-import { ResultsChart } from "./components/results-chart";
+import { Loader2, History } from "lucide-react";
+import { OrderConditions } from "./components/order-conditions";
+import { Performance } from "./components/performance";
+import { TradesTable } from "./components/trades-table";
+import { Combobox } from "@/components/combobox";
 import { useSession } from "@/App";
+import { Strategy, updateStrategy } from "@/api";
 
 interface StrategyResultsProps {
   readonly selectedStrategy: Strategy[];
@@ -14,6 +20,7 @@ interface StrategyResultsProps {
 
 export function StrategyResults({ selectedStrategy, setSelectedStrategy, isLoading, setIsLoading }: StrategyResultsProps) {
   const { user } = useSession();
+  const [selectedTab, setSelectedTab] = useState("order-conditions");
 
   const handlePublish = async () => {
     setIsLoading(true);
@@ -27,62 +34,43 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, isLoadi
   };
 
   return (
-    <div className="flex flex-col size-full">
-      {user?.id === selectedStrategy?.user && (
-        <Button size="sm" onClick={handlePublish} disabled={isLoading} className="flex-none w-fit">
-          {isLoading ? (
-            <Loader2 className="animate-spin mx-6.5" />
-          ) : (
-            selectedStrategy?.is_public ? "Unpublish" : "\u00A0\u00A0Publish\u00A0\u00A0"
+    <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab} className="size-full px-3 py-1 gap-1">
+      <div className="flex justify-between items-center w-full">
+        <div className="flex flex-1 justify-start">
+          {/* <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"230px"} placeholder={"Strategy"} icon={<History />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} /> */}
+          <Combobox searchable={false} alwaysSelected={true} variant={"outline"} size={"sm"} width={"200px"} placeholder={"Select a run"} icon={<History />} />
+        </div>
+        <div className="flex flex-none justify-center">
+          <div className="flex flex-wrap items-center h-auto">
+            <TabsList className="flex flex-wrap h-auto bg-transparent gap-1 p-0" style={{ marginTop: '0' }}>
+              <TabsTrigger value="order-conditions">
+                Order conditions
+              </TabsTrigger>
+              <TabsTrigger value="performance">
+                Performance
+              </TabsTrigger>
+              <TabsTrigger value="trades-table">
+                List of trades
+              </TabsTrigger>
+            </TabsList>
+          </div>
+        </div>
+        <div className="flex flex-1 justify-end">
+          {user?.id === selectedStrategy?.user && (
+            <Button size="sm" onClick={handlePublish} disabled={isLoading} className="w-fit">
+              {isLoading ? (
+                <Loader2 className="animate-spin mx-6.5" />
+              ) : (
+                selectedStrategy?.is_public ? "Unpublish" : "\u00A0\u00A0Publish\u00A0\u00A0"
+              )}
+            </Button>
           )}
-        </Button>
-      )}
-      <div className="flex-grow overflow-hidden">
-        <ResultsChart
-          netProfit={[
-            0, 80, 120, 90, -50, 140, 160, -70, 200, 250,
-            30, 60, -90, 110, 130, -40, 180, 190, -30, 210,
-            40, 55, 70, 60, -20, 100, 150, -80, 170, 220,
-            20, -30, 40, 90, 110, -50, 130, 160, 180, 210,
-            0, 80, 120, 90, -50, 140, 160, -70, 200, 250,
-            30, 60, -90, 110, 130, -40, 180, 190, -30, 210,
-            40, 55, 70, 60, -20, 100, 150, -80, 170, 220,
-            20, -30, 40, 90, 110, -50, 130, 160, 180, 210,
-            0, 80, 120, 90, -50, 140, 160, -70, 200, 250,
-            30, 60, -90, 110, 130, -40, 180, 190, -30, 210,
-            40, 55, 70, 60, -20, 100, 150, -80, 170, 220,
-            20, -30, 40, 90, 110, -50, 130, 160, 180, 210,
-          ]}
-          drawdown={[
-            0, -300, -250, -400, -350, -330, -370, -340, -290, -250,
-            0, -320, -270, -420, -360, -340, -390, -360, -310, -270,
-            0, -310, -260, -410, -355, -335, -380, -350, -300, -260,
-            0, -290, -240, -390, -340, -320, -370, -330, -280, -240,
-            0, -300, -250, -400, -350, -330, -370, -340, -290, -250,
-            0, -320, -270, -420, -360, -340, -390, -360, -310, -270,
-            0, -310, -260, -410, -355, -335, -380, -350, -300, -260,
-            0, -290, -240, -390, -340, -320, -370, -330, -280, -240,
-            0, -300, -250, -400, -350, -330, -370, -340, -290, -250,
-            0, -320, -270, -420, -360, -340, -390, -360, -310, -270,
-            0, -310, -260, -410, -355, -335, -380, -350, -300, -260,
-            0, -290, -240, -390, -340, -320, -370, -330, -280, -240,
-          ]}
-          hodlingProfit={[
-            0, 10, 25, 40, 55, 70, 85, 90, 100, 110,
-            15, 20, 30, 45, 60, 75, 80, 95, 105, 115,
-            20, 25, 35, 50, 65, 80, 85, 100, 110, 120,
-            10, 15, 20, 35, 50, 65, 70, 85, 95, 105,
-            0, 10, 25, 40, 55, 70, 85, 90, 100, 110,
-            15, 20, 30, 45, 60, 75, 80, 95, 105, 115,
-            20, 25, 35, 50, 65, 80, 85, 100, 110, 120,
-            10, 15, 20, 35, 50, 65, 70, 85, 95, 105,
-            0, 10, 25, 40, 55, 70, 85, 90, 100, 110,
-            15, 20, 30, 45, 60, 75, 80, 95, 105, 115,
-            20, 25, 35, 50, 65, 80, 85, 100, 110, 120,
-            10, 15, 20, 35, 50, 65, 70, 85, 95, 105,
-          ]}
-        />
+        </div>
       </div>
-    </div>
+      <Separator />
+      <TabsContent className="" value="order-conditions"><OrderConditions /></TabsContent>
+      <TabsContent className="" value="performance"><Performance /></TabsContent>
+      <TabsContent className="" value="trades-table"><TradesTable /></TabsContent>
+    </Tabs >
   );
 }
