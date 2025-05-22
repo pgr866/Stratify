@@ -597,7 +597,6 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 							Customize the indicator parameters.
 						</DialogDescription>
 					</DialogHeader>
-
 					{updatingIndicator?.params?.map((param, i) => (
 						<div key={param.key} className="grid grid-cols-[8rem_1fr] items-center w-full gap-4">
 							<Label className="capitalize">{param.key.replace('_', ' ')}</Label>
@@ -619,7 +618,6 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 							/>
 						</div>
 					))}
-
 					<DialogFooter>
 						<Button onClick={updateIndicator} disabled={pendingIndicatorsIdRef.current.size !== 0} className="w-full">
 							{pendingIndicatorsIdRef.current.size !== 0 ? (

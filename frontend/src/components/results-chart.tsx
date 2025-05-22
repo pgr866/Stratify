@@ -116,7 +116,7 @@ export function ResultsChart({ absNetProfit, relNetProfit, absDrawdown, relDrawd
   }, [selectedTab, absNetProfit, relNetProfit, absDrawdown, relDrawdown, absHodlingProfit, relHodlingProfit]);
 
   return (
-    <div className="size-full flex flex-col flex-1 overflow-auto">
+    <div className="flex flex-col flex-1 overflow-auto h-auto">
       <div ref={chartRef} className="flex-grow overflow-hidden" />
       <div className="w-full h-fit flex flex-none items-center gap-4 justify-between px-4">
         <div className="flex items-center gap-6">
