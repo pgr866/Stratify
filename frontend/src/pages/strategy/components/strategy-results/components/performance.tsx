@@ -2,9 +2,9 @@ import { ResultsChart } from "@/components/results-chart";
 import { Label } from "@/components/ui/label";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Info } from "lucide-react";
-import { ResultsHistory } from "@/api";
+import { StrategyExecution } from "@/api";
 
-export function Performance({ resultsHistory }: { readonly resultsHistory: ResultsHistory }) {
+export function Performance({ strategyExecution }: { readonly strategyExecution: StrategyExecution }) {
 
   function formatNumber(number) {
     const cleaned = number?.toFixed(12).replace(/0+$/, '');
@@ -36,12 +36,12 @@ export function Performance({ resultsHistory }: { readonly resultsHistory: Resul
               </Tooltip>
             </div>
             <div className="flex gap-1">
-              <Label className={resultsHistory?.abs_net_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
-                {/* {formatNumber(resultsHistory?.abs_net_profit)} {resultsHistory?.symbol?.split(/[/|:]/).pop()} */}
+              <Label className={strategyExecution?.abs_net_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
+                {/* {formatNumber(strategyExecution?.abs_net_profit)} {strategyExecution?.symbol?.split(/[/|:]/).pop()} */}
                 {formatNumber(-0.000001)} {'USDT'}
               </Label>
-              <Label className={resultsHistory?.rel_net_profit >= 0 ? 'text-[#2EBD85] text-xs' : 'text-[#F6465D] text-xs'}>
-                {/* {resultsHistory?.rel_net_profit?.toFixed(2)}% */}
+              <Label className={strategyExecution?.rel_net_profit >= 0 ? 'text-[#2EBD85] text-xs' : 'text-[#F6465D] text-xs'}>
+                {/* {strategyExecution?.rel_net_profit?.toFixed(2)}% */}
                 -0.03%
               </Label>
             </div>
@@ -60,7 +60,7 @@ export function Performance({ resultsHistory }: { readonly resultsHistory: Resul
               </Tooltip>
             </div>
             <Label>
-              {/* {resultsHistory?.total_closed_trades} */}
+              {/* {strategyExecution?.total_closed_trades} */}
               97
             </Label>
           </div>
@@ -78,8 +78,8 @@ export function Performance({ resultsHistory }: { readonly resultsHistory: Resul
               </Tooltip>
             </div>
             <div className="flex gap-1">
-              <Label className={resultsHistory?.winning_trade_rate >= 50 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
-                {/* {resultsHistory?.winning_trade_rate?.toFixed(2)}% */}
+              <Label className={strategyExecution?.winning_trade_rate >= 50 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
+                {/* {strategyExecution?.winning_trade_rate?.toFixed(2)}% */}
                 63.92%
               </Label>
             </div>
@@ -98,8 +98,8 @@ export function Performance({ resultsHistory }: { readonly resultsHistory: Resul
               </Tooltip>
             </div>
             <div className="flex gap-1">
-              <Label className={resultsHistory?.profit_factor >= 1 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
-                {/* {resultsHistory?.profit_factor?.toFixed(3)}% */}
+              <Label className={strategyExecution?.profit_factor >= 1 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
+                {/* {strategyExecution?.profit_factor?.toFixed(3)}% */}
                 0.989
               </Label>
             </div>
@@ -118,12 +118,12 @@ export function Performance({ resultsHistory }: { readonly resultsHistory: Resul
               </Tooltip>
             </div>
             <div className="flex gap-1">
-              <Label className={resultsHistory?.abs_avg_trade_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
-                {/* {formatNumber(resultsHistory?.abs_avg_trade_profit)} {resultsHistory?.symbol?.split(/[/|:]/).pop()} */}
+              <Label className={strategyExecution?.abs_avg_trade_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
+                {/* {formatNumber(strategyExecution?.abs_avg_trade_profit)} {strategyExecution?.symbol?.split(/[/|:]/).pop()} */}
                 -2.78 USDT
               </Label>
-              <Label className={resultsHistory?.rel_avg_trade_profit >= 0 ? 'text-[#2EBD85] text-xs' : 'text-[#F6465D] text-xs'}>
-                {/* {resultsHistory?.rel_avg_trade_profit?.toFixed(2)}% */}
+              <Label className={strategyExecution?.rel_avg_trade_profit >= 0 ? 'text-[#2EBD85] text-xs' : 'text-[#F6465D] text-xs'}>
+                {/* {strategyExecution?.rel_avg_trade_profit?.toFixed(2)}% */}
                 0.00%
               </Label>
             </div>
@@ -143,11 +143,11 @@ export function Performance({ resultsHistory }: { readonly resultsHistory: Resul
             </div>
             <div className="flex gap-1">
               <Label className="text-[#2EBD85]">
-                {/* {formatNumber(resultsHistory?.abs_max_run_up)} {resultsHistory?.symbol?.split(/[/|:]/).pop()} */}
+                {/* {formatNumber(strategyExecution?.abs_max_run_up)} {strategyExecution?.symbol?.split(/[/|:]/).pop()} */}
                 5322.25 USDT
               </Label>
               <Label className="text-[#2EBD85] text-xs">
-                {/* {resultsHistory?.rel_max_run_up?.toFixed(2)}% */}
+                {/* {strategyExecution?.rel_max_run_up?.toFixed(2)}% */}
                 0.53%
               </Label>
             </div>
@@ -167,11 +167,11 @@ export function Performance({ resultsHistory }: { readonly resultsHistory: Resul
             </div>
             <div className="flex gap-1">
               <Label className="text-[#F6465D]">
-                {/* {formatNumber(resultsHistory?.abs_max_drawdown)} {resultsHistory?.symbol?.split(/[/|:]/).pop()} */}
+                {/* {formatNumber(strategyExecution?.abs_max_drawdown)} {strategyExecution?.symbol?.split(/[/|:]/).pop()} */}
                 -6831.86 USDT
               </Label>
               <Label className="text-[#F6465D] text-xs">
-                {/* {resultsHistory?.rel_max_drawdown?.toFixed(2)}% */}
+                {/* {strategyExecution?.rel_max_drawdown?.toFixed(2)}% */}
                 -0.68%
               </Label>
             </div>
@@ -180,12 +180,12 @@ export function Performance({ resultsHistory }: { readonly resultsHistory: Resul
         </div>
       </TooltipProvider>
       <ResultsChart
-        absCumProfit={(resultsHistory?.trades ?? []).map(trade => trade.abs_cum_profit)}
-        relCumProfit={(resultsHistory?.trades ?? []).map(trade => trade.rel_cum_profit)}
-        absDrawdown={(resultsHistory?.trades ?? []).map(trade => trade.abs_drawdown)}
-        relDrawdown={(resultsHistory?.trades ?? []).map(trade => trade.rel_drawdown)}
-        absHodlingProfit={(resultsHistory?.trades ?? []).map(trade => trade.abs_hodling_profit)}
-        relHodlingProfit={(resultsHistory?.trades ?? []).map(trade => trade.rel_hodling_profit)}
+        absCumProfit={(strategyExecution?.trades ?? []).map(trade => trade.abs_cum_profit)}
+        relCumProfit={(strategyExecution?.trades ?? []).map(trade => trade.rel_cum_profit)}
+        absDrawdown={(strategyExecution?.trades ?? []).map(trade => trade.abs_drawdown)}
+        relDrawdown={(strategyExecution?.trades ?? []).map(trade => trade.rel_drawdown)}
+        absHodlingProfit={(strategyExecution?.trades ?? []).map(trade => trade.abs_hodling_profit)}
+        relHodlingProfit={(strategyExecution?.trades ?? []).map(trade => trade.rel_hodling_profit)}
       />
     </div>
   )

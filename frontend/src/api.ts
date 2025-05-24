@@ -85,7 +85,7 @@ export interface Strategy {
 	clones_count: number;
 }
 
-export interface ResultsHistory {
+export interface StrategyExecution {
   id: string;
   strategy_id: string;
   type: string;

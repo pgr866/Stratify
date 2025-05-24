@@ -249,7 +249,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, isLoadi
         <Performance />
       </TabsContent>
       <TabsContent value="trades-table" className="h-full flex flex-col">
-        {/* {resultsHistory?.symbol?.split(/[/|:]/).pop()} */}
+        {/* {strategyExecution?.symbol?.split(/[/|:]/).pop()} */}
         <TradesTable trades={mockTrades} quoteCurrency="USDT"  />
       </TabsContent>
     </Tabs >
