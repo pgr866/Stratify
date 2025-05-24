@@ -293,7 +293,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			borderVisible: false,
 			wickUpColor: upColor,
 			wickDownColor: downColor,
-			priceFormat: { type: 'custom', minMove: 0.0000000001, formatter: (price) => +price.toFixed(10) },
+			priceFormat: { type: 'custom', minMove: 0.000000000001, formatter: (price) => +price.toFixed(12) },
 		});
 		candleSeries.setData(candleData);
 
@@ -355,7 +355,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 
 	function addLineSeries(lineData, paneIndex, getColor = () => 'blue', lineWidth = 1, lineStyle = 0, newIndicatorId = null, legendLabel = '') {
 		if (!document.getElementById('chart-container')) return;
-		const lineSeries = chart.addSeries(LineSeries, { lineWidth: lineWidth, lineStyle: lineStyle, priceFormat: { type: 'custom', minMove: 0.0000000001, formatter: (price) => +price.toFixed(10) } }, paneIndex);
+		const lineSeries = chart.addSeries(LineSeries, { lineWidth: lineWidth, lineStyle: lineStyle, priceFormat: { type: 'custom', minMove: 0.000000000001, formatter: (price) => +price.toFixed(12) } }, paneIndex);
 		lineSeries.setData(
 			lineData.filter(element => element.value !== undefined).map((dataPoint, index, array) => ({
 				...dataPoint,
@@ -376,7 +376,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 				?? lineSeries.data().at(-1)
 				?? '—';
 			if (newIndicatorId) legend.innerHTML = '';
-			legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${newIndicatorId ? legendLabel + ' ' : ''}<span style="color:${lineData.color}">${+(lineData?.value ?? 0).toFixed(10) || '-'}</span>`;
+			legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${newIndicatorId ? legendLabel + ' ' : ''}<span style="color:${lineData.color}">${+(lineData?.value ?? 0).toFixed(12) || '-'}</span>`;
 		};
 		requestAnimationFrame(() => {
 			legend = createLegend(paneIndex, [lineSeries], newIndicatorId, true);
@@ -386,7 +386,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 
 	function addHistogramSeries(histogramData, paneIndex, getColor = () => 'green', newIndicatorId = null, legendLabel = '') {
 		if (!document.getElementById('chart-container')) return;
-		const histogramSeries = chart.addSeries(HistogramSeries, { priceFormat: { type: 'custom', minMove: 0.0000000001, formatter: (price) => +price.toFixed(10) } }, paneIndex);
+		const histogramSeries = chart.addSeries(HistogramSeries, { priceFormat: { type: 'custom', minMove: 0.000000000001, formatter: (price) => +price.toFixed(12) } }, paneIndex);
 		histogramSeries.setData(
 			histogramData.filter(element => element.value !== undefined).map((dataPoint, index, array) => ({
 				...dataPoint,
@@ -407,7 +407,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 				?? histogramSeries.data().at(-1)
 				?? '—';
 			if (newIndicatorId) legend.innerHTML = '';
-			legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${newIndicatorId ? legendLabel + ' ' : ''}<span style="color:${histogramData.color}">${+(histogramData?.value ?? 0).toFixed(10) || '-'}</span>`;
+			legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${newIndicatorId ? legendLabel + ' ' : ''}<span style="color:${histogramData.color}">${+(histogramData?.value ?? 0).toFixed(12) || '-'}</span>`;
 		};
 		requestAnimationFrame(() => {
 			legend = createLegend(paneIndex, [histogramSeries], newIndicatorId, true);
@@ -417,7 +417,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 
 	function addBarSeries(barData, paneIndex, getColor = () => 'green', newIndicatorId = null, legendLabel = '') {
 		if (!document.getElementById('chart-container')) return;
-		const barSeries = chart.addSeries(BarSeries, { openVisible: true, thinBars: true, priceFormat: { type: 'custom', minMove: 0.0000000001, formatter: (price) => +price.toFixed(10) } }, paneIndex);
+		const barSeries = chart.addSeries(BarSeries, { openVisible: true, thinBars: true, priceFormat: { type: 'custom', minMove: 0.000000000001, formatter: (price) => +price.toFixed(12) } }, paneIndex);
 		barSeries.setData(
 			barData.filter(element => element.value !== undefined).map((dataPoint, index, array) => ({
 				time: dataPoint.time,
@@ -442,7 +442,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 				?? barSeries.data().at(-1)
 				?? '—';
 			if (newIndicatorId) legend.innerHTML = '';
-			legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${newIndicatorId ? legendLabel + ' ' : ''}<span style="color:${barData.color}">${+((barData.low == 0 ? barData.high : barData.low) ?? 0).toFixed(10) || '-'}</span>`;
+			legend.innerHTML += `<span style="background-color: var(--muted-opacity); padding: 0 5px; border-radius: 5px;">${newIndicatorId ? legendLabel + ' ' : ''}<span style="color:${barData.color}">${+((barData.low == 0 ? barData.high : barData.low) ?? 0).toFixed(12) || '-'}</span>`;
 		};
 		requestAnimationFrame(() => {
 			legend = createLegend(paneIndex, [barSeries], newIndicatorId, true);
@@ -496,15 +496,14 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 	function updateChart() {
 		const chartContainer = document.getElementById('chart-container');
 		chartContainer.style.position = 'relative';
-		const resizeChart = () => {
+		const resizeObserver = new ResizeObserver(() => {
 			let { width, height } = chartContainer.getBoundingClientRect();
 			chart.resize(width, height);
 			chartContainer.querySelector('.tv-lightweight-charts').style.width = '100%';
 			chartContainer.querySelector('.tv-lightweight-charts').style.height = '100%';
 			chartContainer.querySelector('table').style.width = '100%';
 			chartContainer.querySelector('table').style.height = '100%';
-		};
-		const resizeObserver = new ResizeObserver(resizeChart);
+		});
 		resizeObserver.observe(chartContainer);
 		const themeObserver = new MutationObserver(() => {
 			document.documentElement.style.setProperty('--muted-opacity', setOpacity(getCssColor('--muted'), 0.7));

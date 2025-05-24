@@ -1,49 +1,191 @@
 import { ResultsChart } from "@/components/results-chart";
+import { Label } from "@/components/ui/label";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Info } from "lucide-react";
+import { ResultsHistory } from "@/api";
 
-export function Performance() {
+export function Performance({ resultsHistory }: { readonly resultsHistory: ResultsHistory }) {
+
+  function formatNumber(number) {
+    const cleaned = number?.toFixed(12).replace(/0+$/, '');
+    const match = cleaned?.match(/^(-?)0\.(0{5,})(\d+)$/);
+    if (match) {
+      const sign = match[1];
+      const zeros = match[2].length;
+      const significant = match[3];
+      return `${sign}0.0{${zeros - 1}}${significant}`;
+    }
+    return +number.toFixed(8);
+  }
 
   return (
     <div className="flex flex-col size-full">
-      <div className="h-[70px] mx-4">
-        Datos
-      </div>
+      <TooltipProvider>
+        <div className="mx-4 my-2 w-full flex gap-4">
+
+          <div className="flex flex-col flex-1 gap-2">
+            <div className="flex items-center gap-1">
+              <Label>Net profit</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>The overall profit or loss achieved.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex gap-1">
+              <Label className={resultsHistory?.abs_net_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
+                {/* {formatNumber(resultsHistory?.abs_net_profit)} {resultsHistory?.symbol?.split(/[/|:]/).pop()} */}
+                {formatNumber(-0.000001)} {'USDT'}
+              </Label>
+              <Label className={resultsHistory?.rel_net_profit >= 0 ? 'text-[#2EBD85] text-xs' : 'text-[#F6465D] text-xs'}>
+                {/* {resultsHistory?.rel_net_profit?.toFixed(2)}% */}
+                -0.03%
+              </Label>
+            </div>
+          </div>
+
+          <div className="flex flex-col flex-1 gap-2">
+            <div className="flex items-center gap-1">
+              <Label>Total closed trades</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="leading-snug">The total number of closed trades,<br />winning and losing.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Label>
+              {/* {resultsHistory?.total_closed_trades} */}
+              97
+            </Label>
+          </div>
+
+          <div className="flex flex-col flex-1 gap-2">
+            <div className="flex items-center gap-1">
+              <Label>Winning trade rate</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="leading-snug">The percentage of winning trades, the number of<br />winning trades divided by the total number of<br />closed trades.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex gap-1">
+              <Label className={resultsHistory?.winning_trade_rate >= 50 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
+                {/* {resultsHistory?.winning_trade_rate?.toFixed(2)}% */}
+                63.92%
+              </Label>
+            </div>
+          </div>
+
+          <div className="flex flex-col flex-1 gap-2">
+            <div className="flex items-center gap-1">
+              <Label>Profit factor</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="leading-snug">The amount of money the strategy made for<br />every unit of money it lost, gross profits divided<br />by gross loses.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex gap-1">
+              <Label className={resultsHistory?.profit_factor >= 1 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
+                {/* {resultsHistory?.profit_factor?.toFixed(3)}% */}
+                0.989
+              </Label>
+            </div>
+          </div>
+
+          <div className="flex flex-col flex-1 gap-2">
+            <div className="flex items-center gap-1">
+              <Label>Avg. trade profit</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="leading-snug">The average profit or loss per trade,<br />calculated by dividing net profit by the<br />number of closed trades.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex gap-1">
+              <Label className={resultsHistory?.abs_avg_trade_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
+                {/* {formatNumber(resultsHistory?.abs_avg_trade_profit)} {resultsHistory?.symbol?.split(/[/|:]/).pop()} */}
+                -2.78 USDT
+              </Label>
+              <Label className={resultsHistory?.rel_avg_trade_profit >= 0 ? 'text-[#2EBD85] text-xs' : 'text-[#F6465D] text-xs'}>
+                {/* {resultsHistory?.rel_avg_trade_profit?.toFixed(2)}% */}
+                0.00%
+              </Label>
+            </div>
+          </div>
+
+          <div className="flex flex-col flex-1 gap-2">
+            <div className="flex items-center gap-1">
+              <Label>Max. run-up</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="leading-snug">The largest run-up of wins, i.e., the maximum<br />possible win that the strategy could have incurred<br />among all of the trades it has made.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex gap-1">
+              <Label className="text-[#2EBD85]">
+                {/* {formatNumber(resultsHistory?.abs_max_run_up)} {resultsHistory?.symbol?.split(/[/|:]/).pop()} */}
+                5322.25 USDT
+              </Label>
+              <Label className="text-[#2EBD85] text-xs">
+                {/* {resultsHistory?.rel_max_run_up?.toFixed(2)}% */}
+                0.53%
+              </Label>
+            </div>
+          </div>
+
+          <div className="flex flex-col flex-1 gap-2">
+            <div className="flex items-center gap-1">
+              <Label>Max. drawdown</Label>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="leading-snug">The greatest loss drawdown, i.e., the greatest<br />possible loss the strategy had compared to its<br />highest profits.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="flex gap-1">
+              <Label className="text-[#F6465D]">
+                {/* {formatNumber(resultsHistory?.abs_max_drawdown)} {resultsHistory?.symbol?.split(/[/|:]/).pop()} */}
+                -6831.86 USDT
+              </Label>
+              <Label className="text-[#F6465D] text-xs">
+                {/* {resultsHistory?.rel_max_drawdown?.toFixed(2)}% */}
+                -0.68%
+              </Label>
+            </div>
+          </div>
+
+        </div>
+      </TooltipProvider>
       <ResultsChart
-        absNetProfit={[
-          0, 85, 120, 95, -55, 145, 170, -75, 210, 260, 35, 65, -95, 115, 135, -45, 185, 195, -35, 215,
-          45, 60, 75, 65, -25, 105, 155, -85, 175, 225, 25, -35, 45, 95, 115, -55, 135, 165, 185, 215,
-          10, 90, 130, 100, -60, 150, 175, -80, 220, 270, 40, 70, -100, 120, 140, -50, 190, 200, -40, 220,
-          50, 65, 80, 70, -30, 110, 160, -90, 180, 230, 30, -40, 50, 100, 120, -60, 140, 170, 190, 220
-        ]}
-        relNetProfit={[
-          0, 34, 48, 38, -22, 58, 68, -30, 84, 104, 14, 26, -38, 46, 54, -18, 74, 78, -14, 86,
-          18, 24, 30, 26, -10, 42, 62, -34, 70, 90, 10, -14, 18, 38, 46, -22, 54, 66, 74, 86,
-          4, 36, 52, 40, -24, 60, 70, -32, 88, 108, 16, 28, -40, 48, 56, -20, 76, 80, -16, 88,
-          20, 26, 32, 28, -12, 44, 64, -36, 72, 92, 12, -16, 20, 40, 48, -24, 56, 68, 76, 88
-        ]}
-        absDrawdown={[
-          0, -28, -24, -39, -34, -32, -36, -33, -28, -24, 0, -30, -26, -41, -36, -34, -38, -35, -30, -26,
-          0, -29, -25, -40, -35, -33, -37, -34, -29, -25, 0, -31, -27, -42, -36, -34, -39, -36, -31, -27,
-          0, -30, -25, -40, -35, -33, -37, -34, -29, -25, 0, -32, -27, -42, -36, -34, -39, -36, -31, -27,
-          0, -31, -26, -41, -35, -33, -38, -35, -30, -26, 0, -29, -24, -39, -34, -32, -37, -33, -28, -24
-        ]}
-        relDrawdown={[
-          0, -10, -9, -14, -12, -11, -13, -12, -10, -9, 0, -11, -10, -15, -13, -12, -14, -13, -11, -10,
-          0, -10, -9, -14, -12, -11, -13, -12, -10, -9, 0, -11, -10, -15, -13, -12, -14, -13, -11, -10,
-          0, -10, -9, -14, -12, -11, -13, -12, -10, -9, 0, -11, -10, -15, -13, -12, -14, -13, -11, -10,
-          0, -10, -9, -14, -12, -11, -13, -12, -10, -9, 0, -11, -10, -15, -13, -12, -14, -13, -11, -10
-        ]}
-        absHodlingProfit={[
-          0, 10, 25, 40, 55, 70, 85, 90, 100, 110, 15, 20, 30, 45, 60, 75, 80, 95, 105, 115,
-          20, 25, 35, 50, 65, 80, 85, 100, 110, 120, 10, 15, 20, 35, 50, 65, 70, 85, 95, 105,
-          0, 10, 25, 40, 55, 70, 85, 90, 100, 110, 15, 20, 30, 45, 60, 75, 80, 95, 105, 115,
-          20, 25, 35, 50, 65, 80, 85, 100, 110, 120, 10, 15, 20, 35, 50, 65, 70, 85, 95, 105
-        ]}
-        relHodlingProfit={[
-          0, 8, 20, 32, 44, 56, 68, 72, 80, 88, 12, 16, 24, 36, 48, 60, 64, 76, 84, 92,
-          16, 20, 28, 40, 52, 64, 68, 80, 88, 96, 8, 12, 16, 28, 40, 52, 56, 68, 76, 84,
-          0, 8, 20, 32, 44, 56, 68, 72, 80, 88, 12, 16, 24, 36, 48, 60, 64, 76, 84, 92,
-          16, 20, 28, 40, 52, 64, 68, 80, 88, 96, 8, 12, 16, 28, 40, 52, 56, 68, 76, 84
-        ]}
+        absCumProfit={(resultsHistory?.trades ?? []).map(trade => trade.abs_cum_profit)}
+        relCumProfit={(resultsHistory?.trades ?? []).map(trade => trade.rel_cum_profit)}
+        absDrawdown={(resultsHistory?.trades ?? []).map(trade => trade.abs_drawdown)}
+        relDrawdown={(resultsHistory?.trades ?? []).map(trade => trade.rel_drawdown)}
+        absHodlingProfit={(resultsHistory?.trades ?? []).map(trade => trade.abs_hodling_profit)}
+        relHodlingProfit={(resultsHistory?.trades ?? []).map(trade => trade.rel_hodling_profit)}
       />
     </div>
   )

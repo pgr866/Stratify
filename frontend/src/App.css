@@ -18,7 +18,7 @@
 
 @keyframes shadow-slide {
   from {
-    background:oklch(from var(--primary) l c h / 0.2);
+    background: oklch(from var(--primary) l c h / 0.2);
     right: 460px;
   }
 
@@ -59,23 +59,39 @@
 }
 
 button:disabled {
-  cursor: not-allowed !important;
-  pointer-events: auto !important;
+  @apply cursor-not-allowed pointer-events-auto;
 }
 
 [data-slot="card"] {
-  gap: 0 !important;
+  @apply gap-0;
 }
 
 [data-slot="card-header"] {
-  gap: 6px;
-  padding-bottom: 6px;
+  @apply gap-1.5 pb-1.5;
 }
 
 [data-slot="card-description"] {
-  padding-bottom: 6px;
+  @apply pb-1.5;
 }
 
 [data-sonner-toaster][data-sonner-theme=dark] [data-description] {
   color: var(--popover-foreground) !important;
+}
+
+[data-slot="table-cell"] {
+  @apply items-center;
+}
+
+[data-slot="table-container"] {
+  @apply overflow-visible;
+}
+
+[data-slot='tooltip-content'] {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+[data-slot='tooltip-content']>span>svg {
+  background-color: var(--muted);
+  fill: var(--muted);
 }

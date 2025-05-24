@@ -85,6 +85,53 @@ export interface Strategy {
 	clones_count: number;
 }
 
+export interface ResultsHistory {
+  id: string;
+  strategy_id: string;
+  type: string;
+  order_conditions: string;
+  running: boolean;
+  exchange: string;
+  symbol: string;
+  timeframe: string;
+  timestamp_start: number;
+  timestamp_end: number;
+  indicators: string;
+  execution_timestamp?: number;
+  abs_net_profit?: number;
+  rel_net_profit?: number;
+  total_closed_trades?: number;
+  winning_trade_rate?: number;
+  profit_factor?: number;
+  abs_avg_trade_profit?: number;
+  rel_avg_trade_profit?: number;
+  abs_max_run_up?: number;
+  rel_max_run_up?: number;
+  abs_max_drawdown?: number;
+  rel_max_drawdown?: number;
+	trades?: Trade[];
+}
+
+export interface Trade {
+  id: string;
+  type: string;
+  side: string;
+  timestamp: number;
+  price: number;
+  amount: number;
+  cost: number;
+  abs_profit: number;
+  rel_profit: number;
+  abs_cum_profit: number;
+  rel_cum_profit: number;
+  abs_hodling_profit: number;
+  rel_hodling_profit: number;
+  abs_runup: number;
+  rel_runup: number;
+  abs_drawdown: number;
+  rel_drawdown: number;
+}
+
 // ** User Management API Calls **
 
 // Get Authenticated User

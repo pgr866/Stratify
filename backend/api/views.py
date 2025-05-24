@@ -71,7 +71,7 @@ class Exchange:
                 if status_response.get('status') != 'ok':
                     raise Exception('Exchange service unavailable')
             if exchange_name not in ['alpaca', 'bitpanda', 'bybit', 'coinbase', 'phemex', 'zaif']:
-                exchange.load_markets(True)
+                exchange.load_markets()
             exchange.name = exchange_name
             return exchange
         except Exception:

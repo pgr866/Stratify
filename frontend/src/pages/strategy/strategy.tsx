@@ -239,15 +239,15 @@ export function Strategy() {
     <ResizablePanelGroup direction="vertical" style={{ width: "100vw", height: "100vh" }} className="border">
       <ResizablePanel defaultSize={50} className="flex flex-col">
         <div className="flex flex-wrap items-center">
-          <Button variant={"ghost"} size={"sm"} onClick={() => navigate("/portal")}>
+          <Button className="px-2" variant={"ghost"} size={"sm"} onClick={() => navigate("/portal")}>
             <img src="/logo.svg" alt="Logo" className="logo size-6" />
           </Button>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"230px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
+          <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"190px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => { setIsLoading(true); setSelectedExchange(value); }} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"210px"} placeholder={"Exchange"} icon={<Landmark />} />
+          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => { setIsLoading(true); setSelectedExchange(value); }} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"180px"} placeholder={"Exchange"} icon={<Landmark />} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"230px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
+          <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"190px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Select value={selectedTimeframe}
             onValueChange={(value) => setSelectedTimeframe(value)}>
@@ -271,7 +271,7 @@ export function Strategy() {
             </SelectContent>
           </Select>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"320px"}
+          <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"315px"}
             timezone={user.timezone}
             range={selectedDatetimeRange}
             onChange={(newRange) => {
