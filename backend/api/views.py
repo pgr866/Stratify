@@ -799,11 +799,14 @@ class StrategyExecutionView(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def start(self, request, pk=None):
         return Response({"detail": "Start not implemented yet."}, status=status.HTTP_501_NOT_IMPLEMENTED)
+    
+    def _kill_execution(self, instance):
+        import sys; print('kill', file=sys.stderr)
 
     @action(detail=True, methods=['patch'])
     def stop(self, request, pk=None):
         instance = self.get_object()
-        # kill
+        self._kill_execution(instance)
         instance.running = False
         instance.save()
         serializer = self.get_serializer(instance)
@@ -811,5 +814,5 @@ class StrategyExecutionView(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        self._stop_execution(instance)
+        self._kill_execution(instance)
         return super().destroy(request, *args, **kwargs)

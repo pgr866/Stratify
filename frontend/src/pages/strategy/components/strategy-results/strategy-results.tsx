@@ -11,7 +11,7 @@ import { Combobox } from "@/components/combobox";
 import { toZonedTime } from "date-fns-tz";
 import { format } from "date-fns";
 import { useSession } from "@/App";
-import { Strategy, updateStrategy, StrategyExecution, getMyStrategyExecutions, getStrategyExecution } from "@/api";
+import { Strategy, updateStrategy, StrategyExecution, getMyStrategyExecutions, getStrategyExecution, deleteStrategyExecution } from "@/api";
 
 export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSelectedExchange, setSelectedSymbol, setSelectedTimeframe, setSelectedDatetimeRange, isLoading, setIsLoading }) {
   const { user } = useSession();
@@ -77,9 +77,21 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
         setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') });
         toast("Strategy visibility updated successfully", { description: "Your strategy is " + (response.data.is_public ? "public" : "private") + " now" });
       })
-      .catch((error) => toast("Failed to update strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))
+      .catch((error) => toast("Failed to update strategy visibility", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))
       .finally(() => setIsLoading(false));
   };
+
+  const handleDeleteStrategyExecution = () => {
+    setIsLoadingResults(true);
+    deleteStrategyExecution(selectedStrategyExecution.id)
+      .then(response => {
+        setStrategyExecutions(prev => prev.filter(se => se.id !== selectedStrategyExecution.id));
+        setSelectedStrategyExecution();
+        toast("Strategy execution deleted successfully", { description: "The strategy execution has been removed" });
+      })
+      .catch(error => toast("Failed to delete strategy execution", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))
+      .finally(() => setIsLoadingResults(false));
+  }
 
   return (
     <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab} className="size-full px-3 py-1 gap-1">
@@ -90,8 +102,9 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
             values={strategyExecutions.map(s => format(toZonedTime(new Date(s.execution_timestamp), user.timezone), "MMM dd yyyy, HH:mm"))}
             ids={strategyExecutions.map(execution => execution.id)}
             onChange={(value, id) => loadStrategyExecution(id)}
-            searchable={false} variant={"outline"} size={"sm"} width={"200px"} placeholder={"Run"} icon={<History />} isLoading={isLoading || isLoadingResults} />
-          {/* onCreate={handleCreateStrategy} onDelete={() => setOpenDeleteDialog(true)} */}
+            onCreate={() => setSelectedStrategyExecution()}
+            onDelete={handleDeleteStrategyExecution}
+            searchable={false} variant={"outline"} size={"sm"} width={"215px"} placeholder={"Run"} icon={<History />} isLoading={isLoading || isLoadingResults} />
           {selectedStrategyExecution && (
             <p className={`ml-4 mt-0.5 ${selectedStrategyExecution.running ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>
               {selectedStrategyExecution.running ? 'Running' : 'Finished'}
