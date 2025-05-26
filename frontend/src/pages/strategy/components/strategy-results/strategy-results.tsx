@@ -18,7 +18,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
   const [selectedTab, setSelectedTab] = useState("order-conditions");
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [strategyExecutions, setStrategyExecutions] = useState([]);
-  const [selectedStrategyExecution, setSelectedStrategyExecution] = useState();
+  const [selectedStrategyExecution, setSelectedStrategyExecution] = useState<StrategyExecution>();
 
   useEffect(() => {
     if (!isLoading || !selectedStrategyExecution ||
@@ -41,16 +41,11 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
       });
   }, [selectedStrategy?.id]);
 
-  // useEffect(() => {
-  //   if (!strategyExecutions?.length) return;
-  //   const mostRecentExecution = strategyExecutions.reduce((prev, current) =>
-  //     (prev.execution_timestamp ?? 0) > (current.execution_timestamp ?? 0) ? prev : current
-  //   );
-  //   loadStrategyExecution(mostRecentExecution.id);
-  // }, [strategyExecutions]);
-
   useEffect(() => {
-    if (!selectedStrategyExecution) return;
+    if (!selectedStrategyExecution) {
+      setSelectedTab("order-conditions");
+      return;
+    }
     setSelectedExchange(selectedStrategyExecution.exchange.charAt(0).toUpperCase() + selectedStrategyExecution.exchange.slice(1));
     setSelectedSymbol(selectedStrategyExecution.symbol);
     setSelectedTimeframe(selectedStrategyExecution.timeframe);
@@ -94,7 +89,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
   }
 
   return (
-    <Tabs defaultValue={selectedTab} onValueChange={setSelectedTab} className="size-full px-3 py-1 gap-1">
+    <Tabs value={selectedTab} onValueChange={setSelectedTab} className="size-full px-3 py-1 gap-1">
       <div className="flex justify-between items-center w-full">
         <div className="flex flex-1 justify-start">
           <Combobox
@@ -117,10 +112,10 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
               <TabsTrigger value="order-conditions">
                 Order conditions
               </TabsTrigger>
-              <TabsTrigger disabled={!selectedStrategyExecution || selectedStrategyExecution?.running && selectedStrategyExecution?.type === 'backtest'} value="performance">
+              <TabsTrigger value="performance" disabled={!selectedStrategyExecution || selectedStrategyExecution?.running && selectedStrategyExecution?.type === 'backtest'}>
                 Performance
               </TabsTrigger>
-              <TabsTrigger disabled={!selectedStrategyExecution || selectedStrategyExecution?.running && selectedStrategyExecution?.type === 'backtest'} value="trades-table">
+              <TabsTrigger value="trades-table" disabled={!selectedStrategyExecution || selectedStrategyExecution?.running && selectedStrategyExecution?.type === 'backtest'}>
                 List of trades
               </TabsTrigger>
             </TabsList>

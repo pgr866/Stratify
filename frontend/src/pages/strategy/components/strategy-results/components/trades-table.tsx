@@ -38,7 +38,7 @@ export function TradesTable({ trades, symbol }: { readonly trades: Trade[]; read
 	}
 
 	const virtualizer = useVirtualizer({
-		count: trades.length,
+		count: trades?.length ?? 0,
 		getScrollElement: () => scrollRef.current,
 		estimateSize: () => rowHeight,
 		overscan: 5,
@@ -123,7 +123,7 @@ export function TradesTable({ trades, symbol }: { readonly trades: Trade[]; read
 					})}
 				</TableBody>
 			</Table>
-			{trades.length === 0 && (
+			{trades?.length === 0 && (
 				<div className="w-full flex justify-center">
 					<div className="text-muted-foreground py-10 text-center">
 						No trades available
