@@ -173,7 +173,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 					removeIndicator(original.id, false);
 					setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') });
 				})
-				.catch((error) => toast("Failed to update strategy", { description: error.message }))
+				.catch((error) => toast("Failed to update strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))
 		}
 		setUpdatingIndicator();
 	}
@@ -211,7 +211,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			setSelectedStrategy(prev => {
 				const newIndicators = prev.indicators.filter(ind => ind.id !== indicatorId);
 				updateStrategy(prev.id, { ...prev, indicators: JSON.stringify(newIndicators) })
-					.catch(error => toast("Failed to update strategy", { description: error.message }));
+					.catch(error => toast("Failed to update strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }));
 				return { ...prev, indicators: newIndicators };
 			});
 		}
@@ -562,7 +562,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 						return new Promise(resolve => requestAnimationFrame(() => resolve()));
 					})
 					.catch((error) => {
-						toast("Failed to get indicator", { description: error.message });
+						toast("Failed to get indicator", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" });
 					})
 					.finally(() => {
 						pendingIndicatorsIdRef.current.delete(id);

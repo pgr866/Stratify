@@ -45,7 +45,8 @@ urlpatterns = [
 
     # Exchange Data
     path("v1/exchanges/", views.ExchangesView.as_view(), name="exchanges"),
-    path("v1/markets/", views.MarketsView.as_view(), name="markets"),
+    path("v1/symbols/", views.SymbolsView.as_view(), name="symbols"),
+    path("v1/market-info/", views.MarketInfoView.as_view(), name="market-info"),
     path("v1/candles/", views.CandleView.as_view(), name="candles"),
     
     # Strategy
@@ -56,4 +57,10 @@ urlpatterns = [
     
     # Indicator
     path("v1/indicator/", views.IndicatorView.as_view(), name="indicator"),
+    
+    # Strategy Execution
+    path("v1/strategy-execution/", views.StrategyExecutionView.as_view({"get": "list"}), name="strategy-execution-list"),
+    path("v1/strategy-execution/<uuid:pk>/", views.StrategyExecutionView.as_view({"get": "retrieve", "delete": "destroy"}), name="strategy-execution-detail"),
+    path("v1/strategy-execution/<uuid:pk>/start/", views.StrategyExecutionView.as_view({"post": "start"}), name="strategy-execution-start"),
+    path("v1/strategy-execution/<uuid:pk>/stop/", views.StrategyExecutionView.as_view({"patch": "stop"}), name="strategy-execution-stop"),
 ]

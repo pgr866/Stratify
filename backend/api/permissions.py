@@ -8,8 +8,13 @@ class IsOwner(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.is_active
     
-    def has_object_permission(self, request, view, obj):
-        return (isinstance(obj, request.user.__class__) and obj == request.user) or (hasattr(obj, "user") and obj.user == request.user)
+    def has_object_permission(self, request, view, obj):    
+        user = request.user
+        return (
+            (isinstance(obj, user.__class__) and obj == user) or
+            (getattr(obj, "user", None) == user) or
+            (hasattr(obj, "strategy") and getattr(obj.strategy, "user", None) == user)
+        )
         
 class IsAuthenticated(BasePermission):
     def has_permission(self, request, view):

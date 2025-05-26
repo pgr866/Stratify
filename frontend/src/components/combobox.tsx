@@ -16,12 +16,13 @@ type TagConfig = {
 type ButtonProps = {
   value?: string;
   values?: string[];
+  ids?: string[];
   alwaysSelected?: boolean;
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   size?: "default" | "sm" | "lg" | "logo";
   width?: string;
   placeholder?: string;
-  onChange?: (value: string) => void;
+  onChange?: (value: string, id?: string) => void;
   icon?: ReactNode;
   disabled?: boolean;
   isLoading?: boolean;
@@ -35,6 +36,7 @@ type ButtonProps = {
 export function Combobox({
   value = "",
   values = [],
+  ids,
   alwaysSelected = false,
   variant = "default",
   size = "default",
@@ -70,8 +72,16 @@ export function Combobox({
     if (!isEditing && !deletingItem && !isLoading && !disabled) {
       const newValue = item === value && !alwaysSelected ? "" : item;
       setOpen(false);
-      onChange?.(newValue);
       setSearch("");
+      if (onChange) {
+        const index = values.indexOf(newValue);
+        const id = index !== -1 && ids ? ids[index] : undefined;
+        if (onChange.length > 1) {
+          onChange(newValue, id);
+        } else {
+          onChange(newValue);
+        }
+      }
     }
   };
 
@@ -131,7 +141,7 @@ export function Combobox({
           <span className="flex items-center gap-2 truncate">
             {icon && icon}
             {isLoading && <Loader2 className="animate-spin ml-1" />}
-            {!isLoading && (value || placeholder)}
+            {!isLoading && (value || `Select a ${placeholder.toLowerCase()}`)}
           </span>
           <ChevronDown className="opacity-50" />
         </Button>

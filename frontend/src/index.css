@@ -199,3 +199,101 @@
     @apply text-sm text-muted-foreground;
   }
 }
+
+.logo {
+  @apply mx-auto hover:drop-shadow-[0_0_2em_var(--primary)];
+}
+
+/* HeroCards background shadow */
+.shadow {
+  position: absolute;
+  background: oklch(from var(--primary) l c h / 0);
+  border-radius: 24px;
+  rotate: 35deg;
+  z-index: -1;
+  width: 260px;
+  height: 400px;
+  top: 200px;
+  filter: blur(150px);
+  animation: shadow-slide 4s linear infinite alternate;
+}
+
+@keyframes shadow-slide {
+  from {
+    background: oklch(from var(--primary) l c h / 0.2);
+    right: 460px;
+  }
+
+  to {
+    background: oklch(from var(--primary) l c h / 0.8);
+    right: 160px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .shadow {
+    top: 70px;
+  }
+}
+
+@media (max-width: 768px) {
+  .shadow {
+    width: 100px;
+    height: 350px;
+    filter: blur(60px);
+  }
+
+  @keyframes shadow-slide {
+    from {
+      background: oklch(from var(--primary) l c h / 0.2);
+      right: 280px;
+    }
+
+    to {
+      background: oklch(from var(--primary) l c h / 0.3);
+      right: 100px;
+    }
+  }
+}
+
+#tv-attr-logo {
+  @apply hidden;
+}
+
+button:disabled {
+  @apply cursor-not-allowed pointer-events-auto;
+}
+
+[data-slot="card"] {
+  @apply gap-0;
+}
+
+[data-slot="card-header"] {
+  @apply gap-1.5 pb-1.5;
+}
+
+[data-slot="card-description"] {
+  @apply pb-1.5;
+}
+
+[data-sonner-toaster][data-sonner-theme=dark] [data-description] {
+  color: var(--popover-foreground) !important;
+}
+
+[data-slot="table-cell"] {
+  @apply items-center;
+}
+
+[data-slot="table-container"] {
+  @apply overflow-visible;
+}
+
+[data-slot='tooltip-content'] {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+[data-slot='tooltip-content']>span>svg {
+  background-color: var(--muted);
+  fill: var(--muted);
+}

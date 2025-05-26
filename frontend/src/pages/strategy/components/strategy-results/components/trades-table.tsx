@@ -7,21 +7,34 @@ import { format } from "date-fns";
 import { Trade } from "@/api";
 import { useSession } from "@/App";
 
-export function TradesTable({ trades, quoteCurrency }: { readonly trades: Trade[]; readonly quoteCurrency: string; }) {
+export function TradesTable({ trades, symbol }: { readonly trades: Trade[]; readonly symbol: string; }) {
 	const { user } = useSession();
+	const [baseCurrency, setBaseCurrency] = useState("");
+	const [quoteCurrency, setQuoteCurrency] = useState("");
 	const rowHeight = 47.27;
 	const scrollRef = useRef<HTMLDivElement>(null);
 
+	useEffect(() => {
+		const parts = symbol?.split(/[:/]/);
+		setBaseCurrency(parts?.[0]);
+		setQuoteCurrency(parts?.[parts.length - 1]);
+	}, [symbol]);
+
 	function formatNumber(number) {
-		const cleaned = number?.toFixed(12).replace(/0+$/, '');
-		const match = cleaned?.match(/^(-?)0\.(0{5,})(\d+)$/);
-		if (match) {
-			const sign = match[1];
-			const zeros = match[2].length;
-			const significant = match[3];
-			return `${sign}0.0{${zeros - 1}}${significant}`;
+		try {
+			number = Number(number);
+			const cleaned = number?.toFixed(12).replace(/0+$/, '');
+			const match = cleaned?.match(/^(-?)0\.(0{5,})(\d+)$/);
+			if (match) {
+				const sign = match[1];
+				const zeros = match[2].length;
+				const significant = match[3];
+				return `${sign}0.0{${zeros - 1}}${significant}`;
+			}
+			return +number.toFixed(8);
+		} catch {
+			return number;
 		}
-		return +number.toFixed(8);
 	}
 
 	const virtualizer = useVirtualizer({
@@ -46,9 +59,9 @@ export function TradesTable({ trades, quoteCurrency }: { readonly trades: Trade[
 						<TableHead className="text-muted-foreground w-[126px]">Price</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Amount</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Cost</TableHead>
+						<TableHead className="text-muted-foreground w-[126px]">Avg. Entry Price</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Net Profit</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Cum. Profit</TableHead>
-						<TableHead className="text-muted-foreground w-[126px]">Hodling Profit</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Run-up</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Drawdown</TableHead>
 					</TableRow>
@@ -67,9 +80,10 @@ export function TradesTable({ trades, quoteCurrency }: { readonly trades: Trade[
 								<TableCell className="w-[161px]">
 									{format(toZonedTime(new Date(trade.timestamp), user.timezone), "MMM dd yyyy, HH:mm")}
 								</TableCell>
-								<TableCell className="w-[127px]">{formatNumber(trade.price)}</TableCell>
-								<TableCell className="w-[127px]">{formatNumber(trade.amount)}</TableCell>
+								<TableCell className="w-[127px]">{formatNumber(trade.price)} {quoteCurrency}</TableCell>
+								<TableCell className="w-[127px]">{formatNumber(trade.amount)} {baseCurrency}</TableCell>
 								<TableCell className="w-[127px]">{formatNumber(trade.cost)} {quoteCurrency}</TableCell>
+								<TableCell className="w-[127px]">{formatNumber(trade.avg_entry_price)} {quoteCurrency}</TableCell>
 
 								<TableCell className="flex flex-col !items-start w-[127px]">
 									<Label className={`text-[0.8rem] ${trade?.abs_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>
@@ -85,14 +99,6 @@ export function TradesTable({ trades, quoteCurrency }: { readonly trades: Trade[
 									</Label>
 									<Label className={`text-xs ${trade?.rel_cum_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>
 										{trade?.rel_cum_profit.toFixed(2)}%
-									</Label>
-								</TableCell>
-								<TableCell className="flex flex-col !items-start w-[127px]">
-									<Label className={`text-[0.8rem] ${trade?.abs_hodling_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>
-										{formatNumber(trade?.abs_hodling_profit)} {quoteCurrency}
-									</Label>
-									<Label className={`text-xs ${trade?.rel_hodling_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>
-										{trade?.rel_hodling_profit.toFixed(2)}%
 									</Label>
 								</TableCell>
 
@@ -117,6 +123,13 @@ export function TradesTable({ trades, quoteCurrency }: { readonly trades: Trade[
 					})}
 				</TableBody>
 			</Table>
+			{trades.length === 0 && (
+				<div className="w-full flex justify-center">
+					<div className="text-muted-foreground py-10 text-center">
+						No trades available
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

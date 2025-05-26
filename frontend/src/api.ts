@@ -86,50 +86,51 @@ export interface Strategy {
 }
 
 export interface StrategyExecution {
-  id: string;
-  strategy_id: string;
-  type: string;
-  order_conditions: string;
-  running: boolean;
-  exchange: string;
-  symbol: string;
-  timeframe: string;
-  timestamp_start: number;
-  timestamp_end: number;
-  indicators: string;
-  execution_timestamp?: number;
-  abs_net_profit?: number;
-  rel_net_profit?: number;
-  total_closed_trades?: number;
-  winning_trade_rate?: number;
-  profit_factor?: number;
-  abs_avg_trade_profit?: number;
-  rel_avg_trade_profit?: number;
-  abs_max_run_up?: number;
-  rel_max_run_up?: number;
-  abs_max_drawdown?: number;
-  rel_max_drawdown?: number;
+	id: string;
+	strategy_id: string;
+	type: string;
+	order_conditions: string;
+	running: boolean;
+	exchange: string;
+	symbol: string;
+	timeframe: string;
+	timestamp_start: number;
+	timestamp_end: number;
+	indicators: string;
+	execution_timestamp?: number;
+	abs_net_profit?: number;
+	rel_net_profit?: number;
+	total_closed_trades?: number;
+	winning_trade_rate?: number;
+	profit_factor?: number;
+	abs_avg_trade_profit?: number;
+	rel_avg_trade_profit?: number;
+	abs_max_run_up?: number;
+	rel_max_run_up?: number;
+	abs_max_drawdown?: number;
+	rel_max_drawdown?: number;
 	trades?: Trade[];
 }
 
 export interface Trade {
-  id: string;
-  type: string;
-  side: string;
-  timestamp: number;
-  price: number;
-  amount: number;
-  cost: number;
-  abs_profit: number;
-  rel_profit: number;
-  abs_cum_profit: number;
-  rel_cum_profit: number;
-  abs_hodling_profit: number;
-  rel_hodling_profit: number;
-  abs_runup: number;
-  rel_runup: number;
-  abs_drawdown: number;
-  rel_drawdown: number;
+	id: string;
+	type: string;
+	side: string;
+	timestamp: number;
+	price: number;
+	amount: number;
+	cost: number;
+	avg_entry_price: number;
+	abs_profit: number;
+	rel_profit: number;
+	abs_cum_profit: number;
+	rel_cum_profit: number;
+	abs_hodling_profit: number;
+	rel_hodling_profit: number;
+	abs_runup: number;
+	rel_runup: number;
+	abs_drawdown: number;
+	rel_drawdown: number;
 }
 
 // ** User Management API Calls **
@@ -202,8 +203,11 @@ export const deleteApiKeys = (exchange: string) => api.delete(`apiKey/${exchange
 // Get all ccxt exchanges
 export const getAllExchanges = () => api.get("exchanges/");
 
-// Get available markets and supported timeframes for an exchange
-export const getExchangeMarkets = (exchange: string) => api.get('markets/', { params: { exchange } });
+// Get available symbols and supported timeframes for an exchange
+export const getExchangeSymbols = (exchange: string) => api.get('symbols/', { params: { exchange } });
+
+// Get market info for an exchange and a symbol
+export const getMarketInfo = (exchange: string, symbol: string) => api.get('market-info/', { params: { exchange, symbol } });
 
 // Get candles for a specific exchange, symbol and timeframe
 export const getCandles = (
@@ -244,3 +248,18 @@ export const getIndicator = (
 	timestamp_start: number,
 	timestamp_end: number
 ) => api.get<Indicator>('indicator/', { params: { strategy_id, indicator_id, timestamp_start, timestamp_end } });
+
+// Get all executions for a given strategy
+export const getMyStrategyExecutions = (strategy_id: string) => api.get("strategy-execution/", { params: { strategy_id } });
+
+// Get a specific strategy execution by ID
+export const getStrategyExecution = (id: string) => api.get<StrategyExecution>(`strategy-execution/${id}/`);
+
+// Delete a specific strategy execution by ID
+export const deleteStrategyExecution = (id: string) => api.delete(`strategy-execution/${id}/`);
+
+// Start a specific strategy execution by ID
+export const startStrategyExecution = (id: string) => api.post<StrategyExecution>(`strategy-execution/${id}/start/`);
+
+// Stop a specific strategy execution by ID
+export const stopStrategyExecution = (id: string) => api.patch<StrategyExecution>(`strategy-execution/${id}/stop/`);

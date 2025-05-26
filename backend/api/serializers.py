@@ -3,7 +3,7 @@ import re
 from django.contrib.auth import authenticate
 from rest_framework import serializers
 
-from .models import User, ApiKey, Strategy, Candle
+from .models import User, ApiKey, Strategy, Candle, StrategyExecution
 
 def validate_password_strength(password):
     if len(password) < 8:
@@ -181,3 +181,8 @@ class CandleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Candle
         fields = ['time', 'open', 'high', 'low', 'close', 'volume']
+
+class StrategyExecutionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StrategyExecution
+        fields = '__all__'

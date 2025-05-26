@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { toast } from "sonner";
-import { getAllExchanges, getExchangeMarkets, Strategy as StrategyType, getStrategy, getUserStrategies, createStrategy, updateStrategy, deleteStrategy, cloneStrategy, Candle, getCandles } from "@/api";
+import { getAllExchanges, getExchangeSymbols, Strategy as StrategyType, getStrategy, getUserStrategies, createStrategy, updateStrategy, deleteStrategy, cloneStrategy, Candle, getCandles } from "@/api";
 import { useSession } from "@/App";
 
 export function Strategy() {
@@ -24,13 +24,13 @@ export function Strategy() {
   const [exchanges, setExchanges] = useState([]);
   const [symbols, setSymbols] = useState([]);
   const [timeframes, setTimeframes] = useState([]);
-  const [indicatorNames, setIndicatorNames] = useState([
+  const indicatorNames = [
     { name: "Relative Strength Index", short_name: "RSI" },
     { name: "Simple Moving Average", short_name: "SMA" },
     { name: "Exponential Moving Average", short_name: "EMA" },
     { name: "Bollinger Bands", short_name: "BBANDS" },
     { name: "MACD", short_name: "MACD" },
-  ]);
+  ];
   const [selectedStrategy, setSelectedStrategy] = useState();
   const prevStrategyRef = useRef(selectedStrategy);
   const [selectedExchange, setSelectedExchange] = useState();
@@ -59,14 +59,14 @@ export function Strategy() {
   useEffect(() => {
     getAllExchanges()
       .then((response: { data: string[] }) => setExchanges(response.data.map((exchange) => exchange[0].toUpperCase() + exchange.slice(1))))
-      .catch((error) => toast("Failed to fetch exchanges", { description: error.message }));
+      .catch((error) => toast("Failed to fetch exchanges", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }));
   }, []);
 
   useEffect(() => {
     setIsLoading(true);
     getStrategy(id)
       .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
-      .catch((error) => toast("Failed to load strategy", { description: error.message }))
+      .catch((error) => toast("Failed to load strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))
       .finally(() => setIsLoading(false));
   }, [id]);
 
@@ -75,7 +75,7 @@ export function Strategy() {
       if (selectedStrategy.user === user.id) {
         getUserStrategies()
           .then((response: { data: StrategyType[] }) => setStrategies(response.data.map(({ id, name }) => ({ id, name }))))
-          .catch((error) => toast("Failed to fetch your strategies", { description: error.message }));
+          .catch((error) => toast("Failed to fetch your strategies", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }));
       }
       prevStrategyRef.current = selectedStrategy;
       setSelectedSymbol(selectedStrategy.symbol);
@@ -89,7 +89,7 @@ export function Strategy() {
     if (selectedExchange) {
       setSymbols([]);
       setTimeframes([]);
-      getExchangeMarkets(selectedExchange.toLowerCase())
+      getExchangeSymbols(selectedExchange.toLowerCase())
         .then((response: { data: string[] }) => {
           const newSymbols = response.data.symbols.map((symbol) => symbol.symbol);
           const newTimeframes = response.data.timeframes;
@@ -102,7 +102,7 @@ export function Strategy() {
           setSymbols(newSymbols);
           setTimeframes(newTimeframes);
         })
-        .catch((error) => toast("Failed to fetch symbols", { description: error.message }))
+        .catch((error) => toast("Failed to fetch symbols", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))
         .finally(() => setIsLoading(false));
     }
   }, [selectedExchange]);
@@ -148,7 +148,7 @@ export function Strategy() {
           indicators: JSON.stringify(selectedStrategy.indicators)
         })
         .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
-        .catch((error) => toast("Failed to update strategy", { description: error.message }));
+        .catch((error) => toast("Failed to update strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }));
     }
   }, [symbols, timeframes, selectedSymbol, selectedTimeframe, selectedDatetimeRange]);
 
@@ -167,7 +167,7 @@ export function Strategy() {
         navigate(`/strategy/${newId}`);
         toast("Strategy created successfully");
       })
-      .catch((error) => toast("Failed to create new strategy", { description: error.message }))
+      .catch((error) => toast("Failed to create new strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))
       .finally(() => setIsLoading(false));
   }
 
@@ -183,7 +183,7 @@ export function Strategy() {
         );
         toast("Strategy renamed successfully");
       })
-      .catch((error) => toast("Failed to rename strategy", { description: error.message }))
+      .catch((error) => toast("Failed to rename strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))
       .finally(() => setIsLoading(false));
   }
 
@@ -219,7 +219,7 @@ export function Strategy() {
         navigate(`/strategy/${newId}`);
         toast("Strategy cloned successfully");
       })
-      .catch((error) => toast("Failed to clone strategy", { description: error.message }))
+      .catch((error) => toast("Failed to clone strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))
       .finally(() => setIsLoading(false));
   };
 
@@ -232,7 +232,7 @@ export function Strategy() {
       { id: crypto.randomUUID().replace(/-/g, '').slice(0, 10), name: selectedIndicator.name, short_name: selectedIndicator.short_name }])
     })
       .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
-      .catch((error) => toast("Failed to update strategy", { description: error.message }));
+      .catch((error) => toast("Failed to update strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }));
   };
 
   return (
@@ -283,13 +283,6 @@ export function Strategy() {
           <Combobox key={resetKey} values={indicatorNames.map(indicator => indicator.name)} variant={"ghost"} size={"sm"} width={"235px"} placeholder={"Indicators"}
             onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          {/* <Button variant={"ghost"} size={"sm"} className="w-[170px] overflow-hidden font-normal">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 28 28" style={{ width: "24", height: "24" }}>
-              <path stroke="currentColor" strokeWidth="1.5" d="m20 17-5 5m0-5 5 5M9 11.5h7M17.5 8a2.5 2.5 0 0 0-5 0v11a2.5 2.5 0 0 1-5 0" />
-            </svg>
-            Order conditions
-          </Button>
-          <Separator orientation="vertical" className="!h-5 mx-0.5" /> */}
           <ThemeToggle size="9" />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Button size={"sm"} onClick={handleCloneStrategy} disabled={isLoading}>
@@ -334,7 +327,15 @@ export function Strategy() {
       </Dialog>
       <ResizableHandle />
       <ResizablePanel defaultSize={50} className="flex flex-col">
-        <StrategyResults selectedStrategy={selectedStrategy} setSelectedStrategy={setSelectedStrategy} isLoading={isLoading} setIsLoading={setIsLoading} />
+        <StrategyResults
+          selectedStrategy={selectedStrategy}
+          setSelectedStrategy={setSelectedStrategy}
+          setSelectedExchange={setSelectedExchange}
+          setSelectedSymbol={setSelectedSymbol}
+          setSelectedTimeframe={setSelectedTimeframe}
+          setSelectedDatetimeRange={setSelectedDatetimeRange}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading} />
       </ResizablePanel>
     </ResizablePanelGroup>
   )

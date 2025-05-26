@@ -47,6 +47,58 @@ class Strategy(models.Model):
     def __str__(self):
         return self.name
 
+class StrategyExecution(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
+    strategy = models.ForeignKey(Strategy, on_delete=models.CASCADE)
+    type = models.CharField(max_length=10)
+    order_conditions = models.TextField()
+    running = models.BooleanField()
+    exchange = models.CharField(max_length=50)
+    symbol = models.CharField(max_length=20)
+    timeframe = models.CharField(max_length=5)
+    timestamp_start = models.BigIntegerField()
+    timestamp_end = models.BigIntegerField()
+    indicators = models.TextField()
+    execution_timestamp = models.BigIntegerField(null=True, blank=True)
+    abs_net_profit = models.DecimalField(max_digits=20, decimal_places=12, null=True, blank=True)
+    rel_net_profit = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    total_closed_trades = models.IntegerField(null=True, blank=True)
+    winning_trade_rate = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    profit_factor = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    abs_avg_trade_profit = models.DecimalField(max_digits=20, decimal_places=12, null=True, blank=True)
+    rel_avg_trade_profit = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    abs_max_run_up = models.DecimalField(max_digits=20, decimal_places=12, null=True, blank=True)
+    rel_max_run_up = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    abs_max_drawdown = models.DecimalField(max_digits=20, decimal_places=12, null=True, blank=True)
+    rel_max_drawdown = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+
+    def __str__(self):
+        return f"Execution {self.id} - {self.exchange} {self.symbol} [{self.timeframe}]"
+
+class Trade(models.Model):
+    id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
+    strategy_execution = models.ForeignKey(StrategyExecution, on_delete=models.CASCADE)
+    type = models.CharField(max_length=20)
+    side = models.CharField(max_length=10)
+    timestamp = models.BigIntegerField()
+    price = models.DecimalField(max_digits=20, decimal_places=12)
+    amount = models.DecimalField(max_digits=20, decimal_places=12)
+    cost = models.DecimalField(max_digits=20, decimal_places=12)
+    avg_entry_price = models.DecimalField(max_digits=20, decimal_places=12)
+    abs_profit = models.DecimalField(max_digits=20, decimal_places=12)
+    rel_profit = models.DecimalField(max_digits=20, decimal_places=8)
+    abs_cum_profit = models.DecimalField(max_digits=20, decimal_places=12)
+    rel_cum_profit = models.DecimalField(max_digits=20, decimal_places=8)
+    abs_hodling_profit = models.DecimalField(max_digits=20, decimal_places=12)
+    rel_hodling_profit = models.DecimalField(max_digits=20, decimal_places=8)
+    abs_runup = models.DecimalField(max_digits=20, decimal_places=12)
+    rel_runup = models.DecimalField(max_digits=20, decimal_places=8)
+    abs_drawdown = models.DecimalField(max_digits=20, decimal_places=12)
+    rel_drawdown = models.DecimalField(max_digits=20, decimal_places=8)
+
+    def __str__(self):
+        return f"Trade {self.id} - {self.side} {self.amount} @ {self.price}"
+
 class Candle(models.Model):
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     exchange = models.CharField(max_length=50)

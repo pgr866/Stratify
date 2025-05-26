@@ -17,15 +17,16 @@ from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 
 from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from github import Github, Requester
 from github.ApplicationOAuth import ApplicationOAuth
 
-from .models import User, ApiKey, Strategy, Candle
+from .models import User, ApiKey, Strategy, StrategyExecution, Trade, Candle
 from .permissions import IsAuthenticated, IsNotAuthenticated, IsOwner, NoBody
-from .serializers import UserSerializer, LoginSerializer, GoogleLoginSerializer, GithubLoginSerializer, RecoverPasswordSerializer, ApiKeySerializer, StrategySerializer, CandleSerializer
+from .serializers import UserSerializer, LoginSerializer, GoogleLoginSerializer, GithubLoginSerializer, RecoverPasswordSerializer, ApiKeySerializer, StrategySerializer, CandleSerializer, StrategyExecutionSerializer
 
 def set_auth_cookies(user, signup=False):
     refresh = RefreshToken.for_user(user)
@@ -394,7 +395,7 @@ class ExchangesView(APIView):
     def get(self, request):
         return Response(ccxt.exchanges)
     
-class MarketsView(APIView):
+class SymbolsView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
@@ -415,6 +416,28 @@ class MarketsView(APIView):
             return Response({ 'symbols': symbols, 'timeframes': timeframes })
         except Exception:
             return Response({'error': f"Failed to load {exchange_name} markets"}, status=status.HTTP_404_NOT_FOUND)
+
+class MarketInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        try:
+            exchange_name = request.query_params.get('exchange')
+            symbol = request.query_params.get('symbol')
+            exchange = Exchange(exchange_name, request.user)
+            market = exchange.markets[symbol]
+            
+            return Response({
+                'taker_fee': market.get('taker'),
+                'maker_fee': market.get('maker'),
+                'min_order_amount': market.get('limits', {}).get('amount', {}).get('min'),
+                'max_order_amount': market.get('limits', {}).get('amount', {}).get('max'),
+                'amount_precision': market.get('precision', {}).get('amount'),
+                'price_precision': market.get('precision', {}).get('price'),
+                'max_leverage': market.get('limits', {}).get('leverage', {}).get('max')
+            })
+        except Exception:
+            return Response({'error': f"Failed to load {symbol} market at {exchange_name}"}, status=status.HTTP_404_NOT_FOUND)
 
 class StrategyView(viewsets.ModelViewSet):
     serializer_class = StrategySerializer
@@ -739,3 +762,54 @@ class IndicatorView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+class StrategyExecutionView(viewsets.ModelViewSet):
+    queryset = StrategyExecution.objects.all()
+    serializer_class = StrategyExecutionSerializer
+
+    def get_permissions(self):
+        if self.action in ['start', 'stop', 'destroy']:
+            self.permission_classes = [IsOwner]
+        elif self.action in ['list', 'retrieve']:
+            self.permission_classes = [IsAuthenticated]
+        return super().get_permissions()
+
+    def list(self, request, *args, **kwargs):
+        strategy_id = request.query_params.get('strategy_id')
+        if not strategy_id:
+            return Response({"detail": "Missing strategy parameter."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            strategy = Strategy.objects.get(id=strategy_id)
+        except Strategy.DoesNotExist:
+            return Response({"detail": "Strategy not found."}, status=status.HTTP_404_NOT_FOUND)
+        if not strategy.is_public and strategy.user != request.user:
+            return Response({"detail": "Not authorized to view this strategy."}, status=status.HTTP_403_FORBIDDEN)
+        executions = StrategyExecution.objects.filter(strategy_id=strategy_id).values('id', 'execution_timestamp')
+        return Response(list(executions))
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if not instance.strategy.is_public and instance.strategy.user != request.user:
+            return Response({"detail": "Not authorized to view this execution."}, status=status.HTTP_403_FORBIDDEN)
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+        trades = Trade.objects.filter(strategy_execution=instance).values()
+        data["trades"] = list(trades)
+        return Response(data)
+
+    @action(detail=True, methods=['post'])
+    def start(self, request, pk=None):
+        return Response({"detail": "Start not implemented yet."}, status=status.HTTP_501_NOT_IMPLEMENTED)
+
+    @action(detail=True, methods=['patch'])
+    def stop(self, request, pk=None):
+        instance = self.get_object()
+        # kill
+        instance.running = False
+        instance.save()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self._stop_execution(instance)
+        return super().destroy(request, *args, **kwargs)

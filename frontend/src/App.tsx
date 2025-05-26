@@ -3,7 +3,6 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from '@/components/theme-provider.tsx';
 import { getAuthUser, User } from "@/api";
-import './App.css';
 
 // Lazy-loaded components
 const Home = lazy(() => import("@/pages/home/home").then(module => ({ default: module.Home })));
