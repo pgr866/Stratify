@@ -46,12 +46,15 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
       setSelectedTab("order-conditions");
       return;
     }
+    if (selectedStrategyExecution?.type === 'backtest' && selectedStrategyExecution?.running) {
+      setSelectedTab("order-conditions");
+    }
     setSelectedExchange(selectedStrategyExecution.exchange.charAt(0).toUpperCase() + selectedStrategyExecution.exchange.slice(1));
     setSelectedSymbol(selectedStrategyExecution.symbol);
     setSelectedTimeframe(selectedStrategyExecution.timeframe);
     setSelectedDatetimeRange({ from: selectedStrategyExecution.timestamp_start, to: selectedStrategyExecution.timestamp_end });
     setSelectedStrategy(prev => ({ ...prev, indicators: JSON.parse(selectedStrategyExecution.indicators ?? '[]') }));
-  }, [selectedStrategyExecution]);
+  }, [selectedStrategyExecution?.id]);
 
   const loadStrategyExecution = async (id: string) => {
     if (!id) return;
@@ -97,9 +100,12 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
             values={strategyExecutions.map(s => format(toZonedTime(new Date(s.execution_timestamp), user.timezone), "MMM dd yyyy, HH:mm"))}
             ids={strategyExecutions.map(execution => execution.id)}
             onChange={(value, id) => loadStrategyExecution(id)}
-            onCreate={() => setSelectedStrategyExecution()}
-            onDelete={handleDeleteStrategyExecution}
-            searchable={false} variant={"outline"} size={"sm"} width={"215px"} placeholder={"Run"} icon={<History />} isLoading={isLoading || isLoadingResults} />
+            searchable={false} variant={"outline"} size={"sm"} width={"215px"} placeholder={"Run"} icon={<History />} isLoading={isLoading}
+            {...(user?.id && selectedStrategy?.user && user.id === selectedStrategy.user && {
+              onCreate: () => setSelectedStrategyExecution(),
+              onDelete: handleDeleteStrategyExecution,
+            })}
+          />
           {selectedStrategyExecution && (
             <p className={`ml-4 mt-0.5 ${selectedStrategyExecution.running ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>
               {selectedStrategyExecution.running ? 'Running' : 'Finished'}
@@ -112,10 +118,10 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
               <TabsTrigger value="order-conditions">
                 Order conditions
               </TabsTrigger>
-              <TabsTrigger value="performance" disabled={!selectedStrategyExecution || selectedStrategyExecution?.running && selectedStrategyExecution?.type === 'backtest'}>
+              <TabsTrigger value="performance" disabled={!selectedStrategyExecution || selectedStrategyExecution?.type === 'backtest' && selectedStrategyExecution?.running}>
                 Performance
               </TabsTrigger>
-              <TabsTrigger value="trades-table" disabled={!selectedStrategyExecution || selectedStrategyExecution?.running && selectedStrategyExecution?.type === 'backtest'}>
+              <TabsTrigger value="trades-table" disabled={!selectedStrategyExecution || selectedStrategyExecution?.type === 'backtest' && selectedStrategyExecution?.running}>
                 List of trades
               </TabsTrigger>
             </TabsList>
