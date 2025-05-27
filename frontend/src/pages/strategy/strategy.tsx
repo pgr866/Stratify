@@ -42,7 +42,7 @@ export function Strategy() {
   const [resetKey, setResetKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const flag = useRef(false);
+  const hasExecutionUrl = useRef(false);
 
   const tagConfig = [
     {
@@ -79,7 +79,7 @@ export function Strategy() {
           .catch((error) => toast("Failed to fetch your strategies", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }));
       }
       prevStrategyRef.current = selectedStrategy;
-      if (flag.current) return;
+      if (hasExecutionUrl.current) return;
       setSelectedSymbol(selectedStrategy.symbol);
       setSelectedTimeframe(selectedStrategy.timeframe);
       setSelectedExchange(selectedStrategy.exchange.charAt(0).toUpperCase() + selectedStrategy.exchange.slice(1));
@@ -342,7 +342,7 @@ export function Strategy() {
           setSelectedSymbol={setSelectedSymbol}
           setSelectedTimeframe={setSelectedTimeframe}
           setSelectedDatetimeRange={setSelectedDatetimeRange}
-          flag={flag}
+          hasExecutionUrl={hasExecutionUrl}
           isLoading={isLoading}
           setIsLoading={setIsLoading} />
       </ResizablePanel>

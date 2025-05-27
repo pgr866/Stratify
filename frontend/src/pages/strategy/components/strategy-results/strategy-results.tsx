@@ -13,19 +13,18 @@ import { format } from "date-fns";
 import { useSession } from "@/App";
 import { Strategy, updateStrategy, StrategyExecution, getMyStrategyExecutions, getStrategyExecution, deleteStrategyExecution } from "@/api";
 
-export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSelectedExchange, setSelectedSymbol, setSelectedTimeframe, setSelectedDatetimeRange, flag, isLoading, setIsLoading }) {
+export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSelectedExchange, setSelectedSymbol, setSelectedTimeframe, setSelectedDatetimeRange, hasExecutionUrl, isLoading, setIsLoading }) {
   const { user } = useSession();
   const [selectedTab, setSelectedTab] = useState("order-conditions");
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [strategyExecutions, setStrategyExecutions] = useState([]);
   const [selectedStrategyExecution, setSelectedStrategyExecution] = useState<StrategyExecution>();
-  
 
   useEffect(() => {
     const url = new URL(window.location.href);
     const executionIdFromUrl = url.searchParams.get("execution");
     if (executionIdFromUrl && executionIdFromUrl !== selectedStrategyExecution?.id) {
-      flag.current = true;
+      hasExecutionUrl.current = true;
       loadStrategyExecution(executionIdFromUrl);
     }
   }, []);
@@ -114,7 +113,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
   return (
     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="size-full px-3 py-1 gap-1">
       <div className="flex justify-between items-center w-full">
-        <div className="flex flex-1 justify-start gap-4">
+        <div className="flex flex-1 justify-start gap-4 mr-4">
           <Combobox
             value={selectedStrategyExecution?.execution_timestamp ? format(toZonedTime(new Date(selectedStrategyExecution.execution_timestamp), user.timezone), "MMM dd yyyy, HH:mm") : ""}
             values={strategyExecutions.map(s => format(toZonedTime(new Date(s.execution_timestamp), user.timezone), "MMM dd yyyy, HH:mm"))}
@@ -127,7 +126,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
             })}
           />
           {selectedStrategyExecution && (
-            <p className={`mr-4 mt-0.5 ${selectedStrategyExecution.running ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>
+            <p className={`mt-0.5 ${selectedStrategyExecution.running ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>
               {selectedStrategyExecution.running ? 'Running' : 'Finished'}
             </p>
           )}
@@ -161,7 +160,10 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
       </div>
       <Separator />
       <TabsContent value="order-conditions">
-        <OrderConditions />
+        <OrderConditions
+          selectedStrategy={selectedStrategy}
+          selectedStrategyExecution={selectedStrategyExecution}
+          setSelectedStrategyExecution={setSelectedStrategyExecution} />
       </TabsContent>
       <TabsContent value="performance">
         <Performance strategyExecution={selectedStrategyExecution} />
