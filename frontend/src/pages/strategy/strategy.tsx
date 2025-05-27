@@ -214,11 +214,17 @@ export function Strategy() {
 
   const handleCloneStrategy = async () => {
     setIsLoading(true);
-    cloneStrategy(selectedStrategy.id)
+    const url = new URL(window.location.href)
+    const executionId = url.searchParams.get("execution")
+    cloneStrategy(selectedStrategy.id, executionId ?? undefined)
       .then((response: StrategyType) => {
         const newId = response.data.id;
         setId(newId);
-        navigate(`/strategy/${newId}`);
+        if (executionId) {
+          window.location.href = `/strategy/${newId}?execution=${executionId}`;
+        } else {
+          window.location.href = `/strategy/${newId}`;
+        }
         toast("Strategy cloned successfully");
       })
       .catch((error) => toast("Failed to clone strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))

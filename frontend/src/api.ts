@@ -239,7 +239,7 @@ export const updateStrategy = (id: string, strategy: Strategy) => api.put<Strate
 export const deleteStrategy = (id: string) => api.delete(`strategy/${id}/`);
 
 // Clone strategy
-export const cloneStrategy = (id: string) => api.post<Strategy>(`strategy/${id}/clone/`);
+export const cloneStrategy = (strategy_id: string, execution_id: string) => api.post<Strategy>(`strategy/${strategy_id}/clone/`, execution_id ? { execution_id } : {});
 
 // Get specific indicator
 export const getIndicator = (

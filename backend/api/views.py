@@ -504,6 +504,37 @@ class StrategyView(viewsets.ModelViewSet):
         if original.user != request.user:
             original.clones_count += 1
             original.save(update_fields=["clones_count"])
+        
+        execution_id = request.data.get('execution_id')
+        if execution_id:
+            try:
+                original_execution = StrategyExecution.objects.get(id=execution_id, strategy=original)
+                StrategyExecution.objects.create(
+                    strategy=cloned,
+                    type='backtest',
+                    order_conditions=original_execution.order_conditions,
+                    running=False,
+                    exchange=original_execution.exchange,
+                    symbol=original_execution.symbol,
+                    timeframe=original_execution.timeframe,
+                    timestamp_start=original_execution.timestamp_start,
+                    timestamp_end=original_execution.timestamp_end,
+                    indicators=original_execution.indicators,
+                    execution_timestamp=original_execution.execution_timestamp,
+                    abs_net_profit=original_execution.abs_net_profit,
+                    rel_net_profit=original_execution.rel_net_profit,
+                    total_closed_trades=original_execution.total_closed_trades,
+                    winning_trade_rate=original_execution.winning_trade_rate,
+                    profit_factor=original_execution.profit_factor,
+                    abs_avg_trade_profit=original_execution.abs_avg_trade_profit,
+                    rel_avg_trade_profit=original_execution.rel_avg_trade_profit,
+                    abs_max_run_up=original_execution.abs_max_run_up,
+                    rel_max_run_up=original_execution.rel_max_run_up,
+                    abs_max_drawdown=original_execution.abs_max_drawdown,
+                    rel_max_drawdown=original_execution.rel_max_drawdown,
+                )
+            except StrategyExecution.DoesNotExist:
+                return Response({"detail": "StrategyExecution does not exist or does not belong to the strategy"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(cloned)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
