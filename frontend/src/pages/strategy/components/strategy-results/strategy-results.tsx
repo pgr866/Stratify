@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
@@ -13,12 +13,22 @@ import { format } from "date-fns";
 import { useSession } from "@/App";
 import { Strategy, updateStrategy, StrategyExecution, getMyStrategyExecutions, getStrategyExecution, deleteStrategyExecution } from "@/api";
 
-export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSelectedExchange, setSelectedSymbol, setSelectedTimeframe, setSelectedDatetimeRange, isLoading, setIsLoading }) {
+export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSelectedExchange, setSelectedSymbol, setSelectedTimeframe, setSelectedDatetimeRange, flag, isLoading, setIsLoading }) {
   const { user } = useSession();
   const [selectedTab, setSelectedTab] = useState("order-conditions");
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [strategyExecutions, setStrategyExecutions] = useState([]);
   const [selectedStrategyExecution, setSelectedStrategyExecution] = useState<StrategyExecution>();
+  
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const executionIdFromUrl = url.searchParams.get("execution");
+    if (executionIdFromUrl && executionIdFromUrl !== selectedStrategyExecution?.id) {
+      flag.current = true;
+      loadStrategyExecution(executionIdFromUrl);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isLoading || !selectedStrategyExecution ||
@@ -42,6 +52,16 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
   }, [selectedStrategy?.id]);
 
   useEffect(() => {
+    if (selectedStrategyExecution?.id) {
+      const url = new URL(window.location.href);
+      url.searchParams.set("execution", selectedStrategyExecution.id);
+      window.history.replaceState({}, "", url.toString());
+    } else {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("execution");
+      window.history.replaceState({}, "", url.toString());
+    }
+
     if (!selectedStrategyExecution) {
       setSelectedTab("order-conditions");
       return;
@@ -94,7 +114,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
   return (
     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="size-full px-3 py-1 gap-1">
       <div className="flex justify-between items-center w-full">
-        <div className="flex flex-1 justify-start">
+        <div className="flex flex-1 justify-start gap-4">
           <Combobox
             value={selectedStrategyExecution?.execution_timestamp ? format(toZonedTime(new Date(selectedStrategyExecution.execution_timestamp), user.timezone), "MMM dd yyyy, HH:mm") : ""}
             values={strategyExecutions.map(s => format(toZonedTime(new Date(s.execution_timestamp), user.timezone), "MMM dd yyyy, HH:mm"))}
@@ -107,7 +127,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
             })}
           />
           {selectedStrategyExecution && (
-            <p className={`ml-4 mt-0.5 ${selectedStrategyExecution.running ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>
+            <p className={`mr-4 mt-0.5 ${selectedStrategyExecution.running ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>
               {selectedStrategyExecution.running ? 'Running' : 'Finished'}
             </p>
           )}
