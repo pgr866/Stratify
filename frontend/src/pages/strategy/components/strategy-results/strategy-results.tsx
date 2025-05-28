@@ -95,12 +95,12 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
     setIsLoadingResults(true);
     try {
       let running = true;
-      while (running && executionStateRef.current === id) {
+      while (running && executionStateRef.current === id || hasExecutionUrl.current) {
         const response = await getStrategyExecution(id);
         if (executionStateRef.current !== id) break;
         setSelectedStrategyExecution(response.data);
         running = response.data.running;
-        if (running) {
+        if (running || hasExecutionUrl.current) {
           await new Promise(resolve => setTimeout(resolve, 5000));
         }
       }
