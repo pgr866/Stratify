@@ -19,6 +19,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [strategyExecutions, setStrategyExecutions] = useState([]);
   const [selectedStrategyExecution, setSelectedStrategyExecution] = useState<StrategyExecution>();
+  const executionStateRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -27,6 +28,9 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
       hasExecutionUrl.current = true;
       loadStrategyExecution(executionIdFromUrl);
     }
+    return () => {
+      executionStateRef.current = undefined;
+    };
   }, []);
 
   useEffect(() => {
@@ -43,7 +47,12 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
   useEffect(() => {
     if (!selectedStrategy?.id) return;
     getMyStrategyExecutions(selectedStrategy.id)
-      .then(response => setStrategyExecutions(response.data.sort((a, b) => b.execution_timestamp - a.execution_timestamp)))
+      .then(response => {
+        setStrategyExecutions(response.data.sort((a, b) => b.execution_timestamp - a.execution_timestamp));
+        if (!strategyExecutions.some(exec => exec.id === selectedStrategyExecution?.id)) {
+          setSelectedStrategyExecution();
+        }
+      })
       .catch(error => {
         setStrategyExecutions([]);
         toast("Failed to fetch strategy executions", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" });
@@ -56,10 +65,12 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
       url.searchParams.set("execution", selectedStrategyExecution.id);
       window.history.replaceState({}, "", url.toString());
     } else {
+      if (hasExecutionUrl.current) return;
       const url = new URL(window.location.href);
       url.searchParams.delete("execution");
       window.history.replaceState({}, "", url.toString());
     }
+    executionStateRef.current = selectedStrategyExecution?.id;
 
     if (!selectedStrategyExecution) {
       setSelectedTab("order-conditions");
@@ -67,6 +78,9 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
     }
     if (selectedStrategyExecution?.type === 'backtest' && selectedStrategyExecution?.running) {
       setSelectedTab("order-conditions");
+    }
+    if (isLoading) {
+      hasExecutionUrl.current = false;
     }
     setSelectedExchange(selectedStrategyExecution.exchange.charAt(0).toUpperCase() + selectedStrategyExecution.exchange.slice(1));
     setSelectedSymbol(selectedStrategyExecution.symbol);
@@ -77,14 +91,29 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
 
   const loadStrategyExecution = async (id: string) => {
     if (!id) return;
+    executionStateRef.current = id;
     setIsLoadingResults(true);
-    getStrategyExecution(id)
-      .then(response => setSelectedStrategyExecution(response.data))
-      .catch(error => {
+    try {
+      let running = true;
+      while (running && executionStateRef.current === id) {
+        const response = await getStrategyExecution(id);
+        if (executionStateRef.current !== id) break;
+        setSelectedStrategyExecution(response.data);
+        running = response.data.running;
+        if (running) {
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+      }
+    } catch (error: any) {
+      if (executionStateRef.current === id) {
         setStrategyExecutions([]);
         toast("Failed to fetch strategy execution", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" });
-      })
-      .finally(() => setIsLoadingResults(false));
+      }
+    } finally {
+      if (executionStateRef.current === id) {
+        setIsLoadingResults(false);
+      }
+    }
   };
 
   const handlePublish = async () => {
@@ -159,11 +188,13 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
         </div>
       </div>
       <Separator />
-      <TabsContent value="order-conditions">
+      <TabsContent value="order-conditions" className="overflow-y-auto">
         <OrderConditions
           selectedStrategy={selectedStrategy}
+          setStrategyExecutions={setStrategyExecutions}
           selectedStrategyExecution={selectedStrategyExecution}
-          setSelectedStrategyExecution={setSelectedStrategyExecution} />
+          setSelectedStrategyExecution={setSelectedStrategyExecution}
+          loadStrategyExecution={loadStrategyExecution} />
       </TabsContent>
       <TabsContent value="performance">
         <Performance strategyExecution={selectedStrategyExecution} />

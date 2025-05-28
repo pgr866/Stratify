@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import ccxt
 import pandas as pd
 import talib as ta
+import time
 from decimal import Decimal
 
 from django.conf import settings
@@ -71,8 +72,8 @@ class Exchange:
                 status_response = exchange.fetch_status()
                 if status_response.get('status') != 'ok':
                     raise Exception('Exchange service unavailable')
-            if exchange_name not in ['alpaca', 'bitpanda', 'bybit', 'coinbase', 'phemex', 'zaif']:
-                exchange.load_markets()
+            exchange.load_markets()
+            exchange.precisionMode = ccxt.TRUNCATE
             exchange.name = exchange_name
             return exchange
         except Exception:
@@ -410,7 +411,9 @@ class SymbolsView(APIView):
                     'perp': x.get('swap', False)
                 }
                 for x in markets_data
-                if x.get('active') and (x.get('spot') or x.get('swap'))
+                if x.get('active') and (x.get('spot') or x.get('swap')) and not (
+                    exchange_name == 'bitflyer' and x['symbol'] == 'BTC/JPY:JPY'
+                )
             ]
             timeframes = [x for x in list(exchange.timeframes.keys()) if exchange.timeframes[x]] if exchange.timeframes else []
             return Response({ 'symbols': symbols, 'timeframes': timeframes })
@@ -427,14 +430,18 @@ class MarketInfoView(APIView):
             exchange = Exchange(exchange_name, request.user)
             market = exchange.markets[symbol]
             
+            taker_fee = market.get('taker')
+            maker_fee = market.get('maker')
+            amount_precision = market.get('precision', {}).get('amount')
+            price_precision = market.get('precision', {}).get('price')
+            contract_size = market.get('contractSize')
+            max_leverage = market.get('limits', {}).get('leverage', {}).get('max')
+            
             return Response({
-                'taker_fee': market.get('taker'),
-                'maker_fee': market.get('maker'),
-                'min_order_amount': market.get('limits', {}).get('amount', {}).get('min'),
-                'max_order_amount': market.get('limits', {}).get('amount', {}).get('max'),
-                'amount_precision': market.get('precision', {}).get('amount'),
-                'price_precision': market.get('precision', {}).get('price'),
-                'max_leverage': market.get('limits', {}).get('leverage', {}).get('max')
+                'taker_fee': taker_fee,
+                'maker_fee': maker_fee,
+                'contract_size': contract_size,
+                'max_leverage': max_leverage
             })
         except Exception:
             return Response({'error': f"Failed to load {symbol} market at {exchange_name}"}, status=status.HTTP_404_NOT_FOUND)
@@ -828,8 +835,59 @@ class StrategyExecutionView(viewsets.ModelViewSet):
         return Response(data)
 
     @action(detail=True, methods=['post'])
-    def start(self, request, pk=None):
-        return Response({"detail": "Start not implemented yet."}, status=status.HTTP_501_NOT_IMPLEMENTED)
+    def start(self, request):
+        import sys; print(request.data, file=sys.stderr)
+        required_fields = [
+            "strategy_id",
+            "maker_fee",
+            "taker_fee",
+            "initial_tradable_value",
+            "leverage",
+            "type",
+            "order_conditions",
+        ]
+
+        missing_fields = [f for f in required_fields if f not in request.data]
+        if missing_fields:
+            return Response(
+                {"detail": f"Missing required fields: {', '.join(missing_fields)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            strategy = Strategy.objects.get(id=request.data["strategy_id"])
+        except Strategy.DoesNotExist:
+            return Response({"detail": "Strategy not found."}, status=status.HTTP_404_NOT_FOUND)
+            
+        execution = StrategyExecution.objects.create(
+            strategy=strategy,
+            type=request.data["type"],
+            order_conditions=request.data["order_conditions"],
+            running=True,
+            exchange=strategy.exchange,
+            symbol=strategy.symbol,
+            timeframe=strategy.timeframe,
+            timestamp_start=strategy.timestamp_start,
+            timestamp_end=strategy.timestamp_end,
+            indicators=strategy.indicators,
+            maker_fee=Decimal(request.data["maker_fee"]),
+            taker_fee=Decimal(request.data["taker_fee"]),
+            initial_tradable_value=Decimal(request.data["initial_tradable_value"]),
+            leverage=int(request.data["leverage"]),
+            execution_timestamp=int(time.time() * 1000),
+            abs_net_profit=None,
+            rel_net_profit=None,
+            total_closed_trades=None,
+            winning_trade_rate=None,
+            profit_factor=None,
+            abs_avg_trade_profit=None,
+            rel_avg_trade_profit=None,
+            abs_max_run_up=None,
+            rel_max_run_up=None,
+            abs_max_drawdown=None,
+            rel_max_drawdown=None,
+        )
+        serializer = StrategyExecutionSerializer(execution)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     
     def _kill_execution(self, instance):
         import sys; print('kill', file=sys.stderr)

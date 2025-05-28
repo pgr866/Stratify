@@ -1,7 +1,3 @@
-cargar y mostrar: maker_fee, taker_fee, max_leverage, min_order_amount, max_order_amount, precision_amount, precision_price
-
-rellenar: initial_tradable_value = 1000, leverage = 20
-
 en back:
 
 cargar e iterar: timestamp, open, high, low, close, volume, ...indicators
@@ -51,13 +47,16 @@ order_conditions = [
         {
           type: 'limit', # 'market', 'limit', 'cancel_all_open_orders'
           side: 'buy', # 'buy', 'sell'
-          limit_price: 50000, # only if 'limit' type
-          stop_price: 50000,
-          amount: 0.1, # in quote currency amount, only if cost is not provided
-          cost: remaining_tradable_value * 0.1, # only if amount is not provided  
+          price: 50000, # current price if 'market' type
+          amount: 0.1, # in base currency
         },
         ...
       ]
    },
    ...
 ]
+
+if ':' in symbol:
+    exchange.set_leverage(leverage=leverage, symbol=symbol)
+    amount = amount / contract_size
+return exchange.create_order(symbol=symbol, type=type, side=side, amount=exchange.amount_to_precision(symbol, amount), price=exchange.price_to_precision(symbol, price), params={'reduceOnly': False, **({'timeInForce': 'PO'} if type == 'limit' and exchange.has.get('createPostOnlyOrder') else {'timeInForce': 'GTC'} if type == 'limit' else {})})
