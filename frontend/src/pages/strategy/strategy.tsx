@@ -248,7 +248,7 @@ export function Strategy() {
     <ResizablePanelGroup direction="vertical" style={{ width: "100vw", height: "100vh" }} className="border">
       <ResizablePanel defaultSize={50} className="flex flex-col">
         <div className="flex flex-wrap items-center">
-          <Button className="px-2" variant={"ghost"} size={"sm"} onClick={() => navigate("/portal")}>
+          <Button className="px-2" variant={"ghost"} size={"sm"} onClick={() => window.location.href = "/portal"}>
             <img src="/logo.svg" alt="Logo" className="logo size-6" />
           </Button>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />

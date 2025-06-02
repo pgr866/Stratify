@@ -63,4 +63,7 @@ urlpatterns = [
     path("v1/strategy-execution/<uuid:pk>/", views.StrategyExecutionView.as_view({"get": "retrieve", "delete": "destroy"}), name="strategy-execution-detail"),
     path("v1/strategy-execution/start/", views.StrategyExecutionView.as_view({"post": "start"}), name="strategy-execution-start"),
     path("v1/strategy-execution/<uuid:pk>/stop/", views.StrategyExecutionView.as_view({"patch": "stop"}), name="strategy-execution-stop"),
+    
+    # Dashboard
+    path('v1/dashboard-stats/', views.DashboardStatsView.as_view(), name='dashboard-stats'),
 ]

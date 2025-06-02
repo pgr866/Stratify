@@ -137,25 +137,46 @@ export interface Trade {
 	rel_drawdown: number;
 }
 
+export interface DashboardStats {
+	is_real_trading: boolean;
+	total_net_profit: number;
+	total_closed_trades: number;
+	winning_trade_rate: number;
+	profit_factor: number;
+	avg_trade_profit: number;
+	rel_cum_profit: number[];
+	recent_trades: RecentTrade[];
+}
+
+export interface RecentTrade {
+	strategy_id: string;
+	strategy_execution_id: string;
+	strategy_name: string;
+	timestamp: number;
+	symbol: string;
+	side: string;
+	rel_profit: number;
+}
+
 interface Condition {
-  start_parenthesis: boolean;
-  left_operand: number | string;
-  operator: '==' | '!=' | '<' | '>' | '<=' | '>=' | 'crossunder' | 'crossabove';
-  right_operand: number | string;
-  end_parenthesis: boolean;
-  logical_operator: 'and' | 'or' | 'xor' | '';
+	start_parenthesis: boolean;
+	left_operand: number | string;
+	operator: '==' | '!=' | '<' | '>' | '<=' | '>=' | 'crossunder' | 'crossabove';
+	right_operand: number | string;
+	end_parenthesis: boolean;
+	logical_operator: 'and' | 'or' | 'xor' | '';
 }
 
 interface Order {
-  type: 'market' | 'limit' | 'cancel_all_open_orders';
-  side: 'buy' | 'sell';
-  price: number | string; // Use current market price if type is 'market'
-  amount: number | string; // Amount in base currency
+	type: 'market' | 'limit' | 'cancel_all_open_orders';
+	side: 'buy' | 'sell';
+	price: number | string; // Use current market price if type is 'market'
+	amount: number | string; // Amount in base currency
 }
 
 export interface OrderCondition {
-  conditions: Condition[];
-  orders: Order[];
+	conditions: Condition[];
+	orders: Order[];
 }
 
 // ** User Management API Calls **
@@ -288,3 +309,6 @@ export const startStrategyExecution = (strategy_id: string, maker_fee: number, t
 
 // Stop a specific strategy execution by ID
 export const stopStrategyExecution = (id: string) => api.patch<StrategyExecution>(`strategy-execution/${id}/stop/`);
+
+// Get dashboard stats
+export const getDashboardStats = (timestamp_start: number, timestamp_end: number, is_real_trading: boolean) => api.get<DashboardStats>("dashboard-stats/", { params: { timestamp_start, timestamp_end, is_real_trading } });

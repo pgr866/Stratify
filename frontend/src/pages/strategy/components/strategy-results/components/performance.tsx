@@ -42,7 +42,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
               <Label>Net profit</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="size-3.5" />
+                  <Info className="size-3.5 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>The overall profit or loss achieved.</p>
@@ -64,7 +64,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
               <Label>Total closed trades</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="size-3.5" />
+                  <Info className="size-3.5 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="leading-snug">The total number of closed trades,<br />winning and losing.</p>
@@ -81,7 +81,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
               <Label>Winning trade rate</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="size-3.5" />
+                  <Info className="size-3.5 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="leading-snug">The percentage of winning trades, the number of<br />winning trades divided by the total number of<br />closed trades.</p>
@@ -100,7 +100,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
               <Label>Profit factor</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="size-3.5" />
+                  <Info className="size-3.5 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="leading-snug">The amount of money the strategy made for<br />every unit of money it lost, gross profits divided<br />by gross loses.</p>
@@ -119,7 +119,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
               <Label>Avg. trade profit</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="size-3.5" />
+                  <Info className="size-3.5 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="leading-snug">The average profit or loss per trade,<br />calculated by dividing net profit by the<br />number of closed trades.</p>
@@ -141,7 +141,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
               <Label>Max. run-up</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="size-3.5" />
+                  <Info className="size-3.5 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="leading-snug">The largest run-up of wins, i.e., the maximum<br />possible win that the strategy could have incurred<br />among all of the trades it has made.</p>
@@ -163,7 +163,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
               <Label>Max. drawdown</Label>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Info className="size-3.5" />
+                  <Info className="size-3.5 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
                   <p className="leading-snug">The greatest loss drawdown, i.e., the greatest<br />possible loss the strategy had compared to its<br />highest profits.</p>

@@ -16,7 +16,7 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.db import connection
-from django.db.models import Q
+from django.db.models import Q, Sum, Avg
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 
@@ -1143,12 +1143,13 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         execution.abs_net_profit = trades_df.iloc[-1]['abs_cum_profit'] if len(trades_df) > 0 else None
                         execution.rel_net_profit = trades_df.iloc[-1]['rel_cum_profit'] if len(trades_df) > 0 else None
                         execution.total_closed_trades = len(trades_df)
-                        execution.winning_trade_rate = (trades_df.query("cost < 0")['abs_profit'] >= 0).mean() * 100 if len(trades_df.query("cost < 0")) > 0 else None
+                        closing_trades_df = trades_df.query("cost < 0")
+                        execution.winning_trade_rate = (closing_trades_df['abs_profit'] >= 0).mean() * 100 if len(closing_trades_df) > 0 else None
                         gross_profits = trades_df[trades_df['abs_profit'] > 0]['abs_profit'].sum()
                         gross_losses = abs(trades_df[trades_df['abs_profit'] < 0]['abs_profit'].sum())
                         execution.profit_factor = gross_profits / gross_losses if gross_losses > 0 else None
-                        execution.abs_avg_trade_profit = trades_df['abs_profit'].abs().mean() if len(trades_df) > 0 else None
-                        execution.rel_avg_trade_profit = trades_df['rel_profit'].mean() if len(trades_df) > 0 else None
+                        execution.abs_avg_trade_profit = closing_trades_df["abs_profit"].abs().mean() if len(closing_trades_df) > 0 else None
+                        execution.rel_avg_trade_profit = closing_trades_df["rel_profit"].mean() if len(closing_trades_df) > 0 else None
                         execution.abs_max_run_up = abs_max_runup
                         execution.rel_max_run_up = rel_max_runup
                         execution.abs_max_drawdown = abs_max_drawdown
@@ -1224,12 +1225,13 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 execution.abs_net_profit = trades_df.iloc[-1]['abs_cum_profit'] if len(trades_df) > 0 else None
                 execution.rel_net_profit = trades_df.iloc[-1]['rel_cum_profit'] if len(trades_df) > 0 else None
                 execution.total_closed_trades = len(trades_df)
-                execution.winning_trade_rate = (trades_df.query("cost < 0")['abs_profit'] >= 0).mean() * 100 if len(trades_df.query("cost < 0")) > 0 else None
+                closing_trades_df = trades_df.query("cost < 0")
+                execution.winning_trade_rate = (closing_trades_df['abs_profit'] >= 0).mean() * 100 if len(closing_trades_df) > 0 else None
                 gross_profits = trades_df[trades_df['abs_profit'] > 0]['abs_profit'].sum()
                 gross_losses = abs(trades_df[trades_df['abs_profit'] < 0]['abs_profit'].sum())
                 execution.profit_factor = gross_profits / gross_losses if gross_losses > 0 else None
-                execution.abs_avg_trade_profit = trades_df['abs_profit'].abs().mean() if len(trades_df) > 0 else None
-                execution.rel_avg_trade_profit = trades_df['rel_profit'].mean() if len(trades_df) > 0 else None
+                execution.abs_avg_trade_profit = closing_trades_df["abs_profit"].abs().mean() if len(closing_trades_df) > 0 else None
+                execution.rel_avg_trade_profit = closing_trades_df["rel_profit"].mean() if len(closing_trades_df) > 0 else None
                 execution.abs_max_run_up = abs_max_runup
                 execution.rel_max_run_up = rel_max_runup
                 execution.abs_max_drawdown = abs_max_drawdown
@@ -1323,3 +1325,73 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             instance.running = False
             instance.save()
         return super().destroy(request, *args, **kwargs)
+
+class DashboardStatsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            timestamp_start = int(request.query_params.get("timestamp_start"))
+            timestamp_end = int(request.query_params.get("timestamp_end"))
+            is_real_trading = request.query_params.get("is_real_trading") == "true"
+        except (TypeError, ValueError):
+            return Response({"error": "Invalid query parameters"}, status=400)
+
+        strategies = Strategy.objects.filter(user=request.user)
+        executions = StrategyExecution.objects.filter(
+            strategy__in=strategies,
+            type="real" if is_real_trading else "backtest",
+            timestamp_end__gte=timestamp_start,
+            timestamp_start__lte=timestamp_end
+        )
+        trades = Trade.objects.filter(
+            strategy_execution__in=executions,
+            timestamp__gte=timestamp_start,
+            timestamp__lte=timestamp_end
+        ).order_by("timestamp")
+        import sys; print(trades.count(), file=sys.stderr)
+
+        total_closed_trades = trades.count()
+        closing_trades = trades.filter(cost__lt=0)
+        total_closing = closing_trades.count()
+        if total_closing > 0:
+            winning_count = closing_trades.filter(abs_profit__gte=0).count()
+            winning_trade_rate = (winning_count / total_closing) * 100
+            avg_trade_profit = closing_trades.aggregate(avg=Avg("rel_profit"))["avg"]
+        else:
+            winning_trade_rate = None
+            avg_trade_profit = None
+        gross_profit = trades.filter(rel_profit__gt=0).aggregate(Sum("rel_profit"))["rel_profit__sum"] or Decimal("0.0")
+        gross_loss = abs(trades.filter(rel_profit__lt=0).aggregate(Sum("rel_profit"))["rel_profit__sum"] or Decimal("0.0"))
+        profit_factor = float(gross_profit / gross_loss) if gross_loss > 0 else None
+        rel_cum_profit = []
+        cumulative = 0.0
+        for trade in trades:
+            cumulative += float(trade.rel_profit or 0)
+            rel_cum_profit.append(cumulative)
+        total_net_profit = rel_cum_profit[-1] if rel_cum_profit else 0.0
+
+        recent_trades = [
+            {
+                "strategy_id": str(trade.strategy_execution.strategy.id),
+                "strategy_execution_id": str(trade.strategy_execution.id),
+                "strategy_name": trade.strategy_execution.strategy.name,
+                "timestamp": trade.timestamp,
+                "symbol": trade.strategy_execution.symbol,
+                "side": trade.side,
+                "rel_profit": float(trade.rel_profit),
+            }
+            for trade in trades.order_by("-timestamp")[:5]
+        ]
+        
+        data = {
+            "is_real_trading": is_real_trading,
+            "total_net_profit": total_net_profit,
+            "total_closed_trades": total_closed_trades,
+            "winning_trade_rate": winning_trade_rate,
+            "profit_factor": profit_factor,
+            "avg_trade_profit": avg_trade_profit,
+            "rel_cum_profit": rel_cum_profit,
+            "recent_trades": recent_trades
+        }
+        return Response(data)
