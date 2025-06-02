@@ -4,7 +4,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Loader2, History } from "lucide-react";
-import { OrderConditions } from "./components/order-conditions";
+import { OrderConditions } from "./components/order-conditions/order-conditions";
 import { Performance } from "./components/performance";
 import { TradesTable } from "./components/trades-table";
 import { Combobox } from "@/components/combobox";
@@ -95,6 +95,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
     setIsLoadingResults(true);
     try {
       let running = true;
+      let iterationCount = 0;
       while (running && executionStateRef.current === id || hasExecutionUrl.current) {
         const response = await getStrategyExecution(id);
         if (executionStateRef.current !== id) break;
@@ -102,6 +103,12 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
         running = response.data.running;
         if (running || hasExecutionUrl.current) {
           await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+        if (hasExecutionUrl.current) {
+          iterationCount++;
+          if (iterationCount > 1) {
+            hasExecutionUrl.current = false;
+          }
         }
       }
     } catch (error: any) {
@@ -140,7 +147,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
   }
 
   return (
-    <Tabs value={selectedTab} onValueChange={setSelectedTab} className="size-full px-3 py-1 gap-1">
+    <Tabs value={selectedTab} onValueChange={setSelectedTab} className="size-full py-1 gap-1">
       <div className="flex justify-between items-center w-full">
         <div className="flex flex-1 justify-start gap-4 mr-4">
           <Combobox
@@ -196,7 +203,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
           setSelectedStrategyExecution={setSelectedStrategyExecution}
           loadStrategyExecution={loadStrategyExecution} />
       </TabsContent>
-      <TabsContent value="performance">
+      <TabsContent value="performance" className="h-full overflow-hidden flex flex-col">
         <Performance strategyExecution={selectedStrategyExecution} />
       </TabsContent>
       <TabsContent value="trades-table" className="h-full flex flex-col">

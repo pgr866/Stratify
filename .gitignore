@@ -1,4 +1,4 @@
 __pycache__
 .env
 .env.enc
-venv
+*venv

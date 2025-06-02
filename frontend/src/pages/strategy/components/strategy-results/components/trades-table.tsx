@@ -31,14 +31,19 @@ export function TradesTable({ trades, symbol }: { readonly trades: Trade[]; read
 				const significant = match[3];
 				return `${sign}0.0{${zeros - 1}}${significant}`;
 			}
+			if (number >= 1000) {
+				return +number.toFixed(5);
+			}
 			return +number.toFixed(8);
 		} catch {
 			return number;
 		}
 	}
 
+	const sortedTrades = trades?.slice().sort((a, b) => b.timestamp - a.timestamp) ?? [];
+
 	const virtualizer = useVirtualizer({
-		count: trades?.length ?? 0,
+		count: sortedTrades?.length ?? 0,
 		getScrollElement: () => scrollRef.current,
 		estimateSize: () => rowHeight,
 		overscan: 5,
@@ -68,13 +73,13 @@ export function TradesTable({ trades, symbol }: { readonly trades: Trade[]; read
 				</TableHeader>
 				<TableBody className="relative" style={{ height: virtualizer.getTotalSize() }}>
 					{virtualRows.map(virtualRow => {
-						const trade = trades[virtualRow.index];
+						const trade = sortedTrades[virtualRow.index];
 						return (
 							<TableRow
 								key={trade.id}
 								className="absolute top-0 left-0 w-full flex"
 								style={{ height: rowHeight, transform: `translateY(${virtualRow.start}px)` }}>
-								<TableCell className="justify-center font-medium w-[61px]">{trades.length - virtualRow.index}</TableCell>
+								<TableCell className="justify-center font-medium w-[61px]">{sortedTrades.length - virtualRow.index}</TableCell>
 								<TableCell className="w-[71px]">{trade.type}</TableCell>
 								<TableCell className={`w-[51px] ${trade?.side === 'buy' ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>{trade.side}</TableCell>
 								<TableCell className="w-[161px]">
@@ -123,7 +128,7 @@ export function TradesTable({ trades, symbol }: { readonly trades: Trade[]; read
 					})}
 				</TableBody>
 			</Table>
-			{trades?.length === 0 && (
+			{sortedTrades?.length === 0 && (
 				<div className="w-full flex justify-center">
 					<div className="text-muted-foreground py-10 text-center">
 						No trades available

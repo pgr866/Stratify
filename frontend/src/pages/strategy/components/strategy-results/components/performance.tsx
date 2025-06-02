@@ -23,6 +23,9 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
         const significant = match[3];
         return `${sign}0.0{${zeros - 1}}${significant}`;
       }
+      if (number >= 1000) {
+				return +number.toFixed(5);
+			}
       return +number.toFixed(8);
     } catch {
       return number;
@@ -30,7 +33,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
   }
 
   return (
-    <div className="flex flex-col size-full">
+    <div className="h-full flex flex-col">
       <TooltipProvider>
         <div className="mx-4 my-2 w-full flex gap-4">
 
@@ -48,10 +51,10 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
             </div>
             <div className="flex gap-1">
               <Label className={strategyExecution?.abs_net_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
-                {formatNumber(strategyExecution?.abs_net_profit)} {quoteCurrency}
+                {formatNumber(strategyExecution?.abs_net_profit) ?? '-'} {quoteCurrency}
               </Label>
               <Label className={strategyExecution?.rel_net_profit >= 0 ? 'text-[#2EBD85] text-xs' : 'text-[#F6465D] text-xs'}>
-                {strategyExecution?.rel_net_profit?.toFixed(2)}%
+                {(+strategyExecution?.rel_net_profit)?.toFixed(2) ?? '-'}%
               </Label>
             </div>
           </div>
@@ -69,7 +72,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
               </Tooltip>
             </div>
             <Label>
-              {strategyExecution?.total_closed_trades}
+              {strategyExecution?.total_closed_trades ?? 0}
             </Label>
           </div>
 
@@ -87,7 +90,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
             </div>
             <div className="flex gap-1">
               <Label className={strategyExecution?.winning_trade_rate >= 50 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
-                {strategyExecution?.winning_trade_rate?.toFixed(2)}%
+                {(+strategyExecution?.winning_trade_rate)?.toFixed(2) ?? "-"}%
               </Label>
             </div>
           </div>
@@ -106,7 +109,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
             </div>
             <div className="flex gap-1">
               <Label className={strategyExecution?.profit_factor >= 1 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
-                {strategyExecution?.profit_factor?.toFixed(3)}%
+                {(+strategyExecution?.profit_factor)?.toFixed(3) ?? "-"}
               </Label>
             </div>
           </div>
@@ -125,10 +128,10 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
             </div>
             <div className="flex gap-1">
               <Label className={strategyExecution?.abs_avg_trade_profit >= 0 ? 'text-[#2EBD85]' : 'text-[#F6465D]'}>
-                {formatNumber(strategyExecution?.abs_avg_trade_profit)} {quoteCurrency}
+                {formatNumber(strategyExecution?.abs_avg_trade_profit) ?? '-'} {quoteCurrency}
               </Label>
               <Label className={strategyExecution?.rel_avg_trade_profit >= 0 ? 'text-[#2EBD85] text-xs' : 'text-[#F6465D] text-xs'}>
-                {strategyExecution?.rel_avg_trade_profit?.toFixed(2)}%
+                {(+strategyExecution?.rel_avg_trade_profit)?.toFixed(2) ?? '-'}%
               </Label>
             </div>
           </div>
@@ -147,10 +150,10 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
             </div>
             <div className="flex gap-1">
               <Label className="text-[#2EBD85]">
-                {formatNumber(strategyExecution?.abs_max_run_up)} {quoteCurrency}
+                {formatNumber(strategyExecution?.abs_max_run_up) ?? '-'} {quoteCurrency}
               </Label>
               <Label className="text-[#2EBD85] text-xs">
-                {strategyExecution?.rel_max_run_up?.toFixed(2)}%
+                {(+strategyExecution?.rel_max_run_up)?.toFixed(2) ?? '-'}%
               </Label>
             </div>
           </div>
@@ -169,10 +172,10 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
             </div>
             <div className="flex gap-1">
               <Label className="text-[#F6465D]">
-                {formatNumber(strategyExecution?.abs_max_drawdown)} {quoteCurrency}
+                {formatNumber(strategyExecution?.abs_max_drawdown) ?? '-'} {quoteCurrency}
               </Label>
               <Label className="text-[#F6465D] text-xs">
-                {strategyExecution?.rel_max_drawdown?.toFixed(2)}%
+                {(+strategyExecution?.rel_max_drawdown)?.toFixed(2) ?? '-'}%
               </Label>
             </div>
           </div>

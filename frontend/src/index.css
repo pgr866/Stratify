@@ -264,6 +264,14 @@ button:disabled {
   @apply cursor-not-allowed pointer-events-auto;
 }
 
+input {
+  @apply hover:bg-accent hover:text-accent-foreground dark:hover:bg-input/50;
+}
+
+input:disabled {
+  @apply cursor-not-allowed pointer-events-auto;
+}
+
 [data-slot="card"] {
   @apply gap-0;
 }
@@ -281,7 +289,7 @@ button:disabled {
 }
 
 [data-slot="table-cell"] {
-  @apply items-center;
+  @apply flex items-center;
 }
 
 [data-slot="table-container"] {

@@ -59,8 +59,14 @@ export function ResultsChart({ absCumProfit, relCumProfit, absDrawdown, relDrawd
     const resizeObserver = new ResizeObserver(() => {
       const { width, height } = chartContainer.getBoundingClientRect();
       chartInstance.current.resize(width, height);
+      console.log(width, height);
+      // chartContainer.querySelector('.tv-lightweight-charts').style.width = '100%';
+      // chartContainer.querySelector('.tv-lightweight-charts').style.height = '100%';
+      // chartContainer.querySelector('table').style.width = '100%';
+      // chartContainer.querySelector('table').style.height = '100%';
     });
     resizeObserver.observe(chartContainer);
+    resizeObserver.observe(chartContainer.parentElement);
     const themeObserver = new MutationObserver(() => {
       chartInstance.current.applyOptions(getChartOptions());
       series.current.drawdown.applyOptions({ color: getDrawdownColor() });
@@ -120,8 +126,8 @@ export function ResultsChart({ absCumProfit, relCumProfit, absDrawdown, relDrawd
   }, [selectedTab, absCumProfit]);
 
   return (
-    <div className="flex flex-col flex-1">
-      <div id="result-chart-container" className="flex-1" />
+    <div className="flex flex-col flex-1 h-full overflow-hidden">
+      <div id="result-chart-container" className="flex-1 h-full overflow-hidden" />
       <div className="w-full h-fit flex flex-none items-center gap-4 justify-between px-4">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">

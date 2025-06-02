@@ -137,6 +137,27 @@ export interface Trade {
 	rel_drawdown: number;
 }
 
+interface Condition {
+  start_parenthesis: boolean;
+  left_operand: number | string;
+  operator: '==' | '!=' | '<' | '>' | '<=' | '>=' | 'crossunder' | 'crossabove';
+  right_operand: number | string;
+  end_parenthesis: boolean;
+  logical_operator: 'and' | 'or' | 'xor' | '';
+}
+
+interface Order {
+  type: 'market' | 'limit' | 'cancel_all_open_orders';
+  side: 'buy' | 'sell';
+  price: number | string; // Use current market price if type is 'market'
+  amount: number | string; // Amount in base currency
+}
+
+export interface OrderCondition {
+  conditions: Condition[];
+  orders: Order[];
+}
+
 // ** User Management API Calls **
 
 // Get Authenticated User

@@ -1,11 +1,13 @@
 import requests
 import secrets
+import string
 import json
 from types import SimpleNamespace
 import ccxt
 import pandas as pd
 import talib as ta
 import time
+import threading
 from decimal import Decimal
 
 from django.conf import settings
@@ -13,6 +15,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
+from django.db import connection
 from django.db.models import Q
 from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
@@ -73,7 +76,8 @@ class Exchange:
                 if status_response.get('status') != 'ok':
                     raise Exception('Exchange service unavailable')
             exchange.load_markets()
-            exchange.precisionMode = ccxt.TRUNCATE
+            exchange.precisionMode = ccxt.TICK_SIZE
+            exchange.roundingMode = ccxt.TRUNCATE
             exchange.name = exchange_name
             return exchange
         except Exception:
@@ -394,7 +398,7 @@ class ExchangesView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        return Response(ccxt.exchanges)
+        return Response([e for e in ccxt.exchanges if all(getattr(ccxt, e)().has.get(m, False) for m in ['fetchOHLCV', 'fetchBalance', 'cancelAllOrders', 'createOrder', 'fetchOrder'])])
     
 class SymbolsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -404,6 +408,7 @@ class SymbolsView(APIView):
             exchange_name = request.query_params.get('exchange')
             exchange = Exchange(exchange_name, request.user)
             markets_data = exchange.markets.values() if exchange.markets else []
+            unavailable = exchange.options.get('unavailableContracts', {})
             symbols = [
                 {
                     'symbol': x['symbol'],
@@ -411,8 +416,8 @@ class SymbolsView(APIView):
                     'perp': x.get('swap', False)
                 }
                 for x in markets_data
-                if x.get('active') and (x.get('spot') or x.get('swap')) and not (
-                    exchange_name == 'bitflyer' and x['symbol'] == 'BTC/JPY:JPY'
+                if x.get('active') and (x.get('spot') or x.get('swap')) and x.get('symbol') not in unavailable and not (
+                    exchange_name == 'bitflyer' and x.get('symbol') == 'BTC/JPY:JPY'
                 )
             ]
             timeframes = [x for x in list(exchange.timeframes.keys()) if exchange.timeframes[x]] if exchange.timeframes else []
@@ -432,8 +437,6 @@ class MarketInfoView(APIView):
             
             taker_fee = market.get('taker')
             maker_fee = market.get('maker')
-            amount_precision = market.get('precision', {}).get('amount')
-            price_precision = market.get('precision', {}).get('price')
             contract_size = market.get('contractSize')
             max_leverage = market.get('limits', {}).get('leverage', {}).get('max')
             
@@ -527,6 +530,10 @@ class StrategyView(viewsets.ModelViewSet):
                     timestamp_start=original_execution.timestamp_start,
                     timestamp_end=original_execution.timestamp_end,
                     indicators=original_execution.indicators,
+                    maker_fee=original_execution.maker_fee,
+                    taker_fee=original_execution.taker_fee,
+                    initial_tradable_value=original_execution.initial_tradable_value,
+                    leverage=original_execution.leverage,
                     execution_timestamp=original_execution.execution_timestamp,
                     abs_net_profit=original_execution.abs_net_profit,
                     rel_net_profit=original_execution.rel_net_profit,
@@ -651,6 +658,143 @@ class CandleView(APIView):
 
 class IndicatorView(APIView):
     permission_classes = [IsAuthenticated]
+    
+    def compute_indicator_data(self, user, strategy, timeframe, timestamp_start, timestamp_end, indicator_id):
+        exchange = strategy.exchange
+        symbol = strategy.symbol
+        timeframe = strategy.timeframe
+        indicators = json.loads(strategy.indicators)
+        indicator = next((ind for ind in indicators if ind['id'] == indicator_id), None)
+        if indicator is None:
+            raise LookupError("Indicator not found")
+        new_indicator = 'params' not in indicator
+        short_name = indicator.get('short_name')
+        if not short_name:
+            raise LookupError("Indicator missing 'short_name' field")
+        
+        match short_name:
+            case 'RSI':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 14},
+                        {"key": "upper_limit", "value": 70},
+                        {"key": "middle_limit", "value": 50},
+                        {"key": "lower_limit", "value": 30},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * length
+                )
+                candles_df['rsi'] = ta.RSI(candles_df['close'].astype(float).values, timeperiod=length)
+            case 'SMA':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 9},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=length
+                )
+                candles_df['sma'] = ta.SMA(candles_df['close'].astype(float).values, timeperiod=length)
+            case 'EMA':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 9},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * length
+                )
+                candles_df['ema'] = ta.EMA(candles_df['close'].astype(float).values, timeperiod=length)
+            case 'BBANDS':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 20},
+                        {"key": "multiplier", "value": 2},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+                multiplier = float(next(p for p in indicator['params'] if p['key'] == 'multiplier')['value'])
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=length
+                )
+                candles_df['upperband'], candles_df['middleband'], candles_df['lowerband'] = ta.BBANDS(
+                    candles_df['close'].astype(float).values,
+                    timeperiod=length,
+                    nbdevup=multiplier,
+                    nbdevdn=multiplier,
+                    matype=0
+                )
+            case 'MACD':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "fast_period", "value": 12},
+                        {"key": "slow_period", "value": 26},
+                        {"key": "signal_period", "value": 9},
+                    ]
+                fast_period = int(next(p for p in indicator['params'] if p['key'] == 'fast_period')['value'])
+                slow_period = int(next(p for p in indicator['params'] if p['key'] == 'slow_period')['value'])
+                signal_period = int(next(p for p in indicator['params'] if p['key'] == 'signal_period')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * max(fast_period, slow_period, signal_period)
+                )
+
+                candles_df['macd'], candles_df['macdsignal'], candles_df['macdhist'] = ta.MACD(
+                    candles_df['close'].astype(float).values,
+                    fastperiod=fast_period,
+                    slowperiod=slow_period,
+                    signalperiod=signal_period
+                )
+            case _:
+                raise NotImplementedError("Indicator type not implemented")
+        
+        if new_indicator:
+            strategy.indicators = json.dumps([{k: v for k, v in (ind.items()) if k != 'data'} if ind['id'] == indicator_id else ind for ind in indicators])
+            strategy.save()
+        
+        cols_map = {
+            'timestamp': ('time', int),
+            **{col: (col, None) for col in candles_df.columns if col not in {'timestamp', 'open', 'high', 'low', 'close', 'volume'}}
+        }
+        
+        indicator['data'] = [
+            {out_key: (func(row[col]) if func else row[col]) for col, (out_key, func) in cols_map.items()}
+            for _, row in candles_df.iterrows()
+            if timestamp_start <= row['timestamp'] <= timestamp_end
+            and not any(pd.isna(row[col_name]) for col_name in cols_map.keys())
+        ]
+        
+        return indicator
 
     def get(self, request):
         try:
@@ -660,143 +804,23 @@ class IndicatorView(APIView):
             timestamp_end = int(request.query_params.get('timestamp_end'))
             if not all([strategy_id, indicator_id, timestamp_start, timestamp_end]):
                 return Response({'error': 'Missing required parameters. Please provide: strategy_id, indicator_id, timestamp_start, timestamp_end'}, status=status.HTTP_400_BAD_REQUEST)
-            
             try:
                 strategy = Strategy.objects.get(id=strategy_id)
             except Strategy.DoesNotExist:
                 return Response({'error': 'Strategy not found'}, status=status.HTTP_404_NOT_FOUND)
-            exchange = strategy.exchange
-            symbol = strategy.symbol
-            timeframe = strategy.timeframe
-            indicators = json.loads(strategy.indicators)
-            indicator = next((ind for ind in indicators if ind['id'] == indicator_id), None)
-            if indicator is None:
-                return Response({'error': 'Indicator not found'}, status=status.HTTP_404_NOT_FOUND)
-            new_indicator = 'params' not in indicator
-            
-            match indicator.get('short_name'):
-                case 'RSI':
-                    if new_indicator:
-                        indicator['params'] = [
-                            {"key": "length", "value": 14},
-                            {"key": "upper_limit", "value": 70},
-                            {"key": "middle_limit", "value": 50},
-                            {"key": "lower_limit", "value": 30},
-                        ]
-                    length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
-                    candles_df = CandleView().get_candles(
-                        exchange=Exchange(exchange, request.user),
-                        symbol=symbol,
-                        timeframe=timeframe,
-                        timestamp_start=timestamp_start,
-                        timestamp_end=timestamp_end,
-                        db_search=True,
-                        extra_candles=2 * length
-                    )
-                    candles_df['rsi'] = ta.RSI(candles_df['close'].astype(float).values, timeperiod=length)
-                case 'SMA':
-                    if new_indicator:
-                        indicator['params'] = [
-                            {"key": "length", "value": 9},
-                        ]
-                    length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
-                    candles_df = CandleView().get_candles(
-                        exchange=Exchange(exchange, request.user),
-                        symbol=symbol,
-                        timeframe=timeframe,
-                        timestamp_start=timestamp_start,
-                        timestamp_end=timestamp_end,
-                        db_search=True,
-                        extra_candles=length
-                    )
-                    candles_df['sma'] = ta.SMA(candles_df['close'].astype(float).values, timeperiod=length)
-                case 'EMA':
-                    if new_indicator:
-                        indicator['params'] = [
-                            {"key": "length", "value": 9},
-                        ]
-                    length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
-                    candles_df = CandleView().get_candles(
-                        exchange=Exchange(exchange, request.user),
-                        symbol=symbol,
-                        timeframe=timeframe,
-                        timestamp_start=timestamp_start,
-                        timestamp_end=timestamp_end,
-                        db_search=True,
-                        extra_candles=2 * length
-                    )
-                    candles_df['ema'] = ta.EMA(candles_df['close'].astype(float).values, timeperiod=length)
-                case 'BBANDS':
-                    if new_indicator:
-                        indicator['params'] = [
-                            {"key": "length", "value": 20},
-                            {"key": "multiplier", "value": 2},
-                        ]
-                    length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
-                    multiplier = float(next(p for p in indicator['params'] if p['key'] == 'multiplier')['value'])
-                    candles_df = CandleView().get_candles(
-                        exchange=Exchange(exchange, request.user),
-                        symbol=symbol,
-                        timeframe=timeframe,
-                        timestamp_start=timestamp_start,
-                        timestamp_end=timestamp_end,
-                        db_search=True,
-                        extra_candles=length
-                    )
-                    candles_df['upperband'], candles_df['middleband'], candles_df['lowerband'] = ta.BBANDS(
-                        candles_df['close'].astype(float).values,
-                        timeperiod=length,
-                        nbdevup=multiplier,
-                        nbdevdn=multiplier,
-                        matype=0
-                    )
-                case 'MACD':
-                    if new_indicator:
-                        indicator['params'] = [
-                            {"key": "fast_period", "value": 12},
-                            {"key": "slow_period", "value": 26},
-                            {"key": "signal_period", "value": 9},
-                        ]
-                    fast_period = int(next(p for p in indicator['params'] if p['key'] == 'fast_period')['value'])
-                    slow_period = int(next(p for p in indicator['params'] if p['key'] == 'slow_period')['value'])
-                    signal_period = int(next(p for p in indicator['params'] if p['key'] == 'signal_period')['value'])
-
-                    candles_df = CandleView().get_candles(
-                        exchange=Exchange(exchange, request.user),
-                        symbol=symbol,
-                        timeframe=timeframe,
-                        timestamp_start=timestamp_start,
-                        timestamp_end=timestamp_end,
-                        db_search=True,
-                        extra_candles=2 * max(fast_period, slow_period, signal_period)
-                    )
-
-                    candles_df['macd'], candles_df['macdsignal'], candles_df['macdhist'] = ta.MACD(
-                        candles_df['close'].astype(float).values,
-                        fastperiod=fast_period,
-                        slowperiod=slow_period,
-                        signalperiod=signal_period
-                    )
-                case _:
-                    return Response({'error': 'Indicator type not implemented'}, status=status.HTTP_400_BAD_REQUEST)
-            
-            if new_indicator:
-                strategy.indicators = json.dumps([{k: v for k, v in (ind.items()) if k != 'data'} if ind['id'] == indicator_id else ind for ind in indicators])
-                strategy.save()
-            
-            cols_map = {
-                'timestamp': ('time', int),
-                **{col: (col, None) for col in candles_df.columns if col not in {'timestamp', 'open', 'high', 'low', 'close', 'volume'}}
-            }
-            
-            indicator['data'] = [
-                {out_key: (func(row[col]) if func else row[col]) for col, (out_key, func) in cols_map.items()}
-                for _, row in candles_df.iterrows()
-                if timestamp_start <= row['timestamp'] <= timestamp_end
-                and not any(pd.isna(row[col_name]) for col_name in cols_map.keys())
-            ]
-            
-            return Response(indicator, status=status.HTTP_200_OK)
+            data = self.compute_indicator_data(
+                user=request.user,
+                strategy=strategy,
+                timeframe=strategy.timeframe,
+                timestamp_start=timestamp_start,
+                timestamp_end=timestamp_end,
+                indicator_id=indicator_id
+            )
+            return Response(data, status=status.HTTP_200_OK)
+        except LookupError as e:
+            return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except NotImplementedError as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -834,9 +858,394 @@ class StrategyExecutionView(viewsets.ModelViewSet):
         data["trades"] = list(trades)
         return Response(data)
 
+    def execute_strategy(self, execution_id, request):
+        try:
+            connection.close()
+            execution = StrategyExecution.objects.get(id=execution_id)
+            exchange = Exchange(execution.exchange, request.user)
+            real_trading = execution.type == 'real'
+            if real_trading:
+                try:
+                    exchange.fetch_balance()
+                except ccxt.AuthenticationError as e:
+                    raise ValueError("API keys are invalid or missing")
+                except ccxt.NetworkError as e:
+                    raise ConnectionError("Network issue while checking API keys")
+                except Exception as e:
+                    raise RuntimeError("Unexpected error while checking API keys")
+                
+            trades_df = pd.DataFrame(columns=['strategy_execution', 'type', 'side', 'timestamp', 'price', 'amount', 'cost', 'avg_entry_price', 'abs_profit', 'rel_profit', 'abs_cum_profit', 'rel_cum_profit', 'abs_hodling_profit', 'rel_hodling_profit', 'abs_runup', 'rel_runup', 'abs_drawdown', 'rel_drawdown'])
+            open_orders_df = pd.DataFrame(columns=['id', 'timestamp', 'side', 'price', 'amount', 'cost'])
+            symbol = execution.symbol
+            leverage = execution.leverage
+            maker_fee = execution.maker_fee
+            taker_fee = execution.taker_fee
+            max_ever_total_unrealized_value = 0
+            min_ever_total_unrealized_value = float('inf')
+            abs_max_runup = 0
+            rel_max_runup = 0
+            abs_max_drawdown = 0
+            rel_max_drawdown = 0
+            
+            def trade_calculation(type, order):
+                nonlocal open_orders_df
+                nonlocal trades_df
+                nonlocal abs_max_runup
+                nonlocal rel_max_runup
+                nonlocal abs_max_drawdown
+                nonlocal rel_max_drawdown
+                nonlocal max_ever_total_unrealized_value
+                nonlocal min_ever_total_unrealized_value
+                
+                fee = taker_fee if type == "market" else maker_fee
+                
+                if c.at[i, 'position_amount'] * order['amount'] >= 0:
+                    order_cost = abs(order['amount']) * order['price'] * (Decimal(1 / leverage) + fee)
+                    if type == "market" and order_cost > c.at[i, 'remaining_tradable_value']:
+                        order['amount'] = c.at[i, 'remaining_tradable_value'] / order['price'] / (Decimal(1 / leverage) + fee) * order['amount'] / abs(order['amount'])
+                        order_cost = c.at[i, 'remaining_tradable_value']
+                    c.at[i, 'avg_entry_price'] = (c.at[i, 'avg_entry_price'] * abs(c.at[i, 'position_amount']) + order['price'] * abs(order['amount'])) / (abs(c.at[i, 'position_amount']) + abs(order['amount']))
+                else:
+                    order['amount'] = min(abs(order['amount']), abs(c.at[i, 'position_amount'])) * order['amount'] / abs(order['amount'])
+                    if type == 'limit':
+                        c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - order['price'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else order['price'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
+                    order_cost = c.at[i, 'position_value'] * order['amount'] / c.at[i, 'position_amount'] + abs(order['amount']) * (2 * c.at[i, 'avg_entry_price'] - order['price'] if c.at[i, 'position_amount'] < 0 else order['price']) * fee
+                    if c.at[i, 'position_amount'] + order['amount'] == 0:
+                        c.at[i, 'avg_entry_price'] = 0
+                c.at[i, 'position_amount'] += order['amount']
+                if c.at[i, 'avg_entry_price'] > 0:
+                    c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - order['price'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else order['price'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
+                else:
+                    c.at[i, 'position_value'] = 0
+                if not (type == "limit" and order_cost > 0): c.at[i, 'remaining_tradable_value'] -= order_cost
+                c.at[i, 'realized_total_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
+                c.at[i, 'unrealized_total_value'] = c.at[i, 'position_value'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
+                abs_profit = -1 * abs(order['amount']) * c.at[i, 'avg_entry_price'] - order_cost if c.at[i, 'position_amount'] * order['amount'] < 0 else -1 * abs(order['amount']) * order['price'] * fee
+                rel_profit = abs_profit / execution.initial_tradable_value * 100
+                abs_cum_profit = (trades_df['abs_cum_profit'].iloc[-1] if not trades_df.empty else 0) + abs_profit
+                rel_cum_profit = (trades_df['rel_cum_profit'].iloc[-1] if not trades_df.empty else 0) + rel_profit
+                abs_hodling_profit = execution.initial_tradable_value * (c.at[i, 'close'] / c.at[1, 'open'] - 1)
+                rel_hodling_profit = (c.at[i, 'close'] / c.at[1, 'open'] - 1) * 100
+                max_ever_total_unrealized_value = max(max_ever_total_unrealized_value, c.at[i, 'unrealized_total_value'])
+                min_ever_total_unrealized_value = min(min_ever_total_unrealized_value, c.at[i, 'unrealized_total_value'])
+                abs_runup = c.at[i, 'unrealized_total_value'] - min_ever_total_unrealized_value
+                rel_runup = abs_runup / min_ever_total_unrealized_value * 100 if min_ever_total_unrealized_value != 0 else 0
+                abs_drawdown = c.at[i, 'unrealized_total_value'] - max_ever_total_unrealized_value
+                rel_drawdown = abs_drawdown / max_ever_total_unrealized_value * 100 if max_ever_total_unrealized_value != 0 else 0
+                new_trade = {'strategy_execution': execution, 'type': type, 'side': order['side'], 'timestamp': order['timestamp'], 'price': order['price'], 'amount': abs(order['amount']), 'cost': order_cost, 'avg_entry_price': c.at[i, 'avg_entry_price'],
+                             'abs_profit': abs_profit, 'rel_profit': rel_profit, 'abs_cum_profit': abs_cum_profit, 'rel_cum_profit': rel_cum_profit, 'abs_hodling_profit': abs_hodling_profit, 'rel_hodling_profit': rel_hodling_profit, 'abs_runup': abs_runup, 'rel_runup': rel_runup, 'abs_drawdown': abs_drawdown, 'rel_drawdown': rel_drawdown}
+                trades_df = pd.concat([trades_df, pd.DataFrame([new_trade])], ignore_index=True)
+                
+                abs_max_runup = max(abs_max_runup, c.at[i, 'unrealized_total_value'] - min_ever_total_unrealized_value)
+                rel_max_runup = abs_max_runup / min_ever_total_unrealized_value * 100 if min_ever_total_unrealized_value != 0 else 0
+                abs_max_drawdown = min(abs_max_drawdown, c.at[i, 'unrealized_total_value'] - max_ever_total_unrealized_value)
+                rel_max_drawdown = abs_max_drawdown / max_ever_total_unrealized_value * 100 if max_ever_total_unrealized_value != 0 else 0
+            
+            def make_order(type, side=None, amount=None, price=None):
+                nonlocal open_orders_df
+                nonlocal trades_df
+                
+                if type == "cancel_all_open_orders":
+                    if real_trading: exchange.cancel_all_orders(symbol=symbol)
+                    c.at[i, 'remaining_tradable_value'] += open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
+                    open_orders_df = open_orders_df.iloc[0:0]
+                    c.at[i, 'realized_total_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] + c.at[i, 'remaining_tradable_value']
+                    c.at[i, 'unrealized_total_value'] = c.at[i, 'position_value'] + c.at[i, 'remaining_tradable_value']
+                    return
+
+                if ':' not in symbol and side == 'sell' and c.at[i, 'position_amount'] == 0: return
+                if amount == 0: return
+                if type == 'market':
+                    price = c.at[i, 'close']
+                else:
+                    if price <= 0: return
+                order_id = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(15))
+                order_timestamp = c.at[i, 'timestamp']
+                order_amount = amount if side == 'buy' else -1 * amount
+                order_price = price
+
+                if real_trading:
+                    if ':' in symbol:
+                        try:
+                            exchange.set_leverage(leverage=leverage, symbol=symbol, params={'openType': 1, 'positionType': 1 if c.at[i, 'position_amount'] >= 0 else 2})
+                            exchange.set_margin_mode(marginMode="isolated", symbol=symbol, params={'leverage': leverage, 'openType': 1, 'positionType': 1 if c.at[i, 'position_amount'] >= 0 else 2})
+                        except: pass
+                        contract_size = exchange.markets.get(symbol).get('contractSize')
+                        amount = amount / contract_size
+                    if type == 'market' and side == 'buy':
+                        try:
+                            orderbook = exchange.fetch_l2_order_book(symbol, 1)
+                            if len(orderbook['asks']) > 0:
+                                price = orderbook['asks'][0][0]
+                        except: pass
+                    params = {'reduceOnly': False if c.at[i, 'position_amount'] * order_amount >= 0 else True, **({'timeInForce': 'PO'} if type == 'limit' and exchange.has.get('createPostOnlyOrder') else {'timeInForce': 'GTC'} if type == 'limit' else {})}
+                    order = exchange.create_order(symbol=symbol, type=type, side=side, amount=amount, price=price, params=params)
+                    order_id = order['id']
+                    order_timestamp = order['timestamp']
+                    order_amount = order['amount'] if side == 'buy' else -1 * order['amount']
+                    if ':' in symbol:
+                        order_amount = order_amount * contract_size
+                    order_price = order['price']
+                    
+                order = {'id': order_id, 'timestamp': order_timestamp, 'side': side, 'amount': order_amount, 'price': order_price}
+                if c.at[i, 'position_amount'] * order['amount'] >= 0 and c.at[i, 'remaining_tradable_value'] == 0: return
+                if type == 'market':
+                    trade_calculation(type, order)
+                else:
+                    order['cost'] = abs(order['amount']) * order['price'] * (Decimal(1 / leverage) + maker_fee) if c.at[i, 'position_amount'] * order['amount'] >= 0 else c.at[i, 'position_value'] * order['amount'] / c.at[i, 'position_amount'] + abs(order['amount']) * (2 * c.at[i, 'avg_entry_price'] - order['price'] if c.at[i, 'position_amount'] < 0 else order['price']) * fee
+                    if order['cost'] > 0:
+                        if order['cost'] > c.at[i, 'remaining_tradable_value']:
+                            order['amount'] = c.at[i, 'remaining_tradable_value'] / order['price'] / (Decimal(1 / leverage) + maker_fee) * order['amount'] / abs(order['amount'])
+                            order['cost'] = c.at[i, 'remaining_tradable_value']
+                        c.at[i, 'remaining_tradable_value'] -= order['cost']
+                    open_orders_df = pd.concat([open_orders_df, pd.DataFrame([order])], ignore_index=True)
+                    c.at[i, 'realized_total_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
+                    c.at[i, 'unrealized_total_value'] = c.at[i, 'position_value'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
+            
+            timeframe_ms = int(pd.Timedelta(f"{int(execution.timeframe[:-1]) * (30 if execution.timeframe.endswith('M') else 365)}d" if execution.timeframe.endswith(('M','y')) else execution.timeframe).total_seconds() * 1000)
+            
+            c = CandleView().get_candles(
+                exchange=exchange,
+                symbol=symbol,
+                timeframe=execution.timeframe,
+                timestamp_start=execution.timestamp_start - (2 * timeframe_ms if real_trading else timeframe_ms),
+                timestamp_end=execution.timestamp_start - timeframe_ms if real_trading else execution.timestamp_end,
+                db_search=True
+            )
+            
+            indicators = json.loads(execution.indicators)
+            
+            def calculate_indicators(timestamp_start, timestamp_end):
+                c = c.set_index('timestamp')
+                for indicator in indicators:
+                    short_name = indicator.get('short_name')
+                    params = indicator.get('params', [])
+                    param_str = '_'.join(str(p['value']) for p in params)
+                    indicator['col_name'] = f"{short_name}_{param_str}" if param_str else short_name
+                    indicator_response = IndicatorView().compute_indicator_data(
+                        user=request.user,
+                        strategy=execution.strategy,
+                        timeframe=execution.timeframe,
+                        timestamp_start= timestamp_start,
+                        timestamp_end= timestamp_end,
+                        indicator_id=indicator.get('id')
+                    )
+                    indicator_df = pd.DataFrame(indicator_response.get('data', [])).rename(columns={'time': 'timestamp'}).set_index('timestamp')
+                    if indicator_df.empty:
+                        continue
+                    if len(indicator_df.columns) == 1:
+                        indicator_values = indicator_df.rename(columns={indicator_df.columns[0]: indicator.get('col_name')})
+                    else:
+                        indicator_values = indicator_df.add_prefix(indicator.get('col_name') + "_")
+                    for col in indicator_values.columns:
+                        if col not in c.columns:
+                            c[col] = indicator_values[col]
+                        else:
+                            c.at[c.index[-1], col] = indicator_values.iloc[-1][col]
+                c = c.reset_index()
+            
+            calculate_indicators(execution.timestamp_start - timeframe_ms, execution.timestamp_end)
+            c[['position_amount', 'position_value', 'avg_entry_price', 'remaining_tradable_value', 'unrealized_total_value', 'realized_total_value']] = None
+            
+            columns = c.columns.difference(['timestamp']).tolist()
+            replacements = [(col, f"c.at[i, '{col}']") for col in columns]
+            order_conditions = json.loads(execution.order_conditions)
+            conditions_str = []
+            orders_str = []
+            for order_condition in order_conditions:
+                condition_result = ""
+                curr_conditions = order_condition['conditions']
+                total_conditions = len(curr_conditions)
+                for i, condition in enumerate(curr_conditions):
+                    if condition['start_parenthesis']:
+                        condition_result += "("
+                    left_operand  = condition['left_operand']
+                    right_operand = condition['right_operand']
+                    for old, new in replacements:
+                        left_operand  = left_operand.replace(old, new)
+                        right_operand = right_operand.replace(old, new)
+                    operator = condition['operator']
+                    if operator == 'crossunder':
+                        condition_result += f"(({left_operand.replace('c.at[i, ', 'c.at[i-1, ')}) > ({right_operand.replace('c.at[i, ', 'c.at[i-1, ')}) and ({left_operand}) < ({right_operand}))"
+                    elif operator == 'crossabove':
+                        condition_result += f"(({left_operand.replace('c.at[i, ', 'c.at[i-1, ')}) < ({right_operand.replace('c.at[i, ', 'c.at[i-1, ')}) and ({left_operand}) > ({right_operand}))"
+                    else:
+                        condition_result += f"({left_operand}) {operator} ({right_operand})"
+                    if condition['end_parenthesis']:
+                        condition_result += ")"
+                    logical_operator = condition.get('logical_operator', '')
+                    if i < total_conditions - 1:
+                        if logical_operator:
+                            condition_result += f" {logical_operator.replace('xor', '^')} "
+                        else:
+                            raise ValueError("Logical operator is required between conditions")
+                if condition_result.count(':'):
+                    raise ValueError("Invalid condition syntax: ':' found in condition")
+                if condition_result.count('(') != condition_result.count(')'):
+                    raise ValueError("Unmatched parentheses in conditions")
+                conditions_str.append(condition_result)
+                
+                orders_result = ""
+                for order in order_condition['orders']:
+                    orders_result += f"make_order('{order['type']}'"
+                    if order['type'] != "cancel_all_open_orders":
+                        orders_result += f", '{order['side']}', {order['amount']}"
+                        if order['type'] != "market":
+                            orders_result += f", {order['price']}"
+                    orders_result += ")\n"
+                for old, new in replacements:
+                    orders_result = orders_result.replace(old, new)
+                orders_str.append(orders_result)
+            
+            if real_trading:
+                i = 0
+                while True:
+                    if i == 0:
+                        c.at[i, 'position_amount'] = 0
+                        c.at[i, 'avg_entry_price'] = 0
+                        c.at[i, 'remaining_tradable_value'] = execution.initial_tradable_value
+                        i = 1
+                    else:
+                        c.at[i, 'position_amount'] = c.at[i-1, 'position_amount']
+                        c.at[i, 'avg_entry_price'] = c.at[i-1, 'avg_entry_price']
+                        c.at[i, 'remaining_tradable_value'] = c.at[i-1, 'remaining_tradable_value']
+                    if c.at[i, 'avg_entry_price'] > 0:
+                        c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - c.at[i, 'close'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else c.at[i, 'close'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
+                    else:
+                        c.at[i, 'position_value'] = 0
+                    if c.at[i, 'position_value'] < 0:
+                        c.at[i, 'position_value'] = 0
+                        c.at[i, 'position_amount'] = 0
+                        c.at[i, 'avg_entry_price'] = 0
+                    c.at[i, 'realized_total_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
+                    c.at[i, 'unrealized_total_value'] = c.at[i, 'position_value'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
+                    max_ever_total_unrealized_value = max(max_ever_total_unrealized_value, c.at[i, 'unrealized_total_value'])
+                    min_ever_total_unrealized_value = min(min_ever_total_unrealized_value, c.at[i, 'unrealized_total_value'])
+                    abs_max_runup = max(abs_max_runup, c.at[i, 'unrealized_total_value'] - min_ever_total_unrealized_value)
+                    rel_max_runup = abs_max_runup / min_ever_total_unrealized_value * 100 if min_ever_total_unrealized_value != 0 else 0
+                    abs_max_drawdown = min(abs_max_drawdown, c.at[i, 'unrealized_total_value'] - max_ever_total_unrealized_value)
+                    rel_max_drawdown = abs_max_drawdown / max_ever_total_unrealized_value * 100 if max_ever_total_unrealized_value != 0 else 0
+                    if i > 0:
+                        orders_to_drop = []
+                        for open_order in open_orders_df.itertuples(index=False):
+                            if exchange.fetch_order(open_order.id, symbol).get('status') == 'closed':
+                                trade_calculation('limit', {'id': open_order.id, 'timestamp': c.at[i, 'timestamp'], 'amount': open_order.amount, 'price': open_order.price})
+                                orders_to_drop.append(open_order.Index)
+                        open_orders_df = open_orders_df.drop(orders_to_drop).reset_index(drop=True)
+                        for x, condition_result in enumerate(conditions_str):
+                            try:
+                                if eval(condition_result):
+                                    orders_result = orders_str[x]
+                                    exec(orders_result)
+                            except Exception as e:
+                                raise ValueError("Error evaluating condition or order")
+                        execution.timestamp_end = c.iloc[-1]['timestamp']
+                        execution.abs_net_profit = trades_df.iloc[-1]['abs_cum_profit'] if len(trades_df) > 0 else None
+                        execution.rel_net_profit = trades_df.iloc[-1]['rel_cum_profit'] if len(trades_df) > 0 else None
+                        execution.total_closed_trades = len(trades_df)
+                        execution.winning_trade_rate = (trades_df.query("cost < 0")['abs_profit'] >= 0).mean() * 100 if len(trades_df.query("cost < 0")) > 0 else None
+                        gross_profits = trades_df[trades_df['abs_profit'] > 0]['abs_profit'].sum()
+                        gross_losses = abs(trades_df[trades_df['abs_profit'] < 0]['abs_profit'].sum())
+                        execution.profit_factor = gross_profits / gross_losses if gross_losses > 0 else None
+                        execution.abs_avg_trade_profit = trades_df['abs_profit'].abs().mean() if len(trades_df) > 0 else None
+                        execution.rel_avg_trade_profit = trades_df['rel_profit'].mean() if len(trades_df) > 0 else None
+                        execution.abs_max_run_up = abs_max_runup
+                        execution.rel_max_run_up = rel_max_runup
+                        execution.abs_max_drawdown = abs_max_drawdown
+                        execution.rel_max_drawdown = rel_max_drawdown
+                        Trade.objects.bulk_create([Trade(**row) for row in trades_df.to_dict(orient='records')])
+                    last_candle_timestamp = c.at[c.index[-1], 'timestamp']
+                    next_candle_timestamp = last_candle_timestamp + timeframe_ms
+                    execution.timestamp_end = next_candle_timestamp
+                    execution.save()
+                    timestamp_wait = next_candle_timestamp + timeframe_ms
+                    wait_ms = timestamp_wait - int(time.time() * 1000)
+                    while wait_ms > 0:
+                        if wait_ms > 1000:
+                            time.sleep(min(wait_ms, 60000) / 1000 - 1)
+                            execution.refresh_from_db()
+                            if not execution.running:
+                                return
+                        wait_ms = timestamp_wait - int(time.time() * 1000)
+                    c = pd.concat([c, CandleView().get_candles(
+                        exchange=exchange,
+                        symbol=symbol,
+                        timeframe=execution.timeframe,
+                        timestamp_start=next_candle_timestamp,
+                        timestamp_end=next_candle_timestamp
+                    ).reindex(columns=c.columns)], ignore_index=True)
+                    if len(c) > 2: c = c.iloc[1:].reset_index(drop=True)
+                    calculate_indicators(next_candle_timestamp, next_candle_timestamp)
+                    if i == 0: i = 1
+            else:
+                for i in c.index:
+                    execution.refresh_from_db()
+                    if not execution.running:
+                        return
+                    if i == 0:
+                        c.at[i, 'position_amount'] = 0
+                        c.at[i, 'avg_entry_price'] = 0
+                        c.at[i, 'remaining_tradable_value'] = execution.initial_tradable_value
+                    else:
+                        c.at[i, 'position_amount'] = c.at[i-1, 'position_amount']
+                        c.at[i, 'avg_entry_price'] = c.at[i-1, 'avg_entry_price']
+                        c.at[i, 'remaining_tradable_value'] = c.at[i-1, 'remaining_tradable_value']
+                    if c.at[i, 'avg_entry_price'] > 0:
+                        c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - c.at[i, 'close'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else c.at[i, 'close'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
+                    else:
+                        c.at[i, 'position_value'] = 0
+                    if c.at[i, 'position_value'] < 0:
+                        c.at[i, 'position_value'] = 0
+                        c.at[i, 'position_amount'] = 0
+                        c.at[i, 'avg_entry_price'] = 0
+                    c.at[i, 'realized_total_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
+                    c.at[i, 'unrealized_total_value'] = c.at[i, 'position_value'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
+                    max_ever_total_unrealized_value = max(max_ever_total_unrealized_value, c.at[i, 'unrealized_total_value'])
+                    min_ever_total_unrealized_value = min(min_ever_total_unrealized_value, c.at[i, 'unrealized_total_value'])
+                    abs_max_runup = max(abs_max_runup, c.at[i, 'unrealized_total_value'] - min_ever_total_unrealized_value)
+                    rel_max_runup = abs_max_runup / min_ever_total_unrealized_value * 100 if min_ever_total_unrealized_value != 0 else 0
+                    abs_max_drawdown = min(abs_max_drawdown, c.at[i, 'unrealized_total_value'] - max_ever_total_unrealized_value)
+                    rel_max_drawdown = abs_max_drawdown / max_ever_total_unrealized_value * 100 if max_ever_total_unrealized_value != 0 else 0
+                    if i == 0:
+                        continue
+                    orders_to_drop = []
+                    for open_order in open_orders_df.itertuples(index=False):
+                        if open_order.side == 'buy' and c.at[i, 'low'] <= open_order.price or open_order.side == 'sell' and c.at[i, 'high'] >= open_order.price:
+                            trade_calculation('limit', {'id': open_order.id, 'timestamp': c.at[i, 'timestamp'], 'amount': open_order.amount, 'price': open_order.price})
+                            orders_to_drop.append(open_order.Index)
+                    open_orders_df = open_orders_df.drop(orders_to_drop).reset_index(drop=True)
+                    for x, condition_result in enumerate(conditions_str):
+                        try:
+                            if eval(condition_result):
+                                orders_result = orders_str[x]
+                                exec(orders_result)
+                        except Exception as e:
+                            raise ValueError("Error evaluating condition or order")
+                execution.timestamp_end = c.iloc[-1]['timestamp']
+                execution.abs_net_profit = trades_df.iloc[-1]['abs_cum_profit'] if len(trades_df) > 0 else None
+                execution.rel_net_profit = trades_df.iloc[-1]['rel_cum_profit'] if len(trades_df) > 0 else None
+                execution.total_closed_trades = len(trades_df)
+                execution.winning_trade_rate = (trades_df.query("cost < 0")['abs_profit'] >= 0).mean() * 100 if len(trades_df.query("cost < 0")) > 0 else None
+                gross_profits = trades_df[trades_df['abs_profit'] > 0]['abs_profit'].sum()
+                gross_losses = abs(trades_df[trades_df['abs_profit'] < 0]['abs_profit'].sum())
+                execution.profit_factor = gross_profits / gross_losses if gross_losses > 0 else None
+                execution.abs_avg_trade_profit = trades_df['abs_profit'].abs().mean() if len(trades_df) > 0 else None
+                execution.rel_avg_trade_profit = trades_df['rel_profit'].mean() if len(trades_df) > 0 else None
+                execution.abs_max_run_up = abs_max_runup
+                execution.rel_max_run_up = rel_max_runup
+                execution.abs_max_drawdown = abs_max_drawdown
+                execution.rel_max_drawdown = rel_max_drawdown
+                Trade.objects.bulk_create([Trade(**row) for row in trades_df.to_dict(orient='records')])
+            
+            execution.running = False
+            execution.save()
+        except Exception as e:
+            import sys; print("ERROR: " + e, file=sys.stderr)
+            execution.running = False
+            execution.save()
+
     @action(detail=True, methods=['post'])
     def start(self, request):
-        import sys; print(request.data, file=sys.stderr)
         required_fields = [
             "strategy_id",
             "maker_fee",
@@ -857,23 +1266,32 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             strategy = Strategy.objects.get(id=request.data["strategy_id"])
         except Strategy.DoesNotExist:
             return Response({"detail": "Strategy not found."}, status=status.HTTP_404_NOT_FOUND)
-            
+
+        type = request.data["type"]
+        timeframe = strategy.timeframe
+        timestamp_start = strategy.timestamp_start
+        timestamp_end = strategy.timestamp_end
+        now = int(time.time() * 1000)
+        if type == 'real':
+            timestamp_end = now
+            timestamp_start = now
+        
         execution = StrategyExecution.objects.create(
             strategy=strategy,
-            type=request.data["type"],
+            type=type,
             order_conditions=request.data["order_conditions"],
             running=True,
             exchange=strategy.exchange,
             symbol=strategy.symbol,
-            timeframe=strategy.timeframe,
-            timestamp_start=strategy.timestamp_start,
-            timestamp_end=strategy.timestamp_end,
+            timeframe=timeframe,
+            timestamp_start=timestamp_start,
+            timestamp_end=timestamp_end,
             indicators=strategy.indicators,
             maker_fee=Decimal(request.data["maker_fee"]),
             taker_fee=Decimal(request.data["taker_fee"]),
             initial_tradable_value=Decimal(request.data["initial_tradable_value"]),
             leverage=int(request.data["leverage"]),
-            execution_timestamp=int(time.time() * 1000),
+            execution_timestamp=now,
             abs_net_profit=None,
             rel_net_profit=None,
             total_closed_trades=None,
@@ -886,16 +1304,15 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             abs_max_drawdown=None,
             rel_max_drawdown=None,
         )
+        thread = threading.Thread(target=self.execute_strategy, args=(execution.id, request))
+        thread.daemon = True
+        thread.start()
         serializer = StrategyExecutionSerializer(execution)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
-    def _kill_execution(self, instance):
-        import sys; print('kill', file=sys.stderr)
 
     @action(detail=True, methods=['patch'])
-    def stop(self, request, pk=None):
+    def stop(self):
         instance = self.get_object()
-        self._kill_execution(instance)
         instance.running = False
         instance.save()
         serializer = self.get_serializer(instance)
@@ -903,5 +1320,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        self._kill_execution(instance)
+        if instance.running:
+            instance.running = False
+            instance.save()
         return super().destroy(request, *args, **kwargs)
