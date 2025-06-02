@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { ThemeToggle } from "@/components/theme-toggle"
 import { ExploreStrategies } from "./components/explore-strategies"
 import { ApiKeys } from "./components/api-keys"
-import { Dashboard } from "./components/dashboard/dashboard"
+import { Dashboard } from "./components/dashboard"
 import { Settings } from "./components/settings/settings"
 import { FileChartPie, ChartNoAxesCombined, Key, UserRound, LogOut, Settings as SettingsIcon } from "lucide-react";
 import { logout } from "@/api";
