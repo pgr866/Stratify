@@ -43,7 +43,7 @@ export function ApiKeys() {
         !newFilteredApiKeysExchanges.includes(exchange)
       )
     );
-  }, [searchValue, apiKeysExchanges]);
+  }, [searchValue, allExchanges, apiKeysExchanges]);
 
 	const handleCloseCreateUpdateDialog = () => {
 		setOpenCreateUpdateDialog(false);
