@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { toast } from "sonner";
-import { getAllExchanges, getExchangeSymbols, Strategy as StrategyType, getStrategy, getUserStrategies, createStrategy, updateStrategy, deleteStrategy, cloneStrategy, Candle, getCandles } from "@/api";
+import { getAllExchanges, getExchangeSymbols, Strategy as StrategyType, getStrategy, getUserStrategies, createStrategy, updateStrategy, deleteStrategy, cloneStrategy, Candle, getCandles, StrategyExecution } from "@/api";
 import { useSession } from "@/App";
 
 export function Strategy() {
@@ -42,6 +42,7 @@ export function Strategy() {
   const [resetKey, setResetKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [selectedStrategyExecution, setSelectedStrategyExecution] = useState<StrategyExecution>();
   const hasExecutionUrl = useRef(false);
 
   const tagConfig = [
@@ -301,7 +302,7 @@ export function Strategy() {
             )}
           </Button>
         </div>
-        <CandleChart candles={candles} selectedStrategy={selectedStrategy} setSelectedStrategy={setSelectedStrategy} setIsLoading={setIsLoading} />
+        <CandleChart candles={candles} selectedStrategy={selectedStrategy} setSelectedStrategy={setSelectedStrategy} setIsLoading={setIsLoading} selectedStrategyExecution={selectedStrategyExecution} />
       </ResizablePanel>
       <Dialog open={openDeleteDialog} onOpenChange={() => setOpenDeleteDialog(false)}>
         <DialogContent
@@ -342,6 +343,8 @@ export function Strategy() {
           setSelectedSymbol={setSelectedSymbol}
           setSelectedTimeframe={setSelectedTimeframe}
           setSelectedDatetimeRange={setSelectedDatetimeRange}
+          selectedStrategyExecution={selectedStrategyExecution}
+          setSelectedStrategyExecution={setSelectedStrategyExecution}
           hasExecutionUrl={hasExecutionUrl}
           isLoading={isLoading}
           setIsLoading={setIsLoading} />

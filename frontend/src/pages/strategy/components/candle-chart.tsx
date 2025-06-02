@@ -14,16 +14,37 @@ let chart: any;
 let candleData = [];
 let markers = [];
 
-export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, setIsLoading }) {
+export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, setIsLoading, selectedStrategyExecution }) {
 	const { user } = useSession();
 	const displayedIndicatorsRef = useRef({});
 	const [updatingIndicator, setUpdatingIndicator] = useState();
 	const pendingIndicatorsIdRef = useRef<Set<string>>(new Set());
 	const selectedStrategyRef = useRef(selectedStrategy);
+	const markersRef = useRef();
+
+	function formatNumber(number) {
+		try {
+			number = Number(number);
+			const cleaned = number?.toFixed(12).replace(/0+$/, '');
+			const match = cleaned?.match(/^(-?)0\.(0{5,})(\d+)$/);
+			if (match) {
+				const sign = match[1];
+				const zeros = match[2].length;
+				const significant = match[3];
+				return `${sign}0.0{${zeros - 1}}${significant}`;
+			}
+			if (number >= 1000) {
+				return +number.toFixed(5);
+			}
+			return +number.toFixed(8);
+		} catch {
+			return number;
+		}
+	}
 
 	function convertDataToTimezone(data: any[], timezone: string, valueKey?: string) {
 		return data.map(item => {
-			const dateUTC = new Date(item.time);
+			const dateUTC = new Date(item.time ?? item.timestamp);
 			const offsetMs = getTimezoneOffset(timezone, dateUTC);
 			const adjustedTimestamp = (dateUTC.getTime() + offsetMs) / 1000;
 			if (valueKey) {
@@ -31,7 +52,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			}
 			return Object.fromEntries(
 				Object.entries(item).map(([key, value]) => {
-					if (key === 'time') return ['time', adjustedTimestamp];
+					if (key === 'time' || key === 'timestamp') return ['time', adjustedTimestamp];
 					const num = Number(value);
 					return [key, isNaN(num) ? value : num];
 				})
@@ -179,7 +200,6 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 	}
 
 	function removeIndicator(indicatorId, deleteFromDb = true) {
-		console.log("Eliminando: ", indicatorId);
 		let pane;
 		try {
 			pane = displayedIndicatorsRef.current[indicatorId].series[0].getPane();
@@ -274,16 +294,6 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 		return legendContent;
 	}
 
-	function addMarkers() { // meter todo en useEffect de operations
-		markers = [
-			{ time: candleData[candleData.length - 1].time, position: 'aboveBar', color: '#F6465D', shape: 'arrowDown', text: '@1 -15.34' },
-			{ time: candleData[candleData.length - 1].time, position: 'belowBar', color: '#2EBD85', shape: 'arrowUp', text: '@2 +15.34' }
-		]
-		if (displayedIndicatorsRef.current['candles']?.series?.[0]) {
-			createSeriesMarkers(displayedIndicatorsRef.current['candles'].series[0], markers);
-		}
-	}
-
 	function createCandleChart(candleData, paneIndex, upColor = '#2EBD85', downColor = '#F6465D') {
 		if (!document.getElementById('chart-container')) return;
 		chart.timeScale().fitContent();
@@ -322,7 +332,6 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 		let legend;
 		setTimeout(() => {
 			legend = createLegend(paneIndex, [candleSeries, volumeSeries], 'candles', false);
-			addMarkers();
 		}, 0);
 
 		chart.subscribeCrosshairMove((param) => {
@@ -578,6 +587,28 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 		}, 0);
 		return () => clearTimeout(timeout);
 	}, [candles, selectedStrategy?.indicators, user?.timezone]);
+
+	useEffect(() => {
+		const timeout = setTimeout(() => {
+			if (markersRef.current) {
+				markersRef.current.setMarkers([]);
+			}
+			if (!selectedStrategyExecution?.trades || !candleData.length) return;
+			const markersData = convertDataToTimezone(selectedStrategyExecution.trades, user.timezone);
+			const markers = markersData.map((trade, index) => ({
+				time: trade.time,
+				position: trade.side === 'sell' ? 'aboveBar' : 'belowBar',
+				color: trade.side === 'sell' ? '#F6465D' : '#2EBD85',
+				shape: trade.side === 'sell' ? 'arrowDown' : 'arrowUp',
+				text: `@${index + 1} ${formatNumber(trade.amount) || ''}`,
+			}));
+			const series = displayedIndicatorsRef.current?.['candles']?.series?.[0];
+			if (series) {
+				markersRef.current = createSeriesMarkers(series, markers);
+			}
+		}, 0);
+		return () => clearTimeout(timeout);
+	}, [selectedStrategyExecution?.trades, candleData]);
 
 	return (
 		<div id="chart-container" className="flex-1 min-w-0 min-h-0">

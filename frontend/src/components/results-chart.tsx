@@ -59,11 +59,6 @@ export function ResultsChart({ absCumProfit, relCumProfit, absDrawdown, relDrawd
     const resizeObserver = new ResizeObserver(() => {
       const { width, height } = chartContainer.getBoundingClientRect();
       chartInstance.current.resize(width, height);
-      console.log(width, height);
-      // chartContainer.querySelector('.tv-lightweight-charts').style.width = '100%';
-      // chartContainer.querySelector('.tv-lightweight-charts').style.height = '100%';
-      // chartContainer.querySelector('table').style.width = '100%';
-      // chartContainer.querySelector('table').style.height = '100%';
     });
     resizeObserver.observe(chartContainer);
     resizeObserver.observe(chartContainer.parentElement);

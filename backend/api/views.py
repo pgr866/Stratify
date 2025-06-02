@@ -659,7 +659,7 @@ class CandleView(APIView):
 class IndicatorView(APIView):
     permission_classes = [IsAuthenticated]
     
-    def compute_indicator_data(self, user, strategy, timeframe, timestamp_start, timestamp_end, indicator_id):
+    def compute_indicator_data(self, user, strategy, timestamp_start, timestamp_end, indicator_id):
         exchange = strategy.exchange
         symbol = strategy.symbol
         timeframe = strategy.timeframe
@@ -811,7 +811,6 @@ class IndicatorView(APIView):
             data = self.compute_indicator_data(
                 user=request.user,
                 strategy=strategy,
-                timeframe=strategy.timeframe,
                 timestamp_start=timestamp_start,
                 timestamp_end=timestamp_end,
                 indicator_id=indicator_id
@@ -1016,6 +1015,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             indicators = json.loads(execution.indicators)
             
             def calculate_indicators(timestamp_start, timestamp_end):
+                nonlocal c
                 c = c.set_index('timestamp')
                 for indicator in indicators:
                     short_name = indicator.get('short_name')
@@ -1025,7 +1025,6 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     indicator_response = IndicatorView().compute_indicator_data(
                         user=request.user,
                         strategy=execution.strategy,
-                        timeframe=execution.timeframe,
                         timestamp_start= timestamp_start,
                         timestamp_end= timestamp_end,
                         indicator_id=indicator.get('id')
@@ -1128,8 +1127,9 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     if i > 0:
                         orders_to_drop = []
                         for open_order in open_orders_df.itertuples(index=False):
-                            if exchange.fetch_order(open_order.id, symbol).get('status') == 'closed':
-                                trade_calculation('limit', {'id': open_order.id, 'timestamp': c.at[i, 'timestamp'], 'amount': open_order.amount, 'price': open_order.price})
+                            order_data = exchange.fetch_order(open_order.id, symbol)
+                            if order_data.get('status') == 'closed':
+                                trade_calculation('limit', {'id': open_order.id, 'timestamp': order_data.get('timestamp', c.at[i, 'timestamp']), 'amount': open_order.amount, 'price': open_order.price})
                                 orders_to_drop.append(open_order.Index)
                         open_orders_df = open_orders_df.drop(orders_to_drop).reset_index(drop=True)
                         for x, condition_result in enumerate(conditions_str):
@@ -1164,8 +1164,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         if wait_ms > 1000:
                             time.sleep(min(wait_ms, 60000) / 1000 - 1)
                             execution.refresh_from_db()
-                            if not execution.running:
-                                return
+                            if not execution.running: return
                         wait_ms = timestamp_wait - int(time.time() * 1000)
                     c = pd.concat([c, CandleView().get_candles(
                         exchange=exchange,

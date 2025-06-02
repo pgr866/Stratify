@@ -13,12 +13,11 @@ import { format } from "date-fns";
 import { useSession } from "@/App";
 import { Strategy, updateStrategy, StrategyExecution, getMyStrategyExecutions, getStrategyExecution, deleteStrategyExecution } from "@/api";
 
-export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSelectedExchange, setSelectedSymbol, setSelectedTimeframe, setSelectedDatetimeRange, hasExecutionUrl, isLoading, setIsLoading }) {
+export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSelectedExchange, setSelectedSymbol, setSelectedTimeframe, setSelectedDatetimeRange, selectedStrategyExecution, setSelectedStrategyExecution, hasExecutionUrl, isLoading, setIsLoading }) {
   const { user } = useSession();
   const [selectedTab, setSelectedTab] = useState("order-conditions");
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [strategyExecutions, setStrategyExecutions] = useState([]);
-  const [selectedStrategyExecution, setSelectedStrategyExecution] = useState<StrategyExecution>();
   const executionStateRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
