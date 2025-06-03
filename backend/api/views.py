@@ -485,7 +485,7 @@ class StrategyView(viewsets.ModelViewSet):
                 if exchange:
                     queryset = queryset.filter(exchange__iexact=exchange)
                 if symbol:
-                    queryset = queryset.filter(symbol__iexact=symbol)
+                    queryset = queryset.filter(symbol__icontains=symbol)
                 return queryset.order_by('-clones_count')
         else:
             return Strategy.objects.filter(Q(id=self.kwargs['pk']), Q(is_public=True) | Q(user=self.request.user))
