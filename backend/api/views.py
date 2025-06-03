@@ -2,6 +2,7 @@ import requests
 import secrets
 import string
 import json
+import re
 from types import SimpleNamespace
 import ccxt
 import pandas as pd
@@ -399,7 +400,7 @@ class ExchangesView(APIView):
     permission_classes = [IsAuthenticated]
     
     def get(self, request):
-        return Response([e for e in ccxt.exchanges if all(getattr(ccxt, e)().has.get(m, False) for m in ['fetchOHLCV', 'fetchBalance', 'cancelAllOrders', 'createOrder', 'fetchOrder'])])
+        return Response([e for e in ccxt.exchanges if e not in {'alpaca','apex','bequant','bitmart','bitso','coinex','coinlist','coinsph','lbank','oceanex','onetrading','paradex','phemex','woofipro'} and all(getattr(ccxt, e)().has.get(m) for m in ['fetchOHLCV','fetchBalance','cancelAllOrders','createOrder','fetchOrder'])])
     
 class SymbolsView(APIView):
     permission_classes = [IsAuthenticated]
@@ -1116,8 +1117,8 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                             condition_result += f" {logical_operator.replace('xor', '^')} "
                         else:
                             raise ValueError("Logical operator is required between conditions")
-                if condition_result.count(':'):
-                    raise ValueError("Invalid condition syntax: ':' found in condition")
+                if condition_result.count(':') or [w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9_]*\b', condition_result) if w not in set(columns + ['min', 'max', 'abs', 'crossunder', 'crossabove', 'and', 'or', 'c', 'at', 'i'])]:
+                    raise ValueError("Invalid condition syntax in conditions")
                 if condition_result.count('(') != condition_result.count(')'):
                     raise ValueError("Unmatched parentheses in conditions")
                 conditions_str.append(condition_result)
@@ -1132,6 +1133,8 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     orders_result += ")\n"
                 for old, new in replacements:
                     orders_result = orders_result.replace(old, new)
+                if orders_result.count(':') or [w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9_]*\b', orders_result) if w not in set(columns + ['min', 'max', 'abs', 'crossunder', 'crossabove', 'and', 'or', 'c', 'at', 'i'])]:
+                    raise ValueError("Invalid condition syntax in orders")
                 orders_str.append(orders_result)
             
             if real_trading:

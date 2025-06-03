@@ -254,7 +254,7 @@ export function Strategy() {
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox value={selectedStrategy?.name} values={strategies.map(s => s.name)} onCreate={handleCreateStrategy} onChange={(value) => handleOnChangeStrategy(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"190px"} placeholder={"Strategy"} icon={<FileChartPie />} onEdit={handleRenameStrategy} onDelete={() => setOpenDeleteDialog(true)} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => { setIsLoading(true); setSelectedExchange(value); }} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"180px"} placeholder={"Exchange"} icon={<Landmark />} />
+          <Combobox value={selectedExchange} values={exchanges} onChange={(value) => value !== selectedExchange && (setIsLoading(true), setSelectedExchange(value))} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"180px"} placeholder={"Exchange"} icon={<Landmark />} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"190px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
@@ -289,7 +289,7 @@ export function Strategy() {
             disabled={isLoading || !user?.id || user?.id !== selectedStrategy?.user}
           />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox key={resetKey} values={indicatorNames.map(indicator => indicator.name)} variant={"ghost"} size={"sm"} width={"235px"} placeholder={"Indicators"}
+          <Combobox key={resetKey} values={indicatorNames.map(indicator => indicator.name)} variant={"ghost"} size={"sm"} width={"235px"} placeholder={"Indicator"}
             onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <ThemeToggle size="9" />

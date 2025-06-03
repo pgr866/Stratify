@@ -15,6 +15,9 @@ const defaultValues = [
   "remaining_tradable_value",
   "unrealized_total_value",
   "realized_total_value",
+  "min(, )",
+  "max(, )",
+  "abs()",
 ];
 
 export function DropDownInput({

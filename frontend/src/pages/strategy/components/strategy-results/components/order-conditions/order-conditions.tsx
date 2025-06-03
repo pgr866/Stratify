@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch";
-import { Trash } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Info, Trash } from "lucide-react";
 import { DropDownInput } from "./components/dropdown-input";
 import { toast } from "sonner";
 import { getMarketInfo, startStrategyExecution, stopStrategyExecution, OrderCondition, Order, Condition } from "@/api";
 import { useSession } from "@/App";
 
-export function OrderConditions({ selectedStrategy, setStrategyExecutions, selectedStrategyExecution, setSelectedStrategyExecution, loadStrategyExecution }) {
+export function OrderConditions({ selectedStrategy, setStrategyExecutions, selectedStrategyExecution, setSelectedStrategyExecution, loadStrategyExecution, isLoading }) {
 	const { user } = useSession();
 	const [baseCurrency, setBaseCurrency] = useState("");
 	const [quoteCurrency, setQuoteCurrency] = useState("");
@@ -112,80 +113,114 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 					<h3 className="text-2xl">Market Params.</h3>
 					<p className="text-sm">You can set it yourself if not provided.</p>
 					<Separator className="mb-1" />
-					<div className="flex flex-col gap-2">
-						<div className="flex items-center gap-1">
-							<strong className="mr-1.5">Initial tradable value:</strong>
-							<Input
-								type="number"
-								min={0}
-								disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}
-								value={initialTradableValue}
-								onChange={(e) => setInitialTradableValue(e.target.value)}
-								className="w-32"
-							/>
-							<span>{quoteCurrency}</span>
-						</div>
-						<div className="flex items-center gap-1">
-							<strong>Maker Fee:</strong>
-							<Input
-								type="number"
-								step={0.001}
-								min={-10}
-								max={10}
-								disabled={feesLoaded || selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}
-								value={Number((makerFee * 100).toFixed(3))}
-								onChange={(e) => {
-									const parsed = parseFloat(e.target.value);
-									if (!isNaN(parsed)) {
-										setMakerFee(parsed / 100);
-									}
-								}}
-								className="w-25"
-							/>
-							<span>%</span>
-						</div>
-						<div className="flex items-center gap-1">
-							<strong className="mr-1.5">Taker Fee:</strong>
-							<Input
-								type="number"
-								step={0.001}
-								min={-10}
-								max={10}
-								disabled={feesLoaded || selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}
-								value={Number((takerFee * 100).toFixed(3))}
-								onChange={(e) => {
-									const parsed = parseFloat(e.target.value);
-									if (!isNaN(parsed)) {
-										setTakerFee(parsed / 100);
-									}
-								}}
-								className="w-25"
-							/>
-							<span>%</span>
-						</div>
-						{selectedStrategy?.symbol?.includes(':') && (
-							<div className="flex items-center gap-3">
-								<strong>Leverage:</strong>
+					<TooltipProvider>
+						<div className="flex flex-col gap-2">
+							<div className="flex items-center gap-1">
+								<strong className="mr-1.5">Initial tradable value:</strong>
 								<Input
 									type="number"
-									step={1}
-									min={1}
-									max={maxLeverage ?? undefined}
-									disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}
-									value={leverage}
-									onChange={(e) => setLeverage(e.target.value)}
+									min={0}
+									disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
+									value={initialTradableValue}
+									onChange={(e) => setInitialTradableValue(e.target.value)}
+									className="w-29"
+								/>
+								<span>{quoteCurrency}</span>
+								<Tooltip>
+									<TooltipTrigger asChild className="ml-1">
+										<Info className="size-3.5 text-muted-foreground" />
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>Starting funds available for the trading strategy.</p>
+									</TooltipContent>
+								</Tooltip>
+							</div>
+							<div className="flex items-center gap-1">
+								<strong>Maker Fee:</strong>
+								<Input
+									type="number"
+									step={0.001}
+									min={-10}
+									max={10}
+									disabled={feesLoaded || selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
+									value={Number((makerFee * 100).toFixed(3))}
+									onChange={(e) => {
+										const parsed = parseFloat(e.target.value);
+										if (!isNaN(parsed)) {
+											setMakerFee(parsed / 100);
+										}
+									}}
 									className="w-25"
 								/>
+								<span>%</span>
+								<Tooltip>
+									<TooltipTrigger asChild className="ml-1">
+										<Info className="size-3.5 text-muted-foreground" />
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>Fee charged when you add liquidity by placing a limit order.</p>
+									</TooltipContent>
+								</Tooltip>
 							</div>
-						)}
-					</div>
+							<div className="flex items-center gap-1">
+								<strong className="mr-1.5">Taker Fee:</strong>
+								<Input
+									type="number"
+									step={0.001}
+									min={-10}
+									max={10}
+									disabled={feesLoaded || selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
+									value={Number((takerFee * 100).toFixed(3))}
+									onChange={(e) => {
+										const parsed = parseFloat(e.target.value);
+										if (!isNaN(parsed)) {
+											setTakerFee(parsed / 100);
+										}
+									}}
+									className="w-25"
+								/>
+								<span>%</span>
+								<Tooltip>
+									<TooltipTrigger asChild className="ml-1">
+										<Info className="size-3.5 text-muted-foreground" />
+									</TooltipTrigger>
+									<TooltipContent>
+										<p>Fee charged when you remove liquidity by executing a market order.</p>
+									</TooltipContent>
+								</Tooltip>
+							</div>
+							{selectedStrategy?.symbol?.includes(':') && (
+								<div className="flex items-center gap-3">
+									<strong>Leverage:</strong>
+									<Input
+										type="number"
+										step={1}
+										min={1}
+										max={maxLeverage ?? undefined}
+										disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
+										value={leverage}
+										onChange={(e) => setLeverage(e.target.value)}
+										className="w-25"
+									/>
+									<Tooltip>
+										<TooltipTrigger asChild className="ml-1">
+											<Info className="size-3.5 text-muted-foreground" />
+										</TooltipTrigger>
+										<TooltipContent>
+											<p>Multiplier that increases your exposure relative to your actual capital.</p>
+										</TooltipContent>
+									</Tooltip>
+								</div>
+							)}
+						</div>
+					</TooltipProvider>
 					<div className="mt-2 flex items-center gap-2">
 						<Label>Backtest</Label>
-						<Switch checked={isRealTrading} onCheckedChange={setIsRealTrading} disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user} />
+						<Switch checked={isRealTrading} onCheckedChange={setIsRealTrading} disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading} />
 						<Label className="!opacity-100">Real trading</Label>
 						<Button
 							onClick={() => isRealTrading ? setIsOpenWarningDialog(true) : handleRunStopExecution()}
-							disabled={(selectedStrategyExecution && !selectedStrategyExecution?.running) || !user?.id || user?.id !== selectedStrategy?.user}
+							disabled={(selectedStrategyExecution && !selectedStrategyExecution?.running) || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
 							variant={isRealTrading ? 'destructive' : 'default'}
 							className="w-fit ml-2"
 						>
@@ -267,7 +302,7 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 										{!(isNewCondition && selectedStrategyExecution) && (
 											<div className="flex items-center gap-2">
 												<Button
-													disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}
+													disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
 													variant={condition.start_parenthesis ? "outline" : "ghost"}
 													className={`p-1.5 ${condition.start_parenthesis ? 'border-primary text-primary' : ''}`}
 													onClick={() => handleConditionChange(cIndex, 'start_parenthesis', !condition.start_parenthesis)}
@@ -277,7 +312,7 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 
 												<DropDownInput
 													indicators={selectedStrategy?.indicators?.map((indicator) => indicator.short_name + '_' + (indicator.params ?? []).map(param => param.value).join('_')) ?? []}
-													disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}
+													disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
 													placeholder="Series or numbers"
 													value={condition.left_operand}
 													onChange={(val) => handleConditionChange(cIndex, 'left_operand', val)}
@@ -287,7 +322,7 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 													value={condition.operator}
 													onValueChange={(val) => handleConditionChange(cIndex, 'operator', val)}
 												>
-													<SelectTrigger className="w-fit" disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}>
+													<SelectTrigger className="w-fit" disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}>
 														<SelectValue placeholder="Operator" />
 													</SelectTrigger>
 													<SelectContent>
@@ -302,14 +337,14 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 
 												<DropDownInput
 													indicators={selectedStrategy?.indicators?.map((indicator) => indicator.short_name + '_' + (indicator.params ?? []).map(param => param.value).join('_')) ?? []}
-													disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}
+													disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
 													placeholder="Series or numbers"
 													value={condition.right_operand}
 													onChange={(val) => handleConditionChange(cIndex, 'right_operand', val)}
 												/>
 
 												<Button
-													disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}
+													disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
 													variant={condition.end_parenthesis ? "outline" : "ghost"}
 													className={`p-1.5 ${condition.end_parenthesis ? 'border-primary text-primary' : ''}`}
 													onClick={() => handleConditionChange(cIndex, 'end_parenthesis', !condition.end_parenthesis)}
@@ -321,7 +356,7 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 													value={condition.logical_operator || 'none'}
 													onValueChange={(val) => handleConditionChange(cIndex, 'logical_operator', val === 'none' ? '' : val)}
 												>
-													<SelectTrigger className="w-fit" disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}>
+													<SelectTrigger className="w-fit" disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}>
 														<SelectValue placeholder="Logical" />
 													</SelectTrigger>
 													<SelectContent>
@@ -362,7 +397,7 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 													value={order.type}
 													onValueChange={(val) => handleOrderChange(oIndex, 'type', val)}
 												>
-													<SelectTrigger className="w-fit" disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}>
+													<SelectTrigger className="w-fit" disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}>
 														<SelectValue placeholder="Type" />
 													</SelectTrigger>
 													<SelectContent>
@@ -381,7 +416,7 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 															value={order.side}
 															onValueChange={(val) => handleOrderChange(oIndex, 'side', val)}
 														>
-															<SelectTrigger className="w-fit" disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}>
+															<SelectTrigger className="w-fit" disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}>
 																<SelectValue placeholder="Side" />
 															</SelectTrigger>
 															<SelectContent>
@@ -395,7 +430,7 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 
 														<DropDownInput
 															indicators={selectedStrategy?.indicators?.map((indicator) => indicator.short_name + '_' + (indicator.params ?? []).map(param => param.value).join('_')) ?? []}
-															disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}
+															disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
 															placeholder="Amount"
 															value={order.amount}
 															onChange={(val) => handleOrderChange(oIndex, 'amount', val)}
@@ -404,7 +439,7 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 														{order.type === 'limit' && (
 															<DropDownInput
 																indicators={selectedStrategy?.indicators?.map((indicator) => indicator.short_name + '_' + (indicator.params ?? []).map(param => param.value).join('_')) ?? []}
-																disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user}
+																disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
 																placeholder="Price"
 																value={order.price}
 																onChange={(val) => handleOrderChange(oIndex, 'price', val)}

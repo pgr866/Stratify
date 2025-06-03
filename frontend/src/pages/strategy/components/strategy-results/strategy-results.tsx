@@ -111,10 +111,10 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
         }
       }
     } catch (error: any) {
-      if (executionStateRef.current === id) {
-        setStrategyExecutions([]);
-        toast("Failed to fetch strategy execution", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" });
-      }
+      toast("Failed to load strategy execution", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" });
+      const url = new URL(window.location.href);
+      url.searchParams.delete("execution");
+      window.history.replaceState({}, "", url.toString());
     } finally {
       if (executionStateRef.current === id) {
         setIsLoadingResults(false);
@@ -200,7 +200,8 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
           setStrategyExecutions={setStrategyExecutions}
           selectedStrategyExecution={selectedStrategyExecution}
           setSelectedStrategyExecution={setSelectedStrategyExecution}
-          loadStrategyExecution={loadStrategyExecution} />
+          loadStrategyExecution={loadStrategyExecution}
+          isLoading={isLoading} />
       </TabsContent>
       <TabsContent value="performance" className="h-full overflow-hidden flex flex-col">
         <Performance strategyExecution={selectedStrategyExecution} />
