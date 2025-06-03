@@ -14,23 +14,19 @@ import { useSession } from "@/App";
 import { DashboardStats, getDashboardStats } from "@/api";
 
 export function Dashboard() {
-	const { user } = useSession();
+	const { user, setUser } = useSession();
 	const [selectedDatetimeRange, setSelectedDatetimeRange] = useState({ from: Date.now() - 604800000, to: Date.now() });
-	const [isRealTrading, setIsRealTrading] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [dashboardStats, setDashboardStats] = useState<DashboardStats>({});
 
 	useEffect(() => {
-		console.log(selectedDatetimeRange, isRealTrading);
+		if (!user) return;
 		setIsLoading(true);
-		getDashboardStats(selectedDatetimeRange.from, selectedDatetimeRange.to, isRealTrading)
-			.then((response: DashboardStats) => {
-				setDashboardStats(response.data)
-				setIsRealTrading(response.data.is_real_trading);
-			})
+		getDashboardStats(selectedDatetimeRange.from, selectedDatetimeRange.to, user.dashboard_real_trading)
+			.then((response: DashboardStats) => setDashboardStats(response.data))
 			.catch((error) => toast("Failed to get Dashboard Stats", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }))
 			.finally(() => setIsLoading(false));
-	}, [selectedDatetimeRange, isRealTrading]);
+	}, [selectedDatetimeRange, user?.dashboard_real_trading]);
 
 	return (
 		<div className="flex-1 space-y-4">
@@ -45,7 +41,7 @@ export function Dashboard() {
 				/>
 				<div className="flex gap-2">
 					<Label>Backtest</Label>
-					<Switch checked={isRealTrading} onCheckedChange={setIsRealTrading} disabled={isLoading} />
+					<Switch checked={user?.dashboard_real_trading} onCheckedChange={(val) => setUser({ ...user, dashboard_real_trading: val })} disabled={isLoading} />
 					<Label className="!opacity-100">Real trading</Label>
 				</div>
 			</div>

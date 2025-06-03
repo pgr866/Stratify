@@ -147,7 +147,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
 
   return (
     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="size-full py-1 gap-1">
-      <div className="flex justify-between items-center w-full">
+      <div className="flex justify-between items-center w-full px-2">
         <div className="flex flex-1 justify-start gap-4 mr-4">
           <Combobox
             value={selectedStrategyExecution?.execution_timestamp ? format(toZonedTime(new Date(selectedStrategyExecution.execution_timestamp), user.timezone), "MMM dd yyyy, HH:mm") : ""}

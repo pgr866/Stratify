@@ -32,6 +32,7 @@ export interface User {
 	username: string;
 	email: string;
 	dark_theme: boolean;
+	dashboard_real_trading: boolean;
 	timezone: string;
 	password?: string;
 }

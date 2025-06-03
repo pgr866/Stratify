@@ -464,6 +464,7 @@ class StrategyView(viewsets.ModelViewSet):
             if self.request.path.endswith('/strategy/me/'):
                 return Strategy.objects.filter(user=self.request.user)
             else:
+                # filtros
                 return Strategy.objects.filter(is_public=True)
         else:
             return Strategy.objects.filter(Q(id=self.kwargs['pk']), Q(is_public=True) | Q(user=self.request.user))
@@ -1336,6 +1337,9 @@ class DashboardStatsView(APIView):
             is_real_trading = request.query_params.get("is_real_trading") == "true"
         except (TypeError, ValueError):
             return Response({"error": "Invalid query parameters"}, status=400)
+        
+        request.user.dashboard_real_trading = is_real_trading
+        request.user.save(update_fields=["dashboard_real_trading"])
 
         strategies = Strategy.objects.filter(user=request.user)
         executions = StrategyExecution.objects.filter(
@@ -1349,7 +1353,6 @@ class DashboardStatsView(APIView):
             timestamp__gte=timestamp_start,
             timestamp__lte=timestamp_end
         ).order_by("timestamp")
-        import sys; print(trades.count(), file=sys.stderr)
 
         total_closed_trades = trades.count()
         closing_trades = trades.filter(cost__lt=0)

@@ -10,6 +10,7 @@ class User(AbstractUser):
     password = models.CharField(max_length=128) # Default value in AbstractUser
     timezone = models.CharField(max_length=255, default="UTC")
     dark_theme = models.BooleanField(default=True)
+    dashboard_real_trading = models.BooleanField(default=False)
     google_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
     github_id = models.CharField(max_length=255, null=True, blank=True, unique=True)
 
