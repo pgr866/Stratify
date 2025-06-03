@@ -12,8 +12,9 @@ const api = axios.create({
 
 // Interceptor to handle errors globally
 api.interceptors.response.use(
-	(response) => response,
-	(error) => {
+	response => response,
+	error => {
+		if (axios.isCancel(error)) return Promise.resolve();
 		if (error.response) {
 			console.error("API Error:", error.response.data);
 			if (error.response.status === 401) {
@@ -267,8 +268,8 @@ export const getCandles = (
 
 // ** Strategy Management **
 
-// Get public strategies
-export const getPublicStrategies = () => api.get<Strategy[]>("strategy/");
+// Get strategies
+export const getStrategies = (name?: string, only_mine?: boolean, exchange?: string, symbol?: string, page?: number, page_size?: number, config = {}) => api.get("strategy/", { params: { name, only_mine, exchange, symbol, page, page_size }, ...config })
 
 // Get user's strategies
 export const getUserStrategies = () => api.get<Strategy[]>("strategy/me/");

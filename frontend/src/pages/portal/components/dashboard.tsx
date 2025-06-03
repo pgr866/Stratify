@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ResultsChart } from "@/components/results-chart"
@@ -168,25 +168,26 @@ export function Dashboard() {
 							You executed {dashboardStats?.total_closed_trades ?? 0} trades in the selected period.
 						</CardDescription>
 					</CardHeader>
-					<CardContent className="px-2 sm:px-6 flex flex-col gap-6">
+					<CardContent className="px-2 sm:px-6 flex flex-col">
 						{dashboardStats?.recent_trades?.map((trade, index) => (
-							<div key={index} className="flex items-center">
-								<div className="ml-4">
-									<p className="text-sm font-medium leading-none">{trade.symbol}</p>
-									<a
-										onClick={() => {
-											window.location.href = `/strategy/${trade.strategy_id}?execution=${trade.strategy_execution_id}`;
-										}}
-										className="cursor-pointer text-sm text-muted-foreground underline hover:text-primary"
-									>
-										{trade.strategy_name}
-									</a>
+							<div key={index}>
+								<div className="flex items-center justify-center">
+									<div className="ml-4">
+										<p className="text-sm font-medium leading-none">{trade.symbol}</p>
+										<a
+											onClick={() => window.location.href = `/strategy/${trade.strategy_id}?execution=${trade.strategy_execution_id}`}
+											className="cursor-pointer text-sm text-muted-foreground underline hover:text-primary"
+										>
+											{trade.strategy_name}
+										</a>
+									</div>
+									<div className="ml-auto font-medium">{format(toZonedTime(new Date(trade.timestamp), user.timezone), "MMM dd yyyy, HH:mm")}</div>
+									<div className={trade?.side === 'buy' ? 'text-[#2EBD85] ml-auto font-medium' : 'text-[#F6465D] ml-auto font-medium'}>{trade.side}</div>
+									<div className={trade?.rel_profit >= 0 ? 'text-[#2EBD85] ml-auto font-medium' : 'text-[#F6465D] ml-auto font-medium'}>
+										{trade?.rel_profit != null ? `${trade?.rel_profit > 0 ? '+' : ''}${(+trade?.rel_profit)?.toFixed(2)}` : '-'}%
+									</div>
 								</div>
-								<div className="ml-auto font-medium">{format(toZonedTime(new Date(trade.timestamp), user.timezone), "MMM dd yyyy, HH:mm")}</div>
-								<div className={trade?.side === 'buy' ? 'text-[#2EBD85] ml-auto font-medium' : 'text-[#F6465D] ml-auto font-medium'}>{trade.side}</div>
-								<div className={trade?.rel_profit >= 0 ? 'text-[#2EBD85] ml-auto font-medium' : 'text-[#F6465D] ml-auto font-medium'}>
-									{trade?.rel_profit != null ? `${trade?.rel_profit > 0 ? '+' : ''}${(+trade?.rel_profit)?.toFixed(2)}` : '-'}%
-								</div>
+								{index < dashboardStats.recent_trades.length - 1 && <Separator className="ml-4 mt-2 mb-4" />}
 							</div>
 						))}
 					</CardContent>

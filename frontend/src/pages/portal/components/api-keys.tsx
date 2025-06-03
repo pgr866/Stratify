@@ -160,7 +160,7 @@ export function ApiKeys() {
           {filteredMoreExchanges.map((exchange) => (
             <Card key={exchange} className="shadow-md">
               <CardHeader>
-                <CardTitle className="flex flex-wrap items-center text-lg capitalize break-all">
+                <CardTitle className="flex flex-wrap items-center text-lg capitalize">
                   {exchange}
                   <div className="ml-auto">
                     <Button variant="ghost" size="icon" onClick={() => {

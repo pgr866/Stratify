@@ -22,6 +22,7 @@ from django.utils.decorators import method_decorator
 
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -449,8 +450,14 @@ class MarketInfoView(APIView):
         except Exception:
             return Response({'error': f"Failed to load {symbol} market at {exchange_name}"}, status=status.HTTP_404_NOT_FOUND)
 
+class StrategyPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class StrategyView(viewsets.ModelViewSet):
     serializer_class = StrategySerializer
+    pagination_class = StrategyPagination
     
     def get_permissions(self):
         if self.action in ['retrieve', 'list']:
@@ -464,10 +471,40 @@ class StrategyView(viewsets.ModelViewSet):
             if self.request.path.endswith('/strategy/me/'):
                 return Strategy.objects.filter(user=self.request.user)
             else:
-                # filtros
-                return Strategy.objects.filter(is_public=True)
+                name = self.request.query_params.get('name')
+                only_mine = self.request.query_params.get('only_mine')
+                exchange = self.request.query_params.get('exchange')
+                symbol = self.request.query_params.get('symbol')
+                if only_mine and only_mine.lower() == 'true':
+                    queryset = Strategy.objects.filter(user=self.request.user)
+                else:
+                    queryset = Strategy.objects.filter(is_public=True)
+                if name:
+                    queryset = queryset.filter(name__icontains=name)
+                if exchange:
+                    queryset = queryset.filter(exchange__iexact=exchange)
+                if symbol:
+                    queryset = queryset.filter(symbol__iexact=symbol)
+                return queryset.order_by('-clones_count')
         else:
             return Strategy.objects.filter(Q(id=self.kwargs['pk']), Q(is_public=True) | Q(user=self.request.user))
+    
+    def get_paginated_response(self, data):
+        return super().get_paginated_response(data)
+        
+    def list(self, request, *args, **kwargs):
+        if request.path.endswith('/strategy/me/'):
+            queryset = self.get_queryset()
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        else:
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
         
     def _get_unique_name(self, name, current_id=None):
         counter = 0
