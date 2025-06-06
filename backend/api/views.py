@@ -479,7 +479,7 @@ class StrategyView(viewsets.ModelViewSet):
                 if only_mine and only_mine.lower() == 'true':
                     queryset = Strategy.objects.filter(user=self.request.user)
                 else:
-                    queryset = Strategy.objects.filter(is_public=True)
+                    queryset = Strategy.objects.filter(Q(is_public=True) | Q(user=self.request.user))
                 if name:
                     queryset = queryset.filter(name__icontains=name)
                 if exchange:
@@ -876,20 +876,20 @@ class StrategyExecutionView(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         strategy_id = request.query_params.get('strategy_id')
         if not strategy_id:
-            return Response({"detail": "Missing strategy parameter."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Missing strategy parameter"}, status=status.HTTP_400_BAD_REQUEST)
         try:
             strategy = Strategy.objects.get(id=strategy_id)
         except Strategy.DoesNotExist:
             return Response({"detail": "Strategy not found."}, status=status.HTTP_404_NOT_FOUND)
         if not strategy.is_public and strategy.user != request.user:
-            return Response({"detail": "Not authorized to view this strategy."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "Not authorized to view this strategy"}, status=status.HTTP_403_FORBIDDEN)
         executions = StrategyExecution.objects.filter(strategy_id=strategy_id).values('id', 'execution_timestamp')
         return Response(list(executions))
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         if not instance.strategy.is_public and instance.strategy.user != request.user:
-            return Response({"detail": "Not authorized to view this execution."}, status=status.HTTP_403_FORBIDDEN)
+            return Response({"detail": "Not authorized to view this execution"}, status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer(instance)
         data = serializer.data
         trades = Trade.objects.filter(strategy_execution=instance).values()
@@ -902,15 +902,6 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             execution = StrategyExecution.objects.get(id=execution_id)
             exchange = Exchange(execution.exchange, request.user)
             real_trading = execution.type == 'real'
-            if real_trading:
-                try:
-                    exchange.fetch_balance()
-                except ccxt.AuthenticationError as e:
-                    raise ValueError("API keys are invalid or missing")
-                except ccxt.NetworkError as e:
-                    raise ConnectionError("Network issue while checking API keys")
-                except Exception as e:
-                    raise RuntimeError("Unexpected error while checking API keys")
                 
             trades_df = pd.DataFrame(columns=['strategy_execution', 'type', 'side', 'timestamp', 'price', 'amount', 'cost', 'avg_entry_price', 'abs_profit', 'rel_profit', 'abs_cum_profit', 'rel_cum_profit', 'abs_hodling_profit', 'rel_hodling_profit', 'abs_runup', 'rel_runup', 'abs_drawdown', 'rel_drawdown'])
             open_orders_df = pd.DataFrame(columns=['id', 'timestamp', 'side', 'price', 'amount', 'cost'])
@@ -936,7 +927,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 nonlocal min_ever_total_unrealized_value
                 
                 fee = taker_fee if type == "market" else maker_fee
-                
+                last_avg_entry_price = c.at[i, 'avg_entry_price']
                 if c.at[i, 'position_amount'] * order['amount'] >= 0:
                     order_cost = abs(order['amount']) * order['price'] * (Decimal(1 / leverage) + fee)
                     if type == "market" and order_cost > c.at[i, 'remaining_tradable_value']:
@@ -947,7 +938,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     order['amount'] = min(abs(order['amount']), abs(c.at[i, 'position_amount'])) * order['amount'] / abs(order['amount'])
                     if type == 'limit':
                         c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - order['price'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else order['price'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
-                    order_cost = c.at[i, 'position_value'] * order['amount'] / c.at[i, 'position_amount'] + abs(order['amount']) * (2 * c.at[i, 'avg_entry_price'] - order['price'] if c.at[i, 'position_amount'] < 0 else order['price']) * fee
+                    order_cost = c.at[i, 'position_value'] * order['amount'] / c.at[i, 'position_amount'] + abs(order['amount']) * Decimal(2 * c.at[i, 'avg_entry_price'] - order['price'] if c.at[i, 'position_amount'] < 0 else order['price']) * fee
                     if c.at[i, 'position_amount'] + order['amount'] == 0:
                         c.at[i, 'avg_entry_price'] = 0
                 c.at[i, 'position_amount'] += order['amount']
@@ -958,12 +949,12 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 if not (type == "limit" and order_cost > 0): c.at[i, 'remaining_tradable_value'] -= order_cost
                 c.at[i, 'realized_total_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
                 c.at[i, 'unrealized_total_value'] = c.at[i, 'position_value'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
-                abs_profit = -1 * abs(order['amount']) * c.at[i, 'avg_entry_price'] - order_cost if c.at[i, 'position_amount'] * order['amount'] < 0 else -1 * abs(order['amount']) * order['price'] * fee
+                abs_profit = -1 * abs(order['amount']) * last_avg_entry_price - order_cost if c.at[i, 'position_amount'] * order['amount'] <= 0 else -1 * abs(order['amount']) * Decimal(order['price']) * fee
                 rel_profit = abs_profit / execution.initial_tradable_value * 100
                 abs_cum_profit = (trades_df['abs_cum_profit'].iloc[-1] if not trades_df.empty else 0) + abs_profit
                 rel_cum_profit = (trades_df['rel_cum_profit'].iloc[-1] if not trades_df.empty else 0) + rel_profit
-                abs_hodling_profit = execution.initial_tradable_value * (c.at[i, 'close'] / c.at[1, 'open'] - 1)
-                rel_hodling_profit = (c.at[i, 'close'] / c.at[1, 'open'] - 1) * 100
+                abs_hodling_profit = execution.initial_tradable_value * Decimal(c.at[i, 'close'] / c.at[1, 'open'] - 1)
+                rel_hodling_profit = Decimal(c.at[i, 'close'] / c.at[1, 'open'] - 1) * 100
                 max_ever_total_unrealized_value = max(max_ever_total_unrealized_value, c.at[i, 'unrealized_total_value'])
                 min_ever_total_unrealized_value = min(min_ever_total_unrealized_value, c.at[i, 'unrealized_total_value'])
                 abs_runup = c.at[i, 'unrealized_total_value'] - min_ever_total_unrealized_value
@@ -1030,7 +1021,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 if type == 'market':
                     trade_calculation(type, order)
                 else:
-                    order['cost'] = abs(order['amount']) * order['price'] * (Decimal(1 / leverage) + maker_fee) if c.at[i, 'position_amount'] * order['amount'] >= 0 else c.at[i, 'position_value'] * order['amount'] / c.at[i, 'position_amount'] + abs(order['amount']) * (2 * c.at[i, 'avg_entry_price'] - order['price'] if c.at[i, 'position_amount'] < 0 else order['price']) * fee
+                    order['cost'] = abs(order['amount']) * order['price'] * (Decimal(1 / leverage) + maker_fee) if c.at[i, 'position_amount'] * order['amount'] >= 0 else c.at[i, 'position_value'] * order['amount'] / c.at[i, 'position_amount'] + abs(order['amount']) * Decimal(2 * c.at[i, 'avg_entry_price'] - order['price'] if c.at[i, 'position_amount'] < 0 else order['price']) * maker_fee
                     if order['cost'] > 0:
                         if order['cost'] > c.at[i, 'remaining_tradable_value']:
                             order['amount'] = c.at[i, 'remaining_tradable_value'] / order['price'] / (Decimal(1 / leverage) + maker_fee) * order['amount'] / abs(order['amount'])
@@ -1050,11 +1041,11 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 timestamp_end=execution.timestamp_start - timeframe_ms if real_trading else execution.timestamp_end,
                 db_search=True
             )
-            
             indicators = json.loads(execution.indicators)
             
             def calculate_indicators(timestamp_start, timestamp_end):
                 nonlocal c
+                if len(c) < 2: return
                 c = c.set_index('timestamp')
                 for indicator in indicators:
                     short_name = indicator.get('short_name')
@@ -1064,10 +1055,11 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     indicator_response = IndicatorView().compute_indicator_data(
                         user=request.user,
                         strategy=execution.strategy,
-                        timestamp_start= timestamp_start,
-                        timestamp_end= timestamp_end,
+                        timestamp_start=int(timestamp_start),
+                        timestamp_end=int(timestamp_end),
                         indicator_id=indicator.get('id')
                     )
+                    import sys; print(indicator_response.get('data', []), file=sys.stderr)
                     indicator_df = pd.DataFrame(indicator_response.get('data', [])).rename(columns={'time': 'timestamp'}).set_index('timestamp')
                     if indicator_df.empty:
                         continue
@@ -1075,14 +1067,14 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         indicator_values = indicator_df.rename(columns={indicator_df.columns[0]: indicator.get('col_name')})
                     else:
                         indicator_values = indicator_df.add_prefix(indicator.get('col_name') + "_")
+                    
                     for col in indicator_values.columns:
                         if col not in c.columns:
-                            c[col] = indicator_values[col]
-                        else:
-                            c.at[c.index[-1], col] = indicator_values.iloc[-1][col]
+                            c[col] = float('nan')
+                        c.loc[indicator_values.index, col] = indicator_values[col]
                 c = c.reset_index()
             
-            calculate_indicators(execution.timestamp_start - timeframe_ms, execution.timestamp_end)
+            calculate_indicators(c.at[0, 'timestamp'] + timeframe_ms, execution.timestamp_end)
             c[['position_amount', 'position_value', 'avg_entry_price', 'remaining_tradable_value', 'unrealized_total_value', 'realized_total_value']] = None
             
             columns = c.columns.difference(['timestamp']).tolist()
@@ -1133,8 +1125,8 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     orders_result += ")\n"
                 for old, new in replacements:
                     orders_result = orders_result.replace(old, new)
-                if orders_result.count(':') or [w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9_]*\b', orders_result) if w not in set(columns + ['min', 'max', 'abs', 'crossunder', 'crossabove', 'and', 'or', 'c', 'at', 'i'])]:
-                    raise ValueError("Invalid condition syntax in orders")
+                if ':' in orders_result or [w for w in re.findall(r'\b[a-zA-Z][a-zA-Z0-9_]*\b', orders_result) if w not in set(columns + ['min', 'max', 'abs', 'make_order', 'market', 'limit', 'buy', 'sell', 'c', 'at', 'i'])]:
+                    raise ValueError(f"Invalid condition syntax in orders")
                 orders_str.append(orders_result)
             
             if real_trading:
@@ -1144,13 +1136,12 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         c.at[i, 'position_amount'] = 0
                         c.at[i, 'avg_entry_price'] = 0
                         c.at[i, 'remaining_tradable_value'] = execution.initial_tradable_value
-                        i = 1
                     else:
                         c.at[i, 'position_amount'] = c.at[i-1, 'position_amount']
                         c.at[i, 'avg_entry_price'] = c.at[i-1, 'avg_entry_price']
                         c.at[i, 'remaining_tradable_value'] = c.at[i-1, 'remaining_tradable_value']
                     if c.at[i, 'avg_entry_price'] > 0:
-                        c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - c.at[i, 'close'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else c.at[i, 'close'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
+                        c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * Decimal((2 - c.at[i, 'close'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else c.at[i, 'close'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
                     else:
                         c.at[i, 'position_value'] = 0
                     if c.at[i, 'position_value'] < 0:
@@ -1167,20 +1158,18 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     rel_max_drawdown = abs_max_drawdown / max_ever_total_unrealized_value * 100 if max_ever_total_unrealized_value != 0 else 0
                     if i > 0:
                         orders_to_drop = []
-                        for open_order in open_orders_df.itertuples(index=False):
+                        for open_order in open_orders_df.itertuples():
                             order_data = exchange.fetch_order(open_order.id, symbol)
                             if order_data.get('status') == 'closed':
-                                trade_calculation('limit', {'id': open_order.id, 'timestamp': order_data.get('timestamp', c.at[i, 'timestamp']), 'amount': open_order.amount, 'price': open_order.price})
+                                trade_calculation('limit', {'id': open_order.id, 'timestamp': order_data.get('timestamp', c.at[i, 'timestamp']), 'side': open_order.side, 'amount': open_order.amount, 'price': open_order.price})
                                 orders_to_drop.append(open_order.Index)
                         open_orders_df = open_orders_df.drop(orders_to_drop).reset_index(drop=True)
                         for x, condition_result in enumerate(conditions_str):
                             try:
                                 if eval(condition_result):
-                                    orders_result = orders_str[x]
-                                    exec(orders_result)
+                                    exec(orders_str[x])
                             except Exception as e:
                                 raise ValueError("Error evaluating condition or order")
-                        execution.timestamp_end = c.iloc[-1]['timestamp']
                         execution.abs_net_profit = trades_df.iloc[-1]['abs_cum_profit'] if len(trades_df) > 0 else None
                         execution.rel_net_profit = trades_df.iloc[-1]['rel_cum_profit'] if len(trades_df) > 0 else None
                         execution.total_closed_trades = len(trades_df)
@@ -1196,11 +1185,11 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         execution.abs_max_drawdown = abs_max_drawdown
                         execution.rel_max_drawdown = rel_max_drawdown
                         Trade.objects.bulk_create([Trade(**row) for row in trades_df.to_dict(orient='records')])
-                    last_candle_timestamp = c.at[c.index[-1], 'timestamp']
-                    next_candle_timestamp = last_candle_timestamp + timeframe_ms
-                    execution.timestamp_end = next_candle_timestamp
+                    execution.timestamp_end = int(c.at[c.index[-1], 'timestamp'])
                     execution.save()
-                    timestamp_wait = next_candle_timestamp + timeframe_ms
+                    last_candle_timestamp = int(c.at[c.index[-1], 'timestamp'])
+                    next_candle_timestamp = int(last_candle_timestamp + timeframe_ms)
+                    timestamp_wait = int(next_candle_timestamp + timeframe_ms)
                     wait_ms = timestamp_wait - int(time.time() * 1000)
                     while wait_ms > 0:
                         if wait_ms > 1000:
@@ -1208,15 +1197,17 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                             execution.refresh_from_db()
                             if not execution.running: return
                         wait_ms = timestamp_wait - int(time.time() * 1000)
-                    c = pd.concat([c, CandleView().get_candles(
+                    new_candles = CandleView().get_candles(
                         exchange=exchange,
                         symbol=symbol,
                         timeframe=execution.timeframe,
-                        timestamp_start=next_candle_timestamp,
+                        timestamp_start=last_candle_timestamp + 1000,
                         timestamp_end=next_candle_timestamp
-                    ).reindex(columns=c.columns)], ignore_index=True)
+                    ).reindex(columns=c.columns)
+                    c = pd.concat([c, new_candles[new_candles['timestamp'] == next_candle_timestamp]], ignore_index=True)
                     if len(c) > 2: c = c.iloc[1:].reset_index(drop=True)
-                    calculate_indicators(next_candle_timestamp, next_candle_timestamp)
+                    calculate_indicators(execution.timestamp_start - 2 * timeframe_ms, next_candle_timestamp)
+                    import sys; print(c, file=sys.stderr)
                     if i == 0: i = 1
             else:
                 for i in c.index:
@@ -1232,7 +1223,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         c.at[i, 'avg_entry_price'] = c.at[i-1, 'avg_entry_price']
                         c.at[i, 'remaining_tradable_value'] = c.at[i-1, 'remaining_tradable_value']
                     if c.at[i, 'avg_entry_price'] > 0:
-                        c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - c.at[i, 'close'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else c.at[i, 'close'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
+                        c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * Decimal((2 - c.at[i, 'close'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else Decimal(c.at[i, 'close']) / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
                     else:
                         c.at[i, 'position_value'] = 0
                     if c.at[i, 'position_value'] < 0:
@@ -1250,19 +1241,18 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     if i == 0:
                         continue
                     orders_to_drop = []
-                    for open_order in open_orders_df.itertuples(index=False):
+                    for open_order in open_orders_df.itertuples():
                         if open_order.side == 'buy' and c.at[i, 'low'] <= open_order.price or open_order.side == 'sell' and c.at[i, 'high'] >= open_order.price:
-                            trade_calculation('limit', {'id': open_order.id, 'timestamp': c.at[i, 'timestamp'], 'amount': open_order.amount, 'price': open_order.price})
+                            trade_calculation('limit', {'id': open_order.id, 'timestamp': c.at[i, 'timestamp'], 'side': open_order.side, 'amount': open_order.amount, 'price': open_order.price})
                             orders_to_drop.append(open_order.Index)
                     open_orders_df = open_orders_df.drop(orders_to_drop).reset_index(drop=True)
                     for x, condition_result in enumerate(conditions_str):
                         try:
                             if eval(condition_result):
-                                orders_result = orders_str[x]
-                                exec(orders_result)
+                                exec(orders_str[x])
                         except Exception as e:
                             raise ValueError("Error evaluating condition or order")
-                execution.timestamp_end = c.iloc[-1]['timestamp']
+                execution.timestamp_end = c.at[c.index[-1], 'timestamp']
                 execution.abs_net_profit = trades_df.iloc[-1]['abs_cum_profit'] if len(trades_df) > 0 else None
                 execution.rel_net_profit = trades_df.iloc[-1]['rel_cum_profit'] if len(trades_df) > 0 else None
                 execution.total_closed_trades = len(trades_df)
@@ -1308,6 +1298,10 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             strategy = Strategy.objects.get(id=request.data["strategy_id"])
         except Strategy.DoesNotExist:
             return Response({"detail": "Strategy not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        initial_tradable_value = Decimal(request.data["initial_tradable_value"])
+        if initial_tradable_value <= 0:
+            return Response({"detail": "The initial tradable value must be greater than 0"}, status=status.HTTP_400_BAD_REQUEST)
 
         type = request.data["type"]
         timeframe = strategy.timeframe
@@ -1317,6 +1311,11 @@ class StrategyExecutionView(viewsets.ModelViewSet):
         if type == 'real':
             timestamp_end = now
             timestamp_start = now
+            try:
+                exchange = Exchange(strategy.exchange, request.user)
+                exchange.fetch_balance()
+            except Exception:
+                return Response({"detail": "API keys are invalid or missing."}, status=status.HTTP_400_BAD_REQUEST)
         
         execution = StrategyExecution.objects.create(
             strategy=strategy,
@@ -1331,7 +1330,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             indicators=strategy.indicators,
             maker_fee=Decimal(request.data["maker_fee"]),
             taker_fee=Decimal(request.data["taker_fee"]),
-            initial_tradable_value=Decimal(request.data["initial_tradable_value"]),
+            initial_tradable_value=initial_tradable_value,
             leverage=int(request.data["leverage"]),
             execution_timestamp=now,
             abs_net_profit=None,
@@ -1353,7 +1352,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['patch'])
-    def stop(self):
+    def stop(self, request, pk=None):
         instance = self.get_object()
         instance.running = False
         instance.save()
