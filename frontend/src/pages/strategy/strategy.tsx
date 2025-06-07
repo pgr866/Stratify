@@ -30,6 +30,21 @@ export function Strategy() {
     { name: "Exponential Moving Average", short_name: "EMA" },
     { name: "Bollinger Bands", short_name: "BBANDS" },
     { name: "MACD", short_name: "MACD" },
+    { name: "Aroon", short_name: "AROON" },
+    { name: "Average Directional Index", short_name: "ADX" },
+    { name: "Commodity Channel Index", short_name: "CCI" },
+    { name: "Money Flow Index", short_name: "MFI" },
+    { name: "Momentum", short_name: "MOM" },
+    { name: "Rate of Change", short_name: "ROC" },
+    { name: "Stochastic", short_name: "STOCH" },
+    { name: "Stochastic RSI", short_name: "STOCHRSI" },
+    { name: "TRIX", short_name: "TRIX" },
+    { name: "Ultimate Oscillator", short_name: "ULTOSC" },
+    { name: "Williams %R", short_name: "WILLR" },
+    { name: "On Balance Volume", short_name: "OBV" },
+    { name: "Parabolic SAR", short_name: "SAR" },
+    { name: "Average True Range", short_name: "ATR" },
+    { name: "Chaikin A/D Line", short_name: "AD" },
   ];
   const [selectedStrategy, setSelectedStrategy] = useState();
   const prevStrategyRef = useRef(selectedStrategy);
@@ -256,7 +271,7 @@ export function Strategy() {
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Combobox value={selectedExchange} values={exchanges} onChange={(value) => value !== selectedExchange && (setIsLoading(true), setSelectedExchange(value))} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"180px"} placeholder={"Exchange"} icon={<Landmark />} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"190px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
+          <Combobox value={selectedSymbol} values={symbols} onChange={(value) => setSelectedSymbol(value)} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} alwaysSelected={true} variant={"ghost"} size={"sm"} width={"187px"} placeholder={"Symbol"} icon={<Bitcoin />} tagConfig={tagConfig} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <Select value={selectedTimeframe}
             onValueChange={(value) => setSelectedTimeframe(value)}>
@@ -289,7 +304,7 @@ export function Strategy() {
             disabled={isLoading || !user?.id || user?.id !== selectedStrategy?.user}
           />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox key={resetKey} values={indicatorNames.map(indicator => indicator.name)} variant={"ghost"} size={"sm"} width={"235px"} placeholder={"Indicator"}
+          <Combobox key={resetKey} values={indicatorNames.map(indicator => indicator.name)} variant={"ghost"} size={"sm"} width={"242px"} placeholder={"Indicator"}
             onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <ThemeToggle size="9" />

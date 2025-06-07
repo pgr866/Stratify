@@ -814,6 +814,366 @@ class IndicatorView(APIView):
                     slowperiod=slow_period,
                     signalperiod=signal_period
                 )
+            case 'AROON':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 14},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * length
+                )
+
+                candles_df['aroondown'], candles_df['aroonup'] = ta.AROON(
+                    candles_df['high'].astype(float).values,
+                    candles_df['low'].astype(float).values,
+                    timeperiod=length
+                )
+            case 'ADX':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 14},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * length
+                )
+
+                candles_df['adx'] = ta.ADX(
+                    candles_df['high'].astype(float).values,
+                    candles_df['low'].astype(float).values,
+                    candles_df['close'].astype(float).values,
+                    timeperiod=length
+                )
+            case 'CCI':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 20},
+                        {"key": "upper_limit", "value": 100},
+                        {"key": "lower_limit", "value": -100},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * length
+                )
+
+                candles_df['cci'] = ta.CCI(
+                    candles_df['high'].astype(float).values,
+                    candles_df['low'].astype(float).values,
+                    candles_df['close'].astype(float).values,
+                    timeperiod=length
+                )
+            case 'MFI':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 14},
+                        {"key": "upper_limit", "value": 80},
+                        {"key": "lower_limit", "value": 20},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * length
+                )
+
+                candles_df['mfi'] = ta.MFI(
+                    candles_df['high'].astype(float).values,
+                    candles_df['low'].astype(float).values,
+                    candles_df['close'].astype(float).values,
+                    candles_df['volume'].astype(float).values,
+                    timeperiod=length
+                )
+            case 'MOM':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 10},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=length
+                )
+
+                candles_df['momentum'] = ta.MOM(
+                    candles_df['close'].astype(float).values,
+                    timeperiod=length
+                )
+            case 'ROC':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 9},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=length
+                )
+
+                candles_df['roc'] = ta.ROC(
+                    candles_df['close'].astype(float).values,
+                    timeperiod=length
+                )
+            case 'STOCH':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "k_length", "value": 14},
+                        {"key": "k_smoothing", "value": 1},
+                        {"key": "d_smoothing", "value": 3},
+                        {"key": "upper_limit", "value": 80},
+                        {"key": "lower_limit", "value": 20},
+                    ]
+                k_length = int(next(p for p in indicator['params'] if p['key'] == 'k_length')['value'])
+                k_smoothing = int(next(p for p in indicator['params'] if p['key'] == 'k_smoothing')['value'])
+                d_smoothing = int(next(p for p in indicator['params'] if p['key'] == 'd_smoothing')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * max(k_length, k_smoothing, d_smoothing)
+                )
+
+                candles_df['slowk'], candles_df['slowd'] = ta.STOCH(
+                    high=candles_df['high'].astype(float).values,
+                    low=candles_df['low'].astype(float).values,
+                    close=candles_df['close'].astype(float).values,
+                    fastk_period=k_length,
+                    slowk_period=k_smoothing,
+                    slowk_matype=0,
+                    slowd_period=d_smoothing,
+                    slowd_matype=0
+                )
+            case 'STOCHRSI':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "rsi_length", "value": 14},
+                        {"key": "k_smoothing", "value": 3},
+                        {"key": "d_smoothing", "value": 3},
+                        {"key": "upper_limit", "value": 80},
+                        {"key": "lower_limit", "value": 20},
+                    ]
+                rsi_length = int(next(p for p in indicator['params'] if p['key'] == 'rsi_length')['value'])
+                k_smoothing = int(next(p for p in indicator['params'] if p['key'] == 'k_smoothing')['value'])
+                d_smoothing = int(next(p for p in indicator['params'] if p['key'] == 'd_smoothing')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * max(rsi_length, k_smoothing, d_smoothing)
+                )
+
+                candles_df['fastk'], candles_df['fastd'] = ta.STOCHRSI(
+                    candles_df['close'].astype(float).values,
+                    timeperiod=rsi_length,
+                    fastk_period=k_smoothing,
+                    fastd_period=d_smoothing,
+                    fastd_matype=0
+                )
+            case 'TRIX':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 18},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * length
+                )
+
+                candles_df['trix'] = ta.TRIX(
+                    candles_df['close'].astype(float).values,
+                    timeperiod=length
+                )
+            case 'ULTOSC':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length1", "value": 7},
+                        {"key": "length2", "value": 14},
+                        {"key": "length3", "value": 28},
+                    ]
+                length1 = int(next(p for p in indicator['params'] if p['key'] == 'length1')['value'])
+                length2 = int(next(p for p in indicator['params'] if p['key'] == 'length2')['value'])
+                length3 = int(next(p for p in indicator['params'] if p['key'] == 'length3')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * max(length1, length2, length3)
+                )
+
+                candles_df['ultosc'] = ta.ULTOSC(
+                    candles_df['high'].astype(float).values,
+                    candles_df['low'].astype(float).values,
+                    candles_df['close'].astype(float).values,
+                    timeperiod1=length1,
+                    timeperiod2=length2,
+                    timeperiod3=length3
+                )
+            case 'WILLR':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 14},
+                        {"key": "upper_limit", "value": -20},
+                        {"key": "lower_limit", "value": -80},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=length
+                )
+
+                candles_df['willr'] = ta.WILLR(
+                    candles_df['high'].astype(float).values,
+                    candles_df['low'].astype(float).values,
+                    candles_df['close'].astype(float).values,
+                    timeperiod=length
+                )
+            case 'OBV':
+                if new_indicator:
+                    indicator['params'] = []
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2
+                )
+
+                candles_df['obv'] = ta.OBV(
+                    candles_df['close'].astype(float).values,
+                    candles_df['volume'].astype(float).values
+                )
+            case 'SAR':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "increment", "value": 0.02},
+                        {"key": "maximum", "value": 0.2},
+                    ]
+                increment = float(next(p for p in indicator['params'] if p['key'] == 'increment')['value'])
+                maximum = float(next(p for p in indicator['params'] if p['key'] == 'maximum')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=int(2 * max(increment, maximum))
+                )
+
+                candles_df['sar'] = ta.SAR(
+                    candles_df['high'].astype(float).values,
+                    candles_df['low'].astype(float).values,
+                    acceleration=increment,
+                    maximum=maximum
+                )
+            case 'ATR':
+                if new_indicator:
+                    indicator['params'] = [
+                        {"key": "length", "value": 14},
+                    ]
+                length = int(next(p for p in indicator['params'] if p['key'] == 'length')['value'])
+
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2 * length
+                )
+
+                candles_df['atr'] = ta.ATR(
+                    candles_df['high'].astype(float).values,
+                    candles_df['low'].astype(float).values,
+                    candles_df['close'].astype(float).values,
+                    timeperiod=length
+                )
+            case 'AD':
+                if new_indicator:
+                    indicator['params'] = []
+                candles_df = CandleView().get_candles(
+                    exchange=Exchange(exchange, user),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    timestamp_start=timestamp_start,
+                    timestamp_end=timestamp_end,
+                    db_search=True,
+                    extra_candles=2
+                )
+                candles_df['ad'] = ta.AD(
+                    candles_df['high'].astype(float).values,
+                    candles_df['low'].astype(float).values,
+                    candles_df['close'].astype(float).values,
+                    candles_df['volume'].astype(float).values
+                )
+
             case _:
                 raise NotImplementedError("Indicator type not implemented")
         

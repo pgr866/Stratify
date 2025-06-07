@@ -55,6 +55,24 @@ export function DropDownInput({
           `${ind}_macdsignal`,
         ];
       }
+      if (ind.startsWith('AROON_')) {
+        return [
+          `${ind}_aroondown`,
+          `${ind}_aroonup`,
+        ];
+      }
+      if (ind.startsWith('STOCH_')) {
+        return [
+          `${ind}_slowk`,
+          `${ind}_slowd`,
+        ];
+      }
+      if (ind.startsWith('STOCHRSI_')) {
+        return [
+          `${ind}_fastk`,
+          `${ind}_fastd`,
+        ];
+      }
       return [ind];
     });
 

@@ -495,6 +495,67 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'macd'), newPaneIndex, () => 'blue', 1, 0);
 				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'macdsignal'), newPaneIndex, () => 'orange', 1, 0);
 				break;
+			case 'AROON':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'aroondown'), newPaneIndex, () => 'blue', 1, 0, indicator.id, legendLabel);
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'aroonup'), newPaneIndex, () => 'orange', 1, 0);
+				break;
+			case 'ADX':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'adx'), newPaneIndex, () => 'red', 1, 0, indicator.id, legendLabel);
+				break;
+			case 'CCI':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'cci'), newPaneIndex, () => 'blue', 1, 0, indicator.id, legendLabel);
+				addHorizontalLine(newPaneIndex, indicator.params.find(p => p.key === 'upper_limit').value, 'grey');
+				addHorizontalLine(newPaneIndex, indicator.params.find(p => p.key === 'lower_limit').value, 'grey');
+				break;
+			case 'MFI':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'mfi'), newPaneIndex, () => 'violet', 1, 0, indicator.id, legendLabel);
+				addHorizontalLine(newPaneIndex, indicator.params.find(p => p.key === 'upper_limit').value, 'grey');
+				addHorizontalLine(newPaneIndex, indicator.params.find(p => p.key === 'lower_limit').value, 'grey');
+				break;
+			case 'MOM':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'momentum'), newPaneIndex, () => 'blue', 1, 0, indicator.id, legendLabel);
+				addHorizontalLine(newPaneIndex, 0, 'grey');
+				break;
+			case 'ROC':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'roc'), newPaneIndex, () => 'blue', 1, 0, indicator.id, legendLabel);
+				addHorizontalLine(newPaneIndex, 0, 'grey');
+				break;
+			case 'STOCH':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'slowk'), newPaneIndex, () => 'blue', 1, 0, indicator.id, legendLabel);
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'slowd'), newPaneIndex, () => 'orange', 1, 0);
+				addHorizontalLine(newPaneIndex, indicator.params.find(p => p.key === 'upper_limit').value, 'grey');
+				addHorizontalLine(newPaneIndex, indicator.params.find(p => p.key === 'lower_limit').value, 'grey');
+				break;
+			case 'STOCHRSI':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'fastk'), newPaneIndex, () => 'blue', 1, 0, indicator.id, legendLabel);
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'fastd'), newPaneIndex, () => 'orange', 1, 0);
+				addHorizontalLine(newPaneIndex, indicator.params.find(p => p.key === 'upper_limit').value, 'grey');
+				addHorizontalLine(newPaneIndex, indicator.params.find(p => p.key === 'lower_limit').value, 'grey');
+				break;
+			case 'TRIX':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'trix'), newPaneIndex, () => 'red', 1, 0, indicator.id, legendLabel);
+				addHorizontalLine(newPaneIndex, 0, 'grey');
+				break;
+			case 'ULTOSC':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'ultosc'), newPaneIndex, () => 'red', 1, 0, indicator.id, legendLabel);
+				break;
+			case 'WILLR':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'willr'), newPaneIndex, () => 'violet', 1, 0, indicator.id, legendLabel);
+				addHorizontalLine(newPaneIndex, indicator.params.find(p => p.key === 'upper_limit').value, 'grey');
+				addHorizontalLine(newPaneIndex, indicator.params.find(p => p.key === 'lower_limit').value, 'grey');
+				break;
+			case 'OBV':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'obv'), newPaneIndex, () => 'blue', 1, 0, indicator.id, legendLabel);
+				break;
+			case 'SAR':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'sar'), candlestickPaneIndex, () => 'blue', 1, 4, indicator.id, legendLabel);
+				break;
+			case 'ATR':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'atr'), newPaneIndex, () => 'red', 1, 0, indicator.id, legendLabel);
+				break;
+			case 'AD':
+				addLineSeries(convertDataToTimezone(indicator.data, user.timezone, 'ad'), newPaneIndex, () => 'lightcoral', 1, 0, indicator.id, legendLabel);
+				break;
 			default:
 				toast("Indicator type not implemented");
 		}
