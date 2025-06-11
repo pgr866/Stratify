@@ -1,0 +1,106 @@
+<mxfile host="65bd71144e">
+    <diagram id="R2lEEEUBdFMjLlhIrx00" name="Page-1">
+        <mxGraphModel dx="1726" dy="4178" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="600" pageHeight="400" math="0" shadow="0" extFonts="Permanent Marker^https://fonts.googleapis.com/css?family=Permanent+Marker">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="124" style="edgeStyle=none;html=1;endArrow=none;endFill=0;fontSize=11;" parent="1" source="112" target="191" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="182.17987102691467" y="-3017.2550622557505" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="112" value="&lt;font&gt;Usuario&lt;span style=&quot;background-color: transparent;&quot;&gt;&amp;nbsp;Autenticado&lt;/span&gt;&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="57.00000000000017" y="-3024.5" width="30" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="191" value="Configurar estrategia&lt;div&gt;&lt;div&gt;------------------------------------------------&lt;/div&gt;&lt;div&gt;&lt;b&gt;Extension Points&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Gestionar visibilidad estrategia&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent;&quot;&gt;Cambiar de estrategia&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Crear estrategia&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Clonar estrategia&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#000000&quot;&gt;&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Administrar ejecución&lt;/span&gt;&lt;/font&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="165.18" y="-3057" width="205" height="125" as="geometry"/>
+                </mxCell>
+                <mxCell id="198" value="Explorar gráfico de velas" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="125.18" y="-2903" width="135" height="55.26" as="geometry"/>
+                </mxCell>
+                <mxCell id="200" value="&lt;font&gt;Cambiar de estrategia&lt;/font&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="265.18" y="-3153" width="90" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="203" value="Crear estrategia" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="125.18" y="-3149.48" width="90" height="36.48" as="geometry"/>
+                </mxCell>
+                <mxCell id="204" style="edgeStyle=none;html=1;dashed=1;fontSize=11;" parent="1" source="203" target="191" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="180.18" y="-3127" as="targetPoint"/>
+                        <mxPoint x="232.18" y="-3153" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="205" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;" parent="204" vertex="1" connectable="0">
+                    <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+                        <mxPoint x="-34" y="8" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="206" style="edgeStyle=none;html=1;dashed=1;fontSize=11;" parent="1" source="200" target="191" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="266.18" y="-3016" as="targetPoint"/>
+                        <mxPoint x="274.18" y="-3146" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="207" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;" parent="206" vertex="1" connectable="0">
+                    <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+                        <mxPoint x="-32" y="-9" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="208" style="edgeStyle=none;html=1;dashed=1;fontSize=11;" parent="1" source="191" target="198" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="412.1492503505199" y="-3051.998555711342" as="targetPoint"/>
+                        <mxPoint x="350.17974841707" y="-3024.332839463293" as="sourcePoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="209" value="&amp;lt;&amp;lt;Include&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;" parent="208" vertex="1" connectable="0">
+                    <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+                        <mxPoint x="37" y="6" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="213" value="&lt;span style=&quot;color: rgb(0, 0, 0);&quot;&gt;Clonar estrategia&lt;/span&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="405.18" y="-3112.9999999999995" width="90" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="214" style="edgeStyle=none;html=1;dashed=1;fontSize=11;" parent="1" source="213" target="191" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="388.18" y="-3036.24" as="targetPoint"/>
+                        <mxPoint x="374.18" y="-3134.24" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="215" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;" parent="214" vertex="1" connectable="0">
+                    <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+                        <mxPoint x="-27" y="-11" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="216" value="Gestionar visibilidad de estrategia" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="435.18000000000006" y="-3024.5" width="107.5" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="217" style="edgeStyle=none;html=1;dashed=1;fontSize=11;" parent="1" source="216" target="191" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="317.18" y="-3032" as="targetPoint"/>
+                        <mxPoint x="442.18000000000006" y="-3128" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="218" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;" parent="217" vertex="1" connectable="0">
+                    <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+                        <mxPoint x="-5" y="-19" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="219" value="Administrar ejecución" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="335.18" y="-2899.11" width="125" height="47.48" as="geometry"/>
+                </mxCell>
+                <mxCell id="220" style="edgeStyle=none;html=1;dashed=1;fontSize=11;" parent="1" source="219" target="191" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="577.0139086287231" y="-2964.4957070329024" as="targetPoint"/>
+                        <mxPoint x="785.1800000000001" y="-3088.59" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="221" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;" parent="220" vertex="1" connectable="0">
+                    <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+                        <mxPoint x="35" y="-8" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

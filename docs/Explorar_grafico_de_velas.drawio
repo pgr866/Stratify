@@ -1,0 +1,89 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" version="27.1.4">
+  <diagram id="R2lEEEUBdFMjLlhIrx00" name="Page-1">
+    <mxGraphModel dx="903" dy="3287" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="600" pageHeight="350" math="0" shadow="0" extFonts="Permanent Marker^https://fonts.googleapis.com/css?family=Permanent+Marker">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="257" value="Explorar gráfico de velas&lt;div&gt;&lt;div&gt;------------------------------------------&lt;/div&gt;&lt;div&gt;&lt;b&gt;Extension Points&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;&quot;&gt;Administrar indicadores técnicos&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="227.5" y="-2569.76" width="160" height="93.52" as="geometry" />
+        </mxCell>
+        <mxCell id="258" style="edgeStyle=none;html=1;dashed=1;fontSize=11;fontColor=#000000;" parent="1" source="260" target="257" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="305" y="-2647.48" as="targetPoint" />
+            <mxPoint x="335" y="-2669.48" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="259" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#000000;" parent="258" vertex="1" connectable="0">
+          <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+            <mxPoint x="-32" y="-14" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="260" value="Administrar indicadores técnicos&lt;div&gt;&lt;div style=&quot;&quot;&gt;---------------------------------------------------------&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;Extension Points&lt;/b&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;&quot;&gt;Añadir indicador&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;&quot;&gt;Configurar parámetros indicador&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;&quot;&gt;Eliminar indicador&lt;/span&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="340" y="-2699.98" width="222.5" height="111" as="geometry" />
+        </mxCell>
+        <mxCell id="261" value="Añadir indicador" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="300" y="-2773" width="97.5" height="45.72" as="geometry" />
+        </mxCell>
+        <mxCell id="262" value="Configurar parámetros indicador" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="475" y="-2773" width="125" height="45.72" as="geometry" />
+        </mxCell>
+        <mxCell id="263" value="Eliminar indicador" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="442.5" y="-2556.98" width="125" height="45.72" as="geometry" />
+        </mxCell>
+        <mxCell id="264" style="edgeStyle=none;html=1;dashed=1;fontSize=11;fontColor=#000000;" parent="1" source="261" target="260" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="363" y="-2551.48" as="targetPoint" />
+            <mxPoint x="405" y="-2586.48" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="265" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#000000;" parent="264" vertex="1" connectable="0">
+          <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+            <mxPoint x="-35" y="7" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="266" style="edgeStyle=none;html=1;dashed=1;fontSize=11;fontColor=#000000;" parent="1" source="262" target="260" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="413" y="-2684.48" as="targetPoint" />
+            <mxPoint x="379" y="-2719.48" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="267" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#000000;" parent="266" vertex="1" connectable="0">
+          <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+            <mxPoint x="-35" y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="268" style="edgeStyle=none;html=1;dashed=1;fontSize=11;fontColor=#000000;" parent="1" source="263" target="260" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="503" y="-2685.48" as="targetPoint" />
+            <mxPoint x="530" y="-2718.48" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="269" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#000000;" parent="268" vertex="1" connectable="0">
+          <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+            <mxPoint x="-35" y="-5" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="273" style="edgeStyle=none;html=1;endArrow=none;endFill=0;fontColor=#000000;" parent="1" source="270" target="272" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="270" value="&lt;font&gt;Usuario&lt;span style=&quot;background-color: transparent;&quot;&gt;&amp;nbsp;Autenticado&lt;/span&gt;&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="37.00000000000023" y="-2674.48" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="272" value="Explorar gráfico de velas&lt;div&gt;&lt;div&gt;------------------------------------------&lt;/div&gt;&lt;div&gt;&lt;b&gt;Extension Points&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;&quot;&gt;Administrar indicadores técnicos&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="115" y="-2691.2400000000002" width="160" height="93.52" as="geometry" />
+        </mxCell>
+        <mxCell id="274" style="edgeStyle=none;html=1;dashed=1;fontSize=11;fontColor=#000000;" parent="1" source="260" target="272" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="363" y="-2551" as="targetPoint" />
+            <mxPoint x="404" y="-2587" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="275" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#000000;" parent="274" vertex="1" connectable="0">
+          <mxGeometry x="-0.2385" y="1" relative="1" as="geometry">
+            <mxPoint x="-8" y="-17" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

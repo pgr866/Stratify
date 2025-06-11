@@ -1,0 +1,63 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36" version="27.1.4">
+  <diagram id="R2lEEEUBdFMjLlhIrx00" name="Page-1">
+    <mxGraphModel dx="903" dy="3237" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="500" pageHeight="250" math="0" shadow="0" extFonts="Permanent Marker^https://fonts.googleapis.com/css?family=Permanent+Marker">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="126" style="edgeStyle=none;html=1;endArrow=none;endFill=0;fontSize=11;fontColor=#000000;" parent="1" source="112" target="161" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="305" y="-2560.52" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="112" value="&lt;font&gt;Usuario&lt;span style=&quot;background-color: transparent;&quot;&gt;&amp;nbsp;Autenticado&lt;/span&gt;&lt;/font&gt;" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="420.00000000000017" y="-2618.7599999999998" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="161" value="Gestionar claves API&lt;div&gt;---------------------------------------&lt;/div&gt;&lt;div&gt;&lt;b&gt;Extension Points&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Añadir claves&lt;/div&gt;&lt;div&gt;Modificar claves&lt;/div&gt;&lt;div&gt;Eliminar claves&lt;/div&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="195" y="-2640.52" width="150" height="103.52" as="geometry" />
+        </mxCell>
+        <mxCell id="162" value="&lt;span style=&quot;&quot;&gt;Añadir claves&lt;/span&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="50" y="-2608.76" width="75" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="163" value="" style="endArrow=classic;html=1;dashed=1;fontSize=11;fontColor=#000000;" parent="1" source="162" target="161" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="478.9709856537802" y="-2876.0528373118864" as="sourcePoint" />
+            <mxPoint x="173.82000000000005" y="-2674.52" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="164" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#000000;" parent="163" vertex="1" connectable="0">
+          <mxGeometry x="-0.129" y="1" relative="1" as="geometry">
+            <mxPoint x="3" y="-19" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="165" value="&lt;span style=&quot;&quot;&gt;Modificar claves&lt;/span&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="100" y="-2688" width="73.18" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="166" value="" style="endArrow=classic;html=1;dashed=1;fontSize=11;fontColor=#000000;" parent="1" source="165" target="161" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="478.97098565377996" y="-2974.7028373118865" as="sourcePoint" />
+            <mxPoint x="195.18157682621222" y="-2647.003350872689" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="167" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#000000;" parent="166" vertex="1" connectable="0">
+          <mxGeometry x="-0.129" y="1" relative="1" as="geometry">
+            <mxPoint x="28" y="-11" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="168" value="&lt;span style=&quot;&quot;&gt;Eliminar claves&lt;/span&gt;" style="ellipse;whiteSpace=wrap;html=1;fontSize=11;fontColor=#000000;" parent="1" vertex="1">
+          <mxGeometry x="230" y="-2712" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="169" value="" style="endArrow=classic;html=1;dashed=1;fontSize=11;fontColor=#000000;" parent="1" source="168" target="161" edge="1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="522.15098565378" y="-3084.7028373118865" as="sourcePoint" />
+            <mxPoint x="215.00579247169844" y="-2670.6241665920197" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="170" value="&amp;lt;&amp;lt;Extend&amp;gt;&amp;gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=11;fontColor=#000000;" parent="169" vertex="1" connectable="0">
+          <mxGeometry x="-0.129" y="1" relative="1" as="geometry">
+            <mxPoint x="37" y="-3" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
