@@ -1,0 +1,57 @@
+funcionalidades:
+
+Usuario no registrado:
+Iniciar sesión
+Registrarse
+
+Ambos:
+Recuperar contraseña
+Ver página principal
+
+Usuario registrado:
+Ver dashboard
+Configuración de usuario
+Gestionar claves API
+Explorar estrategias
+Gestionar estrategia
+
+Personalizar estrategia
+Establecer condiciones de ordenes
+Ejecutar estrategia
+Visualizar resultados ejecución
+Clonar estrategia
+
+
+Indicadores:
+
+1. Indicadores de Tendencia
+Detectan la dirección general del mercado (alcista, bajista o lateral).
+- Simple Moving Average (SMA)
+- Exponential Moving Average (EMA)
+- MACD (Moving Average Convergence Divergence)
+- Average Directional Index (ADX)
+- Parabolic SAR (SAR)
+- Aroon
+- TRIX
+
+2. Indicadores de Momentum
+Miden la velocidad o fuerza del movimiento de precios.
+- Relative Strength Index (RSI)
+- Stochastic
+- Stochastic RSI (STOCHRSI)
+- Commodity Channel Index (CCI)
+- Momentum (MOM)
+- Rate of Change (ROC)
+- Ultimate Oscillator (ULTOSC)
+- Williams %R (WILLR)
+
+3. Indicadores de Volatilidad
+Evalúan el grado de variación de precios en un periodo de tiempo.
+- Bollinger Bands (BBANDS)
+- Average True Range (ATR)
+
+4. Indicadores de Volumen
+Relacionan el volumen con los movimientos de precios para detectar fuerza o debilidad en las tendencias.
+- On Balance Volume (OBV)
+- Money Flow Index (MFI)
+- Chaikin A/D Line (AD)
