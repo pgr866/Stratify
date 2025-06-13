@@ -1,0 +1,1296 @@
+{
+	"info": {
+		"_postman_id": "7c7673fa-de28-4e27-af1d-f00c55409690",
+		"name": "Pruebas API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "45704802",
+		"_collection_link": "https://pablo-5082463.postman.co/workspace/Pablo's-Workspace~e4207d0d-20d7-49af-8dd7-5a4f38ecde44/collection/45704802-7c7673fa-de28-4e27-af1d-f00c55409690?action=share&source=collection_link&creator=45704802"
+	},
+	"item": [
+		{
+			"name": "Pruebas de Autenticación de Usuario",
+			"item": [
+				{
+					"name": "Resetear sesión",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/logout/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"logout",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login incorrecto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login fallido - código 400\", () => pm.response.to.have.status(400));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const jar = pm.cookies.jar();\r",
+									"const url = pm.environment.get(\"base_url\") || pm.collectionVariables.get(\"base_url\");\r",
+									"jar.clear(url, 'access_token');\r",
+									"jar.clear(url, 'refresh_token');"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "1234",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login correcto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login exitoso - código 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "HoOdrXd5CN5yZCwGzwFH1F6X63HM7JnTfk0esJ6l",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout correcto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Logout exitoso - código 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/logout/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"logout",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener datos usuario no autenticado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Respuesta vacía si no estás autenticado\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const rawBody = pm.response.text();\r",
+									"    pm.expect(rawBody).to.eql('');\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/user/me/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"user",
+								"me",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login correcto",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Login exitoso - código 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "username",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "HoOdrXd5CN5yZCwGzwFH1F6X63HM7JnTfk0esJ6l",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/login/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"login",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener datos de usuario autenticado",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Usuario autenticado - código 200 y campos esperados\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const body = pm.response.text();\r",
+									"    pm.expect(body).to.not.eql('');\r",
+									"    const json = pm.response.json();\r",
+									"    ['id', 'username', 'email'].forEach(k => pm.expect(json).to.have.property(k));\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/user/me/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"user",
+								"me",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pruebas de Preferencias del Usuario",
+			"item": [
+				{
+					"name": "Alternar tema",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Campo dark_theme cambiado - código 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.have.property('dark_theme');\r",
+									"    pm.expect(jsonData.dark_theme).to.be.a('boolean');\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/toggle-theme/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"toggle-theme",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Zona horaria no enviada",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Error por zona horaria no enviada - código 400\", () => pm.response.to.have.status(400));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/update-timezone/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"update-timezone",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Zona horaria válida",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Campo timezone actualizado - código 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.have.property('timezone');\r",
+									"    pm.expect(jsonData.timezone).to.be.a('string').that.is.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "timezone",
+									"value": "Europe/Madrid",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/update-timezone/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"update-timezone",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pruebas de API Keys",
+			"item": [
+				{
+					"name": "Crear clave nueva",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Crear clave nueva - código 201\", () => pm.response.to.have.status(201));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "exchange",
+									"value": "binance",
+									"type": "text"
+								},
+								{
+									"key": "api_key",
+									"value": "any_api_key",
+									"type": "text"
+								},
+								{
+									"key": "api_secret",
+									"value": "any_api_secret",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/apiKey/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"apiKey",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar claves API",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Listar claves API - código 200\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.an('array').that.is.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/apiKey/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"apiKey",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reemplazar clave",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Reemplazar clave - código 200\", () => pm.response.to.have.status(200));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "exchange",
+									"value": "binance",
+									"type": "text"
+								},
+								{
+									"key": "api_key",
+									"value": "any_api_key",
+									"type": "text"
+								},
+								{
+									"key": "api_secret",
+									"value": "any_api_secret",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/apiKey/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"apiKey",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar clave existente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Eliminar clave existente - código 204\", () => pm.response.to.have.status(204));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/apiKey/binance/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"apiKey",
+								"binance",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar clave inexistente",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Eliminar clave inexistente - código 400\", () => pm.response.to.have.status(400));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/apiKey/binance/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"apiKey",
+								"binance",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pruebas de Datos de Mercado",
+			"item": [
+				{
+					"name": "Listar exchanges CCXT",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Listar exchanges CCXT - código 200 y lista no vacía\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.an('array').that.is.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/exchanges/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"exchanges",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar pares por exchange",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Listar pares por exchange - código 200 y listas no vacías\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.symbols).to.be.an('array').that.is.not.empty;\r",
+									"    pm.expect(jsonData.timeframes).to.be.an('array').that.is.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/symbols/?exchange=binance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"symbols",
+								""
+							],
+							"query": [
+								{
+									"key": "exchange",
+									"value": "binance"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Info de mercado completa",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Info de mercado completa - código 200 y campos esperados\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.have.property('taker_fee');\r",
+									"    pm.expect(jsonData).to.have.property('maker_fee');\r",
+									"    pm.expect(jsonData).to.have.property('contract_size');\r",
+									"    pm.expect(jsonData).to.have.property('max_leverage');\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/market-info/?exchange=binance&symbol=BTC/USDT",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"market-info",
+								""
+							],
+							"query": [
+								{
+									"key": "exchange",
+									"value": "binance"
+								},
+								{
+									"key": "symbol",
+									"value": "BTC/USDT"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Info de mercado faltan parámetros",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Info de mercado faltan parámetros - código 404\", () => pm.response.to.have.status(404));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/market-info/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"market-info",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pruebas de Estrategias",
+			"item": [
+				{
+					"name": "Crear nueva estrategia",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Crear nueva estrategia - código 201\", () => {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.collectionVariables.set(\"strategy_id\", jsonData.id);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/strategy/me/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy",
+								"me",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Editar estrategia propia",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Editar estrategia propia - código 200 y campos actualizados\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.name).to.eql(\"New Edited Strategy\");\r",
+									"    pm.expect(jsonData.timeframe).to.eql(\"1h\");\r",
+									"    pm.expect(jsonData.is_public).to.eql(true);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "New Edited Strategy",
+									"type": "text"
+								},
+								{
+									"key": "timeframe",
+									"value": "1h",
+									"type": "text"
+								},
+								{
+									"key": "is_public",
+									"value": "true",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/strategy/{{strategy_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy",
+								"{{strategy_id}}",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar mis estrategias",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Listar mis estrategias - código 200 y lista no vacía\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData).to.be.an('array').that.is.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/strategy/me/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy",
+								"me",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar estrategias públicas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Listar estrategias públicas - código 200 y lista no vacía\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const jsonData = pm.response.json();\r",
+									"    pm.expect(jsonData.results).to.be.an('array').that.is.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/strategy/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Clonar estrategia pública",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Clonar estrategia pública - código 201\", () => {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    const json = pm.response.json();\r",
+									"    pm.collectionVariables.set(\"clone_strategy_id\", json.id);\r",
+									"});\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/strategy/{{strategy_id}}/clone/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy",
+								"{{strategy_id}}",
+								"clone",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar estrategia propia",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Eliminar estrategia propia - código 204\", () => pm.response.to.have.status(204));"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/strategy/{{clone_strategy_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy",
+								"{{clone_strategy_id}}",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Pruebas de Ejecución de Estrategias",
+			"item": [
+				{
+					"name": "Iniciar ejecución",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Iniciar ejecución - código 201\", () => {\r",
+									"    pm.response.to.have.status(201);\r",
+									"    const json = pm.response.json();\r",
+									"    pm.expect(json).to.have.property('id');\r",
+									"    pm.collectionVariables.set(\"execution_id\", json.id);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "strategy_id",
+									"value": "{{strategy_id}}",
+									"type": "text"
+								},
+								{
+									"key": "maker_fee",
+									"value": "0.001",
+									"type": "text"
+								},
+								{
+									"key": "taker_fee",
+									"value": "0.001",
+									"type": "text"
+								},
+								{
+									"key": "initial_tradable_value",
+									"value": "1000",
+									"type": "text"
+								},
+								{
+									"key": "leverage",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "type",
+									"value": "backtest",
+									"type": "text"
+								},
+								{
+									"key": "order_conditions",
+									"value": "[]",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/v1/strategy-execution/start/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy-execution",
+								"start",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Detener ejecución",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Detener ejecución - código 200 y ejecución parada\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const json = pm.response.json();\r",
+									"    pm.expect(json).to.have.property('running', false);\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/strategy-execution/{{execution_id}}/stop/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy-execution",
+								"{{execution_id}}",
+								"stop",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Ver detalles de ejecución",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Ver detalles de ejecución - código 200 y campos clave presentes\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const json = pm.response.json();\r",
+									"    [\r",
+									"        'id', 'type', 'exchange', 'symbol', 'timestamp_start', 'timestamp_end', 'strategy',\r",
+									"        'abs_net_profit', 'rel_net_profit', 'total_closed_trades', 'winning_trade_rate',\r",
+									"        'profit_factor', 'abs_avg_trade_profit', 'rel_avg_trade_profit',\r",
+									"        'abs_max_run_up', 'rel_max_run_up', 'abs_max_drawdown', 'rel_max_drawdown'\r",
+									"    ].forEach(k => pm.expect(json).to.have.property(k));\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/strategy-execution/{{execution_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy-execution",
+								"{{execution_id}}",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Listar ejecuciones por estrategia",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Listar ejecuciones por estrategia - código 200 y lista no vacía\", () => {\r",
+									"    pm.response.to.have.status(200);\r",
+									"    const json = pm.response.json();\r",
+									"    pm.expect(json).to.be.an('array').that.is.not.empty;\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/strategy-execution/?strategy_id={{strategy_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy-execution",
+								""
+							],
+							"query": [
+								{
+									"key": "strategy_id",
+									"value": "{{strategy_id}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar estrategia propia",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Eliminar estrategia propia - código 204\", () => {\r",
+									"    pm.response.to.have.status(204);\r",
+									"    ['strategy_id', 'clone_strategy_id', 'execution_id'].forEach(v => pm.collectionVariables.unset(v));\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/v1/strategy/{{strategy_id}}/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"v1",
+								"strategy",
+								"{{strategy_id}}",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api/",
+			"type": "string"
+		}
+	]
+}
