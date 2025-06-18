@@ -143,22 +143,24 @@ export function RecoverPassword() {
 								)}
 							</Button>
 						</div>
-						<div className="mt-4 text-center text-sm">
-							Have you remembered your password?{" "}
-							<Link to="/login" className="underline">
-								Sign in
-							</Link>
-						</div>
+						{!user && (
+							<div className="mt-4 text-center text-sm">
+								Have you remembered your password?{" "}
+								<Link to="/login" className="underline">
+									Sign in
+								</Link>
+							</div>
+						)}
 					</CardContent>
 				</Card>
 			</div>
 			<EmailVerificationDialog
-  			open={emailSent}
-  			onOpenChange={setEmailSent}
-  			onVerify={handleRecoverPassword}
-  			isLoading={isLoading}
-  			code={code}
-  			setCode={setCode}
+				open={emailSent}
+				onOpenChange={setEmailSent}
+				onVerify={handleRecoverPassword}
+				isLoading={isLoading}
+				code={code}
+				setCode={setCode}
 			/>
 		</div>
 	)

@@ -1419,7 +1419,6 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         timestamp_end=int(timestamp_end),
                         indicator_id=indicator.get('id')
                     )
-                    import sys; print(indicator_response.get('data', []), file=sys.stderr)
                     indicator_df = pd.DataFrame(indicator_response.get('data', [])).rename(columns={'time': 'timestamp'}).set_index('timestamp')
                     if indicator_df.empty:
                         continue
@@ -1567,7 +1566,6 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     c = pd.concat([c, new_candles[new_candles['timestamp'] == next_candle_timestamp]], ignore_index=True)
                     if len(c) > 2: c = c.iloc[1:].reset_index(drop=True)
                     calculate_indicators(execution.timestamp_start - 2 * timeframe_ms, next_candle_timestamp)
-                    import sys; print(c, file=sys.stderr)
                     if i == 0: i = 1
             else:
                 for i in c.index:
