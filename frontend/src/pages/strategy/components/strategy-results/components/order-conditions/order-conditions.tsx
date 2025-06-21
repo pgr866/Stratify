@@ -121,7 +121,7 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 									disabled={selectedStrategyExecution || !user?.id || user?.id !== selectedStrategy?.user || isLoading}
 									value={initialTradableValue}
 									onChange={(e) => setInitialTradableValue(e.target.value)}
-									className="w-29"
+									className="w-28"
 								/>
 								<span>{quoteCurrency}</span>
 								<Tooltip>

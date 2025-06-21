@@ -207,7 +207,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			delete displayedIndicatorsRef.current[indicatorId];
 			return;
 		}
-		if (pane.getSeries().some(series => series._internal__series._private__seriesType === "Candlestick")) {
+		if (pane.getSeries().some(series => series.type === "Candlestick")) {
 			displayedIndicatorsRef.current[indicatorId].subLegend.remove();
 		} else {
 			let paneIndex = pane.paneIndex();
@@ -305,6 +305,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 			wickDownColor: downColor,
 			priceFormat: { type: 'custom', minMove: 0.000000000001, formatter: (price) => +price.toFixed(12) },
 		});
+		candleSeries.type = "Candlestick";
 		candleSeries.setData(candleData);
 
 		const upColorOpacity = setOpacity(upColor, 0.5);
@@ -466,7 +467,7 @@ export function CandleChart({ candles, selectedStrategy, setSelectedStrategy, se
 	}
 
 	function addIndicator(indicator: Indicator) {
-		const candlestickPaneIndex = chart.panes().findIndex((pane) => pane.getSeries().some((series) => series._internal__series._private__seriesType === "Candlestick"));
+		const candlestickPaneIndex = chart.panes().findIndex((pane) => pane.getSeries().some((series) => series.type === "Candlestick"));
 		const newPaneIndex = chart.panes().length;
 		const legendLabel = indicator.short_name + ' ' + (indicator.params ?? []).map(param => param.value).join(' ');
 		switch (indicator.short_name) {
