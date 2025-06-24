@@ -1346,14 +1346,20 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 if amount == 0: return
                 if type == 'market':
                     price = c.at[i, 'close']
+                    fee = taker_fee
                 else:
+                    fee = maker_fee
                     if price <= 0: return
                 order_id = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(15))
                 order_timestamp = c.at[i, 'timestamp']
+                amount = abs(amount)
                 order_amount = amount if side == 'buy' else -1 * amount
                 order_price = price
 
                 if real_trading:
+                    if c.at[i, 'position_amount'] * order_amount >= 0 and amount * order_price * (Decimal(1 / leverage) + fee) > c.at[i, 'remaining_tradable_value']:
+                        order_amount = c.at[i, 'remaining_tradable_value'] / order_price / (Decimal(1 / leverage) + fee) * order_amount / abs(order_amount)
+                        amount = abs(order_amount)
                     if ':' in symbol:
                         try:
                             exchange.set_leverage(leverage=leverage, symbol=symbol, params={'openType': 1, 'positionType': 1 if c.at[i, 'position_amount'] >= 0 else 2})
@@ -1375,7 +1381,6 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     if ':' in symbol:
                         order_amount = order_amount * contract_size
                     order_price = order['price']
-                    
                 order = {'id': order_id, 'timestamp': order_timestamp, 'side': side, 'amount': order_amount, 'price': order_price}
                 if c.at[i, 'position_amount'] * order['amount'] >= 0 and c.at[i, 'remaining_tradable_value'] == 0: return
                 if type == 'market':
