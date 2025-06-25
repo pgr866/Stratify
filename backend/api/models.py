@@ -36,7 +36,7 @@ class Strategy(models.Model):
     id = models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=150, default="New Strategy")
-    exchange = models.CharField(max_length=50, default="binance")
+    exchange = models.CharField(max_length=50, default="coinbaseexchange")
     symbol = models.CharField(max_length=20, default="BTC/USDT")
     timeframe = models.CharField(max_length=5, default="1d")
     timestamp_start = models.BigIntegerField(default=int(time.time() * 1000) - 2592000000)

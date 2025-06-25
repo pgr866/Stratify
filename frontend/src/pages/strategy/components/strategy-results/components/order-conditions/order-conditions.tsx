@@ -78,6 +78,9 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 					loadStrategyExecution(response.data.id);
 					setStrategyExecutions(prev => [response.data, ...prev]);
 					toast("Strategy execution started successfully");
+					setTimeout(() => {
+						window.location.href = `/strategy/${selectedStrategy.id}?execution=${response.data.id}`;
+					}, 1500);
 				})
 				.catch(error => toast("Failed to start strategy execution", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }));
 		}

@@ -99,6 +99,11 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
         const response = await getStrategyExecution(id);
         if (executionStateRef.current !== id) break;
         setSelectedStrategyExecution(response.data);
+        setSelectedDatetimeRange(prev =>
+          !prev || prev.from !== response.data.timestamp_start || prev.to !== response.data.timestamp_end
+            ? { from: response.data.timestamp_start, to: response.data.timestamp_end }
+            : prev
+        );
         running = response.data.running;
         if (running || hasExecutionUrl.current) {
           await new Promise(resolve => setTimeout(resolve, 5000));

@@ -1410,13 +1410,16 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             
             def calculate_indicators(timestamp_start, timestamp_end):
                 nonlocal c
-                if len(c) < 2: return
                 c = c.set_index('timestamp')
                 for indicator in indicators:
                     short_name = indicator.get('short_name')
                     params = indicator.get('params', [])
                     param_str = '_'.join(str(p['value']) for p in params)
                     indicator['col_name'] = f"{short_name}_{param_str}" if param_str else short_name
+                    col_name = indicator['col_name']
+                    if col_name not in c.columns:
+                        c[col_name] = float('nan')
+                    if len(c) < 2: continue
                     indicator_response = IndicatorView().compute_indicator_data(
                         user=request.user,
                         strategy=execution.strategy,
@@ -1431,11 +1434,11 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         indicator_values = indicator_df.rename(columns={indicator_df.columns[0]: indicator.get('col_name')})
                     else:
                         indicator_values = indicator_df.add_prefix(indicator.get('col_name') + "_")
-                    
+                    common_index = indicator_values.index.intersection(c.index)
                     for col in indicator_values.columns:
                         if col not in c.columns:
                             c[col] = float('nan')
-                        c.loc[indicator_values.index, col] = indicator_values[col]
+                        c.loc[common_index, col] = indicator_values.loc[common_index, col]
                 c = c.reset_index()
             
             calculate_indicators(c.at[0, 'timestamp'] + timeframe_ms, execution.timestamp_end)
@@ -1568,6 +1571,8 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         timestamp_start=last_candle_timestamp + 1000,
                         timestamp_end=next_candle_timestamp
                     ).reindex(columns=c.columns)
+                    decimal_cols = [col for col in new_candles.columns if col != 'timestamp']
+                    new_candles[decimal_cols] = new_candles[decimal_cols].applymap(lambda x: Decimal(str(x)) if pd.notnull(x) else None)
                     c = pd.concat([c, new_candles[new_candles['timestamp'] == next_candle_timestamp]], ignore_index=True)
                     if len(c) > 2: c = c.iloc[1:].reset_index(drop=True)
                     calculate_indicators(execution.timestamp_start - 2 * timeframe_ms, next_candle_timestamp)
