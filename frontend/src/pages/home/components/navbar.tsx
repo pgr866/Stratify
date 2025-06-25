@@ -20,7 +20,7 @@ export function Navbar() {
 					</NavigationMenuItem>
 
 					<div className="flex gap-2">
-						<a href="https://github.com/pgr866/TFG" rel="noreferrer noopener" target="_blank">
+						<a href="https://github.com/pgr866/Stratify" rel="noreferrer noopener" target="_blank">
 							<Button variant="secondary">
 								<GitHubLogoIcon />
 								GitHub

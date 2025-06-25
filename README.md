@@ -1,44 +1,89 @@
-# Requisitos Funcionales
-*- Login
-*- Google Login
-*- GitHub Login
-*- Registrarse
-*- Recuperar contraseña
-*- Configurar Api Keys
-- Crear Estrategia
-- Configurar Estrategia
-    - Añadir indicadores estadísticos a estrategia
-    - Configurar condiciones de compra y venta
-    - Cálculo de parámetros óptimos de una estrategia (maximizando beneficio) en función de datos históricos
-- Ejecutar Estrategia Backtest (simulado con datos históricos)
-- Ejecutar Estrategia Dry-run (simulado en tiempo real)
-- Ejecutar Estrategia Real
-- Visualizar gráfico de velas
-- Visualizar lista de operaciones
-- Visualizar Resultados Estrategia (estadísticas)
-- Visualizar Dashboard personal (estadísticas)
-- Explorar Estrategias públicas con filtros como rentabilidad
-- Marcar Estrategia como favorita
-- Copy-Trading de estrategias públicas
+# 🚀 Stratify: Full Stack Platform for Algorithmic Crypto Trading Strategies
 
-# Enlaces
-https://pandas.pydata.org/docs/
+## 🌟 Introduction
+Welcome to **Stratify**, a full stack web application developed as part of a Bachelor's Final Project at the University of Almería. This platform is designed to facilitate the **creation, simulation, and execution of algorithmic trading strategies** on cryptocurrency markets. It aims to **democratize access** to automated investment tools through an intuitive interface and powerful backend services.
 
-https://ta-lib.github.io/ta-lib-python/funcs.html
+## 🛠️ Technologies Used
 
-https://docs.ccxt.com/
+- ⚛️ **Frontend**: React (Vite + TypeScript), Tailwind CSS, Shadcn/ui  
+- 🐍 **Backend**: Django REST Framework (Python)  
+- 🐘 **Database**: PostgreSQL  
+- 🔐 **Authentication**: JWT, Google OAuth, GitHub OAuth, Email verification via SMTP  
+- 🔄 **Exchange Integration**: CCXT (CryptoCurrency eXchange Trading Library)  
+- 📊 **Technical Indicators**: TA-Lib  
+- 🧠 **Graphical Visualization**: Lightweight Charts  
+- 🔄 **Cache**: Redis  
+- 🐳 **Containers**: Docker  
+- 🌐 **Web Server**: Nginx  
+- ☁️ **Deployment**: Microsoft Azure (Ubuntu Server)  
+- 🔒 **Security**: SSL/TLS, secure cookie-based token persistence
 
-https://ui.shadcn.com/
+## 🚀 Quick Start
 
-https://www.tradingview.com/lightweight-charts/
+### 1️⃣ Requirements
+- [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) installed.
+- A `.env` file with appropriate credentials and secrets (see below).
 
-# Dependencias frontend
+### 2️⃣ Environment Variables (`.env` template)
+```env
+DEBUG=True
+SECRET_KEY='your-django-secret-key'
+ALLOWED_HOSTS=your-domain.com
 
-- Follow https://ui.shadcn.com/docs/installation/vite
+DB_NAME=stratify_db
+DB_USER=admin
+DB_PASSWORD=your-secure-password
 
-```bash
-npx shadcn@latest add accordion avatar badge button calendar card chart command dialog dropdown-menu input-otp input label navigation-menu popover resizable scroll-area select separator sheet sonner tabs
+EMAIL_HOST_USER=example@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+
+REDIS_PASSWORD=your-redis-password
+
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+GITHUB_CLIENT_SECRET=your-github-secret
 ```
+
+## 🏗️ Deployment
+
+### 🛠️ Production (Ubuntu + Azure)
+- Set `DEBUG=False` in your `.env`.
+- Run the secure setup script on your Azure VM:
 ```bash
-npm i --legacy-peer-deps axios @react-oauth/google lightweight-charts date-fns-tz @tanstack/react-virtual @radix-ui/react-icons react-router-dom
+sudo chmod +x secure_ubuntu_server.sh && ./secure_ubuntu_server.sh
 ```
+- Run the deployment script:
+```bash
+sudo chmod +x ubuntu_server_deploy.sh && ./ubuntu_server_deploy.sh
+```
+
+### 👨‍💻 Development
+- Set `DEBUG=True`
+- Uncomment ports and develop blocks in `docker-compose.yml`.
+- Start the app:
+```bash
+docker compose up --build --watch
+```
+
+## 📐 Features Overview
+
+### ✅ User Authentication
+- Sign up/login with JWT, OAuth (Google & GitHub), and email verification.
+- Secure token storage via HTTP-only cookies.
+
+### 📈 Strategy Management
+- Create/edit trading strategies with visual rule configuration.
+- View Japanese candlestick charts and overlay technical indicators.
+
+### 📊 Execution & Metrics
+- Real-time and simulated trading via CCXT API.
+- View detailed reports and performance metrics post-execution.
+
+### 🧪 API & Usability Testing
+- API endpoints tested using Postman.
+- Usability evaluated through user studies.
+
+## 💡 Motivation
+Stratify was created to empower non-technical users by lowering barriers to algorithmic crypto trading. It transforms the volatility of crypto markets into an accessible opportunity by providing a simple, educational, and secure platform.
+
+## 📚 Academic Context
+This project was developed as a **Bachelor’s Thesis (TFG)** at the University of Almería (2024/2025), by Pablo Gómez Rivas under the supervision of **Manel Mena Vicente** and **Luis Fernando Iribarne Martínez**.

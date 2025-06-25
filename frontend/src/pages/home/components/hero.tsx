@@ -25,7 +25,7 @@ export function Hero() {
 				</p>
 				<div className="flex justify-center md:space-x-4 mx-auto">
 					<Button className="w-[50%] md:w-1/3 lg:w-1/4 xl:w-1/4" onClick={() => navigate("/login")}>Get Started</Button>
-					<a href="https://github.com/pgr866/TFG" rel="noreferrer noopener" target="_blank" className="w-[50%] md:w-1/3 lg:w-1/4 xl:w-1/4 relative">
+					<a href="https://github.com/pgr866/Stratify" rel="noreferrer noopener" target="_blank" className="w-[50%] md:w-1/3 lg:w-1/4 xl:w-1/4 relative">
 						<Button variant="outline" className="w-full">
 							<GitHubLogoIcon />
 							GitHub Repository
