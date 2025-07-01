@@ -295,7 +295,7 @@ export function Strategy() {
             </SelectContent>
           </Select>
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"315px"}
+          <DateTimeRangePicker variant={"ghost"} size={"sm"} width={"312px"}
             timezone={user.timezone}
             range={selectedDatetimeRange}
             onChange={(newRange) => {
@@ -304,7 +304,7 @@ export function Strategy() {
             disabled={isLoading || !user?.id || user?.id !== selectedStrategy?.user}
           />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
-          <Combobox key={resetKey} values={indicatorNames.map(indicator => indicator.name)} variant={"ghost"} size={"sm"} width={"242px"} placeholder={"Indicator"}
+          <Combobox key={resetKey} values={indicatorNames.map(indicator => indicator.name)} variant={"ghost"} size={"sm"} width={"241px"} placeholder={"Indicator"}
             onChange={handleIndicatorsComboboxChange} icon={<ChartNoAxesCombined />} isLoading={isLoading} disabled={!user?.id || user?.id !== selectedStrategy?.user} />
           <Separator orientation="vertical" className="!h-5 mx-0.5" />
           <ThemeToggle size="9" />

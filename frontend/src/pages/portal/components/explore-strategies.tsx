@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,41 +67,32 @@ export function ExploreStrategies() {
 	}, [searchValue, onlyMine, selectedExchange, selectedSymbol]);
 
 	useEffect(() => {
-		const source = axios.CancelToken.source();
 		setLoadingStrategies(true);
 		const nameParam = searchValue === "" ? undefined : searchValue;
 		const exchangeParam = selectedExchange === "" ? undefined : selectedExchange;
 		const symbolParam = selectedSymbol === "" ? undefined : selectedSymbol;
-		getStrategies(nameParam, onlyMine, exchangeParam, symbolParam, 1, PAGE_SIZE, { cancelToken: source.token })
+		getStrategies(nameParam, onlyMine, exchangeParam, symbolParam, page, PAGE_SIZE)
 			.then((response) => {
 				if (!response) return;
-				setFilteredStrategies(response.data.results);
+				setFilteredStrategies(prev => [...prev, ...response.data.results]);
 				const totalPages = Math.ceil(response.data.count / PAGE_SIZE);
-				setHasMore(1 < totalPages);
+				setHasMore(page < totalPages);
 			})
 			.catch((err) => {
-				if (!axios.isCancel(err)) {
-					console.error("Error fetching strategies:", err);
-				}
+				console.error("Error fetching strategies:", err);
 			})
 			.finally(() => setLoadingStrategies(false));
-		return () => {
-			source.cancel();
-		};
 	}, [page, searchValue, onlyMine, selectedExchange, selectedSymbol]);
 
 	useEffect(() => {
 		if (loadingStrategies) return;
 		const observer = new IntersectionObserver(
 			(entries) => {
-				if (entries[0].isIntersecting && hasMore) {
-					setPage((prev) => {
-						if (!hasMore) return prev;
-						return prev + 1;
-					});
+				if (entries[0].isIntersecting && hasMore && !loadingStrategies) {
+					setPage((prev) => prev + 1);
 				}
 			},
-			{ threshold: 1 }
+			{ threshold: 0.1 }
 		);
 		if (observerRef.current) {
 			observer.observe(observerRef.current);
@@ -110,7 +100,7 @@ export function ExploreStrategies() {
 		return () => {
 			if (observerRef.current) observer.unobserve(observerRef.current);
 		};
-	}, [hasMore]);
+	}, [hasMore, loadingStrategies]);
 
 	const handleCreateStrategy = () => {
 		setIsLoading(true);
@@ -163,19 +153,19 @@ export function ExploreStrategies() {
 								{strategy.name}
 							</a>
 							<p className="flex items-center gap-1">
-								<Landmark className="size-5"/>
+								<Landmark className="size-5" />
 								{strategy.exchange}
 							</p>
 							<p className="flex items-center gap-1">
-								<Bitcoin className="size-5"/>
+								<Bitcoin className="size-5" />
 								{strategy.symbol}
 							</p>
 							<p className="flex items-center gap-1">
-								<AlignHorizontalDistributeCenter className="size-5"/>
+								<AlignHorizontalDistributeCenter className="size-5" />
 								{strategy.timeframe}
 							</p>
 							<p className="flex items-center gap-1">
-								<Users className="size-5"/>
+								<Users className="size-5" />
 								{strategy.clones_count}
 							</p>
 						</CardTitle>

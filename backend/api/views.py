@@ -9,7 +9,7 @@ import pandas as pd
 import talib as ta
 import time
 import threading
-from decimal import Decimal
+from decimal import Decimal, getcontext
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -33,6 +33,8 @@ from github.ApplicationOAuth import ApplicationOAuth
 from .models import User, ApiKey, Strategy, StrategyExecution, Trade, Candle
 from .permissions import IsAuthenticated, IsNotAuthenticated, IsOwner, NoBody
 from .serializers import UserSerializer, LoginSerializer, GoogleLoginSerializer, GithubLoginSerializer, RecoverPasswordSerializer, ApiKeySerializer, StrategySerializer, CandleSerializer, StrategyExecutionSerializer
+
+getcontext().prec = 20
 
 def set_auth_cookies(user, signup=False):
     refresh = RefreshToken.for_user(user)
@@ -532,7 +534,7 @@ class StrategyView(viewsets.ModelViewSet):
 
     def clone(self, request, pk=None):
         try:
-            original = Strategy.objects.get(id=pk, is_public=True)
+            original = Strategy.objects.get(Q(id=pk) & (Q(is_public=True) | Q(user=request.user)))
         except Strategy.DoesNotExist:
             return Response({"detail": "Strategy does not exist or is not public"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -1297,16 +1299,16 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 else:
                     order['amount'] = min(abs(order['amount']), abs(c.at[i, 'position_amount'])) * order['amount'] / abs(order['amount'])
                     if type == 'limit':
-                        c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - order['price'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else order['price'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
+                        c.at[i, 'position_value'] = Decimal(abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - order['price'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else order['price'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))).quantize(Decimal('1e-20'))
                     order_cost = c.at[i, 'position_value'] * order['amount'] / c.at[i, 'position_amount'] + abs(order['amount']) * Decimal(2 * c.at[i, 'avg_entry_price'] - order['price'] if c.at[i, 'position_amount'] < 0 else order['price']) * fee
                     if c.at[i, 'position_amount'] + order['amount'] == 0:
                         c.at[i, 'avg_entry_price'] = 0
-                c.at[i, 'position_amount'] += order['amount']
+                c.at[i, 'position_amount'] = Decimal(c.at[i, 'position_amount'] + order['amount']).quantize(Decimal('1e-20'))
                 if c.at[i, 'avg_entry_price'] > 0:
-                    c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - order['price'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else order['price'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
+                    c.at[i, 'position_value'] = Decimal(abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - order['price'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else order['price'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))).quantize(Decimal('1e-20'))
                 else:
                     c.at[i, 'position_value'] = 0
-                if not (type == "limit" and order_cost > 0): c.at[i, 'remaining_tradable_value'] -= order_cost
+                if not (type == "limit" and order_cost > 0): c.at[i, 'remaining_tradable_value'] = Decimal(c.at[i, 'remaining_tradable_value'] - order_cost).quantize(Decimal('1e-20'))
                 c.at[i, 'realized_total_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
                 c.at[i, 'unrealized_total_value'] = c.at[i, 'position_value'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
                 abs_profit = -1 * abs(order['amount']) * last_avg_entry_price - order_cost if c.at[i, 'position_amount'] * order['amount'] <= 0 else -1 * abs(order['amount']) * Decimal(order['price']) * fee
@@ -1336,7 +1338,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 
                 if type == "cancel_all_open_orders":
                     if real_trading: exchange.cancel_all_orders(symbol=symbol)
-                    c.at[i, 'remaining_tradable_value'] += open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
+                    c.at[i, 'remaining_tradable_value'] += Decimal(open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()).quantize(Decimal('1e-20'))
                     open_orders_df = open_orders_df.iloc[0:0]
                     c.at[i, 'realized_total_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] + c.at[i, 'remaining_tradable_value']
                     c.at[i, 'unrealized_total_value'] = c.at[i, 'position_value'] + c.at[i, 'remaining_tradable_value']
@@ -1391,7 +1393,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         if order['cost'] > c.at[i, 'remaining_tradable_value']:
                             order['amount'] = c.at[i, 'remaining_tradable_value'] / order['price'] / (Decimal(1 / leverage) + maker_fee) * order['amount'] / abs(order['amount'])
                             order['cost'] = c.at[i, 'remaining_tradable_value']
-                        c.at[i, 'remaining_tradable_value'] -= order['cost']
+                        c.at[i, 'remaining_tradable_value'] = Decimal(c.at[i, 'remaining_tradable_value'] - order['cost']).quantize(Decimal('1e-20'))
                     open_orders_df = pd.concat([open_orders_df, pd.DataFrame([order])], ignore_index=True)
                     c.at[i, 'realized_total_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
                     c.at[i, 'unrealized_total_value'] = c.at[i, 'position_value'] + c.at[i, 'remaining_tradable_value'] + open_orders_df.loc[open_orders_df['cost'] > 0, 'cost'].sum()
@@ -1508,7 +1510,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         c.at[i, 'avg_entry_price'] = c.at[i-1, 'avg_entry_price']
                         c.at[i, 'remaining_tradable_value'] = c.at[i-1, 'remaining_tradable_value']
                     if c.at[i, 'avg_entry_price'] > 0:
-                        c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * Decimal((2 - c.at[i, 'close'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else c.at[i, 'close'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
+                        c.at[i, 'position_value'] = Decimal(abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * Decimal((2 - c.at[i, 'close'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else c.at[i, 'close'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))).quantize(Decimal('1e-20'))
                     else:
                         c.at[i, 'position_value'] = 0
                     if c.at[i, 'position_value'] < 0:
@@ -1591,7 +1593,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         c.at[i, 'avg_entry_price'] = c.at[i-1, 'avg_entry_price']
                         c.at[i, 'remaining_tradable_value'] = c.at[i-1, 'remaining_tradable_value']
                     if c.at[i, 'avg_entry_price'] > 0:
-                        c.at[i, 'position_value'] = abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * Decimal((2 - c.at[i, 'close'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else Decimal(c.at[i, 'close']) / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))
+                        c.at[i, 'position_value'] = Decimal(abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * Decimal((2 - c.at[i, 'close'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else Decimal(c.at[i, 'close']) / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))).quantize(Decimal('1e-20'))
                     else:
                         c.at[i, 'position_value'] = 0
                     if c.at[i, 'position_value'] < 0:
@@ -1639,6 +1641,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             
             execution.running = False
             execution.save()
+            c.to_csv('dataframe_output.csv', sep=';', index=False, decimal=',')
         except Exception as e:
             import sys; print("ERROR: " + e, file=sys.stderr)
             execution.running = False
