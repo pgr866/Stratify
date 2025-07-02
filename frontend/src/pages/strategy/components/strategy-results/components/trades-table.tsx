@@ -60,10 +60,10 @@ export function TradesTable({ trades, symbol }: { readonly trades: Trade[]; read
 						<TableHead className="text-muted-foreground w-[60px]">Trade #</TableHead>
 						<TableHead className="text-muted-foreground w-[70px]">Type</TableHead>
 						<TableHead className="text-muted-foreground w-[50px]">Side</TableHead>
-						<TableHead className="text-muted-foreground w-[160px]">Date/Time</TableHead>
+						<TableHead className="text-muted-foreground w-[150px]">Date/Time</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Price</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Amount</TableHead>
-						<TableHead className="text-muted-foreground w-[126px]">Cost</TableHead>
+						<TableHead className="text-muted-foreground w-[136px]">Cost</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Avg. Entry Price</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Net Profit</TableHead>
 						<TableHead className="text-muted-foreground w-[126px]">Cum. Profit</TableHead>
@@ -82,12 +82,12 @@ export function TradesTable({ trades, symbol }: { readonly trades: Trade[]; read
 								<TableCell className="justify-center font-medium w-[61px]">{sortedTrades.length - virtualRow.index}</TableCell>
 								<TableCell className="w-[71px]">{trade.type}</TableCell>
 								<TableCell className={`w-[51px] ${trade?.side === 'buy' ? 'text-[#2EBD85]' : 'text-[#F6465D]'}`}>{trade.side}</TableCell>
-								<TableCell className="w-[161px]">
+								<TableCell className="w-[151px]">
 									{format(toZonedTime(new Date(trade.timestamp), user.timezone), "MMM dd yyyy, HH:mm")}
 								</TableCell>
 								<TableCell className="w-[127px]">{formatNumber(trade.price)} {quoteCurrency}</TableCell>
 								<TableCell className="w-[127px]">{formatNumber(trade.amount)} {baseCurrency}</TableCell>
-								<TableCell className="w-[127px]">{formatNumber(trade.cost)} {quoteCurrency}</TableCell>
+								<TableCell className="w-[137px]">{formatNumber(trade.cost)} {quoteCurrency}</TableCell>
 								<TableCell className="w-[127px]">{formatNumber(trade.avg_entry_price)} {quoteCurrency}</TableCell>
 
 								<TableCell className="flex flex-col !items-start w-[127px]">

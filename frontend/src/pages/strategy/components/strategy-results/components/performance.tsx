@@ -35,7 +35,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
   return (
     <div className="h-full flex flex-col">
       <TooltipProvider>
-        <div className="mx-4 my-2 w-full flex gap-4">
+        <div className="mx-4 my-2 w-full flex">
 
           <div className="flex flex-col flex-1 gap-2">
             <div className="flex items-center gap-1">
@@ -59,7 +59,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
             </div>
           </div>
 
-          <div className="flex flex-col flex-1 gap-2">
+          <div className="flex flex-col mr-8 gap-2">
             <div className="flex items-center gap-1">
               <Label>Total closed trades</Label>
               <Tooltip>
@@ -76,7 +76,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
             </Label>
           </div>
 
-          <div className="flex flex-col flex-1 gap-2">
+          <div className="flex flex-col mr-8 gap-2">
             <div className="flex items-center gap-1">
               <Label>Winning trade rate</Label>
               <Tooltip>
@@ -95,7 +95,7 @@ export function Performance({ strategyExecution }: { readonly strategyExecution:
             </div>
           </div>
 
-          <div className="flex flex-col flex-1 gap-2">
+          <div className="flex flex-col mr-8 gap-2">
             <div className="flex items-center gap-1">
               <Label>Profit factor</Label>
               <Tooltip>

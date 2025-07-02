@@ -1698,7 +1698,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             timeframe=timeframe,
             timestamp_start=timestamp_start,
             timestamp_end=timestamp_end,
-            indicators=strategy.indicators,
+            indicators=json.dumps(json.loads(strategy.indicators), separators=(',', ':')),
             maker_fee=Decimal(request.data["maker_fee"]),
             taker_fee=Decimal(request.data["taker_fee"]),
             initial_tradable_value=initial_tradable_value,
