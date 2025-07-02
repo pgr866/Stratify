@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,6 +17,7 @@ import { useSession } from "@/App";
 
 export function OrderConditions({ selectedStrategy, setStrategyExecutions, selectedStrategyExecution, setSelectedStrategyExecution, loadStrategyExecution, isLoading }) {
 	const { user } = useSession();
+	const navigate = useNavigate();
 	const [baseCurrency, setBaseCurrency] = useState("");
 	const [quoteCurrency, setQuoteCurrency] = useState("");
 	const [maxLeverage, setMaxLeverage] = useState();
@@ -78,9 +80,7 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 					loadStrategyExecution(response.data.id);
 					setStrategyExecutions(prev => [response.data, ...prev]);
 					toast("Strategy execution started successfully");
-					setTimeout(() => {
-						window.location.href = `/strategy/${selectedStrategy.id}?execution=${response.data.id}`;
-					}, 1500);
+					navigate(`/strategy/${selectedStrategy.id}?execution=${response.data.id}`);
 				})
 				.catch(error => toast("Failed to start strategy execution", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }));
 		}
