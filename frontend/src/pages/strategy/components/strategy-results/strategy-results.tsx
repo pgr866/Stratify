@@ -39,7 +39,8 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
       selectedStrategy.timeframe === selectedStrategyExecution.timeframe &&
       selectedStrategy.timestamp_start === selectedStrategyExecution.timestamp_start &&
       selectedStrategy.timestamp_end === selectedStrategyExecution.timestamp_end &&
-      JSON.stringify(selectedStrategy.indicators) === selectedStrategyExecution.indicators) return;
+      JSON.stringify(selectedStrategy.indicators) === selectedStrategyExecution.indicators ||
+      (selectedStrategyExecution?.type === 'real' && selectedStrategyExecution?.running)) return;
     setSelectedStrategyExecution();
   }, [selectedStrategy]);
 
@@ -85,7 +86,7 @@ export function StrategyResults({ selectedStrategy, setSelectedStrategy, setSele
     setSelectedSymbol(selectedStrategyExecution.symbol);
     setSelectedTimeframe(selectedStrategyExecution.timeframe);
     setSelectedDatetimeRange({ from: selectedStrategyExecution.timestamp_start, to: selectedStrategyExecution.timestamp_end });
-    setSelectedStrategy(prev => ({ ...prev, indicators: JSON.parse(selectedStrategyExecution.indicators ?? '[]') }));
+    setSelectedStrategy(prev => ({ ...prev, timestamp_start: selectedStrategyExecution.timestamp_start, timestamp_end: selectedStrategyExecution.timestamp_end, indicators: JSON.parse(selectedStrategyExecution.indicators ?? '[]') }));
   }, [selectedStrategyExecution?.id]);
 
   const loadStrategyExecution = async (id: string) => {

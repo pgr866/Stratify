@@ -163,7 +163,7 @@ export function Strategy() {
           timeframe: selectedTimeframe,
           timestamp_start: selectedDatetimeRange.from,
           timestamp_end: selectedDatetimeRange.to,
-          indicators: JSON.stringify(selectedStrategy.indicators)
+          indicators: selectedStrategyExecution?.indicators ?? JSON.stringify(selectedStrategy.indicators),
         })
         .then((response: StrategyType) => setSelectedStrategy({ ...response.data, indicators: JSON.parse(response.data.indicators ?? '[]') }))
         .catch((error) => toast("Failed to update strategy", { description: error.response?.data?.detail ?? error.message ?? "Unknown error" }));

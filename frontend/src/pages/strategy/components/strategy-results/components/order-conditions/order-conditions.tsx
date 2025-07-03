@@ -56,7 +56,6 @@ export function OrderConditions({ selectedStrategy, setStrategyExecutions, selec
 					setMakerFee(marketInfo.maker_fee ?? 0);
 					setTakerFee(marketInfo.taker_fee ?? 0);
 					setMaxLeverage(marketInfo.max_leverage ?? undefined);
-					setIsRealTrading(false);
 					if (marketInfo.maker_fee && marketInfo.taker_fee) {
 						setFeesLoaded(true);
 					}

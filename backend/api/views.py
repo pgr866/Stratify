@@ -1301,7 +1301,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     if type == 'limit':
                         c.at[i, 'position_value'] = Decimal(abs(c.at[i, 'position_amount']) * c.at[i, 'avg_entry_price'] * ((2 - order['price'] / c.at[i, 'avg_entry_price'] if c.at[i, 'position_amount'] < 0 else order['price'] / c.at[i, 'avg_entry_price']) - 1 + Decimal(1 / leverage))).quantize(Decimal('1e-20'))
                     order_cost = c.at[i, 'position_value'] * order['amount'] / c.at[i, 'position_amount'] + abs(order['amount']) * Decimal(2 * c.at[i, 'avg_entry_price'] - order['price'] if c.at[i, 'position_amount'] < 0 else order['price']) * fee
-                    if c.at[i, 'position_amount'] + order['amount'] == 0:
+                    if Decimal(c.at[i, 'position_amount'] + order['amount']).quantize(Decimal('1e-20')) == 0:
                         c.at[i, 'avg_entry_price'] = 0
                 c.at[i, 'position_amount'] = Decimal(c.at[i, 'position_amount'] + order['amount']).quantize(Decimal('1e-20'))
                 if c.at[i, 'avg_entry_price'] > 0:
@@ -1326,7 +1326,6 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 new_trade = {'strategy_execution': execution, 'type': type, 'side': order['side'], 'timestamp': order['timestamp'], 'price': order['price'], 'amount': abs(order['amount']), 'cost': order_cost, 'avg_entry_price': c.at[i, 'avg_entry_price'],
                              'abs_profit': abs_profit, 'rel_profit': rel_profit, 'abs_cum_profit': abs_cum_profit, 'rel_cum_profit': rel_cum_profit, 'abs_hodling_profit': abs_hodling_profit, 'rel_hodling_profit': rel_hodling_profit, 'abs_runup': abs_runup, 'rel_runup': rel_runup, 'abs_drawdown': abs_drawdown, 'rel_drawdown': rel_drawdown}
                 trades_df = pd.concat([trades_df, pd.DataFrame([new_trade])], ignore_index=True)
-                
                 abs_max_runup = max(abs_max_runup, c.at[i, 'unrealized_total_value'] - min_ever_total_unrealized_value)
                 rel_max_runup = abs_max_runup / min_ever_total_unrealized_value * 100 if min_ever_total_unrealized_value != 0 else 0
                 abs_max_drawdown = min(abs_max_drawdown, c.at[i, 'unrealized_total_value'] - max_ever_total_unrealized_value)
@@ -1378,12 +1377,11 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     params = {'reduceOnly': False if c.at[i, 'position_amount'] * order_amount >= 0 else True, **({'timeInForce': 'PO'} if type == 'limit' and exchange.has.get('createPostOnlyOrder') else {'timeInForce': 'GTC'} if type == 'limit' else {})}
                     order = exchange.create_order(symbol=symbol, type=type, side=side, amount=amount, price=price, params=params)
                     order_id = order['id']
-                    order_timestamp = order['timestamp']
                     order_amount = order['amount'] if side == 'buy' else -1 * order['amount']
                     if ':' in symbol:
                         order_amount = order_amount * contract_size
                     order_price = order['price']
-                order = {'id': order_id, 'timestamp': order_timestamp, 'side': side, 'amount': order_amount, 'price': order_price}
+                order = {'id': order_id, 'timestamp': order_timestamp, 'side': side, 'amount': order_amount, 'price': Decimal(order_price)}
                 if c.at[i, 'position_amount'] * order['amount'] >= 0 and c.at[i, 'remaining_tradable_value'] == 0: return
                 if type == 'market':
                     trade_calculation(type, order)
@@ -1404,8 +1402,8 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 exchange=exchange,
                 symbol=symbol,
                 timeframe=execution.timeframe,
-                timestamp_start=execution.timestamp_start - (2 * timeframe_ms if real_trading else timeframe_ms),
-                timestamp_end=execution.timestamp_start - timeframe_ms if real_trading else execution.timestamp_end,
+                timestamp_start=execution.timestamp_start if real_trading else execution.timestamp_start - timeframe_ms,
+                timestamp_end=execution.timestamp_start if real_trading else execution.timestamp_end,
                 db_search=True
             )
             indicators = json.loads(execution.indicators)
@@ -1499,8 +1497,8 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 orders_str.append(orders_result)
             
             if real_trading:
-                i = 0
                 while True:
+                    i = len(c) - 1
                     if i == 0:
                         c.at[i, 'position_amount'] = 0
                         c.at[i, 'avg_entry_price'] = 0
@@ -1530,7 +1528,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         for open_order in open_orders_df.itertuples():
                             order_data = exchange.fetch_order(open_order.id, symbol)
                             if order_data.get('status') == 'closed':
-                                trade_calculation('limit', {'id': open_order.id, 'timestamp': order_data.get('timestamp', c.at[i, 'timestamp']), 'side': open_order.side, 'amount': open_order.amount, 'price': open_order.price})
+                                trade_calculation('limit', {'id': open_order.id, 'timestamp': c.at[i, 'timestamp'], 'side': open_order.side, 'amount': open_order.amount, 'price': Decimal(open_order.price)})
                                 orders_to_drop.append(open_order.Index)
                         open_orders_df = open_orders_df.drop(orders_to_drop).reset_index(drop=True)
                         for x, condition_result in enumerate(conditions_str):
@@ -1553,7 +1551,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         execution.rel_max_run_up = rel_max_runup
                         execution.abs_max_drawdown = abs_max_drawdown
                         execution.rel_max_drawdown = rel_max_drawdown
-                        Trade.objects.bulk_create([Trade(**row) for row in trades_df.to_dict(orient='records')])
+                        Trade.objects.bulk_create([Trade(**row) for row in trades_df[trades_df['timestamp'] == c.at[i, 'timestamp']].to_dict(orient='records')])
                     execution.timestamp_end = int(c.at[c.index[-1], 'timestamp'])
                     execution.save()
                     last_candle_timestamp = int(c.at[c.index[-1], 'timestamp'])
@@ -1576,9 +1574,9 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     decimal_cols = [col for col in new_candles.columns if col != 'timestamp']
                     new_candles[decimal_cols] = new_candles[decimal_cols].applymap(lambda x: Decimal(str(x)) if pd.notnull(x) else None)
                     c = pd.concat([c, new_candles[new_candles['timestamp'] == next_candle_timestamp]], ignore_index=True)
-                    if len(c) > 2: c = c.iloc[1:].reset_index(drop=True)
-                    calculate_indicators(execution.timestamp_start - 2 * timeframe_ms, next_candle_timestamp)
-                    if i == 0: i = 1
+                    if len(c) > 1000:
+                        c = c.iloc[-1000:].reset_index(drop=True)
+                    calculate_indicators(int(c['timestamp'].iloc[0]), int(c['timestamp'].iloc[-1]))
             else:
                 for i in c.index:
                     execution.refresh_from_db()
@@ -1613,7 +1611,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                     orders_to_drop = []
                     for open_order in open_orders_df.itertuples():
                         if open_order.side == 'buy' and c.at[i, 'low'] <= open_order.price or open_order.side == 'sell' and c.at[i, 'high'] >= open_order.price:
-                            trade_calculation('limit', {'id': open_order.id, 'timestamp': c.at[i, 'timestamp'], 'side': open_order.side, 'amount': open_order.amount, 'price': open_order.price})
+                            trade_calculation('limit', {'id': open_order.id, 'timestamp': c.at[i, 'timestamp'], 'side': open_order.side, 'amount': open_order.amount, 'price': Decimal(open_order.price)})
                             orders_to_drop.append(open_order.Index)
                     open_orders_df = open_orders_df.drop(orders_to_drop).reset_index(drop=True)
                     for x, condition_result in enumerate(conditions_str):
@@ -1641,7 +1639,6 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             
             execution.running = False
             execution.save()
-            c.to_csv('dataframe_output.csv', sep=';', index=False, decimal=',')
         except Exception as e:
             import sys; print("ERROR: " + e, file=sys.stderr)
             execution.running = False
@@ -1680,8 +1677,10 @@ class StrategyExecutionView(viewsets.ModelViewSet):
         timestamp_end = strategy.timestamp_end
         now = int(time.time() * 1000)
         if type == 'real':
-            timestamp_end = now
-            timestamp_start = now
+            timeframe_ms = int(pd.Timedelta(f"{int(timeframe[:-1]) * (30 if timeframe.endswith('M') else 365)}d" if timeframe.endswith(('M','y')) else timeframe).total_seconds() * 1000)
+            last_timestamp = int(now - (now % timeframe_ms) - timeframe_ms)
+            timestamp_end = last_timestamp
+            timestamp_start = last_timestamp
             try:
                 exchange = Exchange(strategy.exchange, request.user)
                 exchange.fetch_balance()
