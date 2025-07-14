@@ -1355,7 +1355,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                 order_timestamp = c.at[i, 'timestamp']
                 amount = abs(amount)
                 order_amount = amount if side == 'buy' else -1 * amount
-                order_price = price
+                order_price = Decimal(price)
 
                 if real_trading:
                     if c.at[i, 'position_amount'] * order_amount >= 0 and amount * order_price * (Decimal(1 / leverage) + fee) > c.at[i, 'remaining_tradable_value']:
@@ -1372,16 +1372,15 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         try:
                             orderbook = exchange.fetch_l2_order_book(symbol, 1)
                             if len(orderbook['asks']) > 0:
-                                price = orderbook['asks'][0][0]
+                                order_price = Decimal(orderbook['asks'][0][0])
                         except: pass
                     params = {'reduceOnly': False if c.at[i, 'position_amount'] * order_amount >= 0 else True, **({'timeInForce': 'PO'} if type == 'limit' and exchange.has.get('createPostOnlyOrder') else {'timeInForce': 'GTC'} if type == 'limit' else {})}
-                    order = exchange.create_order(symbol=symbol, type=type, side=side, amount=amount, price=price, params=params)
+                    order = exchange.create_order(symbol=symbol, type=type, side=side, amount=amount, price=order_price, params=params)
                     order_id = order['id']
                     order_amount = order['amount'] if side == 'buy' else -1 * order['amount']
                     if ':' in symbol:
                         order_amount = order_amount * contract_size
-                    order_price = order['price']
-                order = {'id': order_id, 'timestamp': order_timestamp, 'side': side, 'amount': order_amount, 'price': Decimal(order_price)}
+                order = {'id': order_id, 'timestamp': order_timestamp, 'side': side, 'amount': order_amount, 'price': order_price}
                 if c.at[i, 'position_amount'] * order['amount'] >= 0 and c.at[i, 'remaining_tradable_value'] == 0: return
                 if type == 'market':
                     trade_calculation(type, order)
