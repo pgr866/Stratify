@@ -1639,9 +1639,9 @@ class StrategyExecutionView(viewsets.ModelViewSet):
             execution.running = False
             execution.save()
         except Exception as e:
-            import sys; print("ERROR: " + e, file=sys.stderr)
             execution.running = False
             execution.save()
+            import sys; print("ERROR: " + e, file=sys.stderr)
 
     @action(detail=True, methods=['post'])
     def start(self, request):
