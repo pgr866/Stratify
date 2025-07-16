@@ -47,6 +47,7 @@ GITHUB_CLIENT_SECRET=your-github-secret
 
 ### 🛠️ Production (Ubuntu + Azure)
 - Set `DEBUG=False` in your `.env`.
+- Comment ports and develop blocks in docker-compose.yml
 - Run the secure setup script on your Azure VM:
 ```bash
 sudo chmod +x secure_ubuntu_server.sh && ./secure_ubuntu_server.sh
