@@ -1368,16 +1368,12 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         except: pass
                         contract_size = exchange.markets.get(symbol).get('contractSize')
                         amount = amount / contract_size
-                    if type == 'market' and side == 'buy':
-                        try:
-                            orderbook = exchange.fetch_l2_order_book(symbol, 1)
-                            if len(orderbook['asks']) > 0:
-                                order_price = Decimal(orderbook['asks'][0][0])
-                        except: pass
                     params = {'reduceOnly': False if c.at[i, 'position_amount'] * order_amount >= 0 else True, **({'timeInForce': 'PO'} if type == 'limit' and exchange.has.get('createPostOnlyOrder') else {'timeInForce': 'GTC'} if type == 'limit' else {})}
-                    order = exchange.create_order(symbol=symbol, type=type, side=side, amount=amount, price=order_price, params=params)
+                    order = exchange.create_order(symbol=symbol, type=type, side=side, amount=amount, price=order_price if type == 'limit' else None, params=params)
                     order_id = order['id']
-                    order_amount = order['amount'] if side == 'buy' else -1 * order['amount']
+                    order = exchange.fetch_order(order_id, symbol)
+                    order_amount = Decimal(order['filled'] if side == 'buy' else -1 * order['filled'])
+                    order_price = Decimal(order['average'] if type == 'market' else order['price'])
                     if ':' in symbol:
                         order_amount = order_amount * contract_size
                 order = {'id': order_id, 'timestamp': order_timestamp, 'side': side, 'amount': order_amount, 'price': order_price}
@@ -1527,7 +1523,7 @@ class StrategyExecutionView(viewsets.ModelViewSet):
                         for open_order in open_orders_df.itertuples():
                             order_data = exchange.fetch_order(open_order.id, symbol)
                             if order_data.get('status') == 'closed':
-                                trade_calculation('limit', {'id': open_order.id, 'timestamp': c.at[i, 'timestamp'], 'side': open_order.side, 'amount': open_order.amount, 'price': Decimal(open_order.price)})
+                                trade_calculation('limit', {'id': open_order.id, 'timestamp': c.at[i, 'timestamp'], 'side': open_order.side, 'amount': order_data.get('amount'), 'price': Decimal(order_data.get('price'))})
                                 orders_to_drop.append(open_order.Index)
                         open_orders_df = open_orders_df.drop(orders_to_drop).reset_index(drop=True)
                         for x, condition_result in enumerate(conditions_str):
