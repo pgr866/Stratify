@@ -72,20 +72,22 @@ def send_verification_code(email):
 
 class Exchange:
     def __new__(cls, exchange_name, user):
-        try:
-            api_key_instance = list(ApiKey.objects.filter(user=user, exchange=exchange_name).values('api_key', 'secret', 'password', 'uid'))
-            exchange = getattr(ccxt, exchange_name)(api_key_instance[0] if api_key_instance else {})
-            if exchange.has.get('fetchStatus'):
-                status_response = exchange.fetch_status()
-                if status_response.get('status') != 'ok':
-                    raise Exception('Exchange service unavailable')
-            exchange.load_markets()
-            exchange.precisionMode = ccxt.TICK_SIZE
-            exchange.roundingMode = ccxt.TRUNCATE
-            exchange.name = exchange_name
-            return exchange
-        except Exception:
-            raise Exception('Unable to initialize exchange')
+        while True:
+            try:
+                api_key_instance = list(ApiKey.objects.filter(user=user, exchange=exchange_name).values('api_key', 'secret', 'password', 'uid'))
+                exchange = getattr(ccxt, exchange_name)(api_key_instance[0] if api_key_instance else {})
+                if exchange.has.get('fetchStatus'):
+                    status_response = exchange.fetch_status()
+                    if status_response.get('status') != 'ok':
+                        raise Exception('Exchange service unavailable')
+                exchange.load_markets()
+                exchange.precisionMode = ccxt.TICK_SIZE
+                exchange.roundingMode = ccxt.TRUNCATE
+                exchange.name = exchange_name
+                return exchange
+            except Exception:
+                raise Exception('Unable to initialize exchange')
+                time.sleep(1)
 
 #@method_decorator(cache_page(60*15), name='dispatch')
 class UserView(viewsets.ModelViewSet):
