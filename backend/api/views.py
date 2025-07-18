@@ -9,6 +9,7 @@ import pandas as pd
 import talib as ta
 import time
 import threading
+import functools
 from decimal import Decimal, getcontext
 
 from django.conf import settings
@@ -71,23 +72,53 @@ def send_verification_code(email):
     return Response({'detail': 'Verification code sent to your email'}, status=status.HTTP_200_OK)
 
 class Exchange:
+    RETRIABLE_EXCEPTIONS = (ccxt.NetworkError, ccxt.RequestTimeout, ccxt.ExchangeNotAvailable, ccxt.DDoSProtection, ccxt.RateLimitExceeded, ccxt.InvalidNonce)
+    RETRY_METHODS = ['fetch_ohlcv', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'create_order', 'fetch_order', 'fetch_balance']
+    MAX_RETRIES = 10
+
     def __new__(cls, exchange_name, user):
-        while True:
+        for init_attempt in range(cls.MAX_RETRIES):
             try:
                 api_key_instance = list(ApiKey.objects.filter(user=user, exchange=exchange_name).values('api_key', 'secret', 'password', 'uid'))
-                exchange = getattr(ccxt, exchange_name)(api_key_instance[0] if api_key_instance else {})
+                config = api_key_instance[0] if api_key_instance else {}
+                config['timeout'] = 30000
+                config['enableRateLimit'] = True
+                exchange = getattr(ccxt, exchange_name)(config)
+
                 if exchange.has.get('fetchStatus'):
                     status_response = exchange.fetch_status()
                     if status_response.get('status') != 'ok':
                         raise Exception('Exchange service unavailable')
+
                 exchange.load_markets()
                 exchange.precisionMode = ccxt.TICK_SIZE
                 exchange.roundingMode = ccxt.TRUNCATE
                 exchange.name = exchange_name
+
+                for method_name in cls.RETRY_METHODS:
+                    if hasattr(exchange, method_name):
+                        original_method = getattr(exchange, method_name)
+
+                        def make_wrapped(_method, _name):
+                            @functools.wraps(_method)
+                            def wrapped(*args, **kwargs):
+                                for method_attempt in range(cls.MAX_RETRIES):
+                                    try:
+                                        return _method(*args, **kwargs)
+                                    except cls.RETRIABLE_EXCEPTIONS as e:
+                                        print(f"[{_name}] Retry {method_attempt + 1}/{cls.MAX_RETRIES} due to {type(e).__name__}: {e}")
+                                        time.sleep(2 ** method_attempt)
+                                raise ccxt.BaseError(f"{_name} failed after {cls.MAX_RETRIES} retries")
+                            return wrapped
+
+                        setattr(exchange, method_name, make_wrapped(original_method, method_name))
+
                 return exchange
-            except Exception:
-                raise Exception('Unable to initialize exchange')
-                time.sleep(1)
+            except Exception as e:
+                print(f"[Exchange Init Error] Attempt {init_attempt + 1}/{cls.MAX_RETRIES}: {e}. Retrying in {2 ** init_attempt} seconds...")
+                time.sleep(2 ** init_attempt)
+
+        raise Exception(f"Failed to initialize exchange {exchange_name} after {cls.MAX_RETRIES} retries")
 
 #@method_decorator(cache_page(60*15), name='dispatch')
 class UserView(viewsets.ModelViewSet):
